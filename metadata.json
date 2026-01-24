@@ -1,0 +1,8 @@
+{
+  "name": "Copy of Aura AI Assistant",
+  "description": "第一阶段产品DEMO-A senior-friendly, next-gen AI assistant featuring visual scanning, intelligent procurement, and scam protection.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
