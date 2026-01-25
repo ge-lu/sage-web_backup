@@ -1,28 +1,32 @@
 
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import BottomNav from './components/BottomNav';
 import Onboarding from './components/Onboarding';
 import ChatOverlay from './components/ChatOverlay';
 import UberRideModal from './components/UberRideModal';
 
-// Views
-import Dashboard from './views/Dashboard';
-import OmnibusScan from './views/OmnibusScan';
-import GuardianAlert from './views/GuardianAlert';
-import FamilyConnectionsView from './views/FamilyConnectionsView';
-import PlanView from './views/PlanView';
-import ProfileView from './views/ProfileView';
-import SettingsView from './views/SettingsView';
-import ProcurerShop from './views/ProcurerShop';
-import LoginView from './views/LoginView';
-import SignUpView from './views/SignUpView';
-import ForgotPasswordView from './views/ForgotPasswordView';
+// Pages (formerly Views)
+import Dashboard from './pages/Dashboard';
+import OmnibusScan from './pages/OmnibusScan';
+import GuardianAlert from './pages/GuardianAlert';
+import FamilyConnectionsView from './pages/FamilyConnectionsView';
+import PlanView from './pages/PlanView';
+import ProfileView from './pages/ProfileView';
+import SettingsView from './pages/SettingsView';
+import ProcurerShop from './pages/ProcurerShop';
+import LoginView from './pages/LoginView';
+import SignUpView from './pages/SignUpView';
+import ForgotPasswordView from './pages/ForgotPasswordView';
 
 import { AppMode, HistoryItem, TaskCard } from './types';
+import { getPathForMode } from './routes';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   // --- 1. GLOBAL APP STATE (The Source of Truth) ---
-  const [currentMode, setCurrentMode] = useState<AppMode>(AppMode.DASHBOARD);
   const [isAppLoading, setIsAppLoading] = useState(true);
 
   // --- 2. USER & AUTH STATE ---
@@ -114,15 +118,16 @@ const App: React.FC = () => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
 
     // 2. Auth Protection Guard
+    // Note: We also use RequireAuth for direct URL access, but this covers programmatic navigation
     const protectedRoutes = [AppMode.PROFILE, AppMode.SETTINGS];
     if (!isAuthenticated && protectedRoutes.includes(mode)) {
       setLoginReason("Log in to view personal settings.");
-      setCurrentMode(AppMode.LOGIN);
+      navigate(getPathForMode(AppMode.LOGIN));
       return;
     }
 
     // 3. Navigate
-    setCurrentMode(mode);
+    navigate(getPathForMode(mode));
   };
 
   // --- USAGE TRACKING (Guest Limits) ---
@@ -141,7 +146,7 @@ const App: React.FC = () => {
     // Limit Logic
     if (vCount >= 5 || sCount >= 3) {
       setLoginReason("Free guest limit reached. Log in to continue.");
-      setCurrentMode(AppMode.LOGIN);
+      navigate(getPathForMode(AppMode.LOGIN));
     }
   };
 
@@ -149,9 +154,9 @@ const App: React.FC = () => {
   const handleActionTrigger = (action: string) => {
     console.log("Global Action Triggered:", action);
     switch (action) {
-      case 'SHOW_UBER': setCurrentMode(AppMode.RIDE_REQUEST); break;
-      case 'SHOW_BILL_ANALYSIS': setCurrentMode(AppMode.OMNIBUS); break;
-      case 'TRIGGER_SAFETY': setCurrentMode(AppMode.GUARDIAN_ALERT); break;
+      case 'SHOW_UBER': navigate(getPathForMode(AppMode.RIDE_REQUEST)); break;
+      case 'SHOW_BILL_ANALYSIS': navigate(getPathForMode(AppMode.OMNIBUS)); break;
+      case 'TRIGGER_SAFETY': navigate(getPathForMode(AppMode.GUARDIAN_ALERT)); break;
       case 'NAVIGATE_DASHBOARD': handleNavigation(AppMode.DASHBOARD); break;
       case 'NAVIGATE_MATE': handleNavigation(AppMode.FAMILY_CONNECTIONS); break;
       case 'NAVIGATE_PLAN': handleNavigation(AppMode.PLAN); break;
@@ -163,99 +168,133 @@ const App: React.FC = () => {
   const startChat = (query: string = "", action: string | null = null) => {
     setInitialChatQuery(query);
     setInitialChatAction(action);
-    setCurrentMode(AppMode.CHAT);
+    navigate(getPathForMode(AppMode.CHAT));
   };
 
-  // --- VIEW RENDERER (The "Switchboard") ---
-  const renderCurrentView = () => {
-    switch (currentMode) {
-      // 1. Auth Views
-      case AppMode.LOGIN:
-        return <LoginView onLoginSuccess={() => { setIsAuthenticated(true); setLoginReason(undefined); handleNavigation(AppMode.DASHBOARD); }} onNavigate={setCurrentMode} loginMessage={loginReason} onClose={() => handleNavigation(AppMode.DASHBOARD)} />;
-      case AppMode.SIGNUP:
-        return <SignUpView onLoginSuccess={() => { setIsAuthenticated(true); handleNavigation(AppMode.DASHBOARD); }} onNavigate={setCurrentMode} />;
-      case AppMode.FORGOT_PASSWORD:
-        return <ForgotPasswordView onNavigate={setCurrentMode} />;
-
-      // 2. Full Screen Overlays (No Bottom Nav)
-      case AppMode.OMNIBUS:
-        return <OmnibusScan onBack={() => handleNavigation(AppMode.DASHBOARD)} onNavigateToShopping={() => setCurrentMode(AppMode.SHOPPING_RESULT)} onScanUsed={() => trackUsage('scan')} />;
-      case AppMode.GUARDIAN_ALERT:
-        return <GuardianAlert onDismiss={() => handleNavigation(AppMode.FAMILY_CONNECTIONS)} />;
-      case AppMode.CHAT:
-        return <ChatOverlay onClose={() => handleNavigation(AppMode.DASHBOARD)} onTriggerAction={handleActionTrigger} initialQuery={initialChatQuery} initialAction={initialChatAction} onVoiceInteraction={() => trackUsage('voice')} onSaveHistory={handleAddHistoryItem} />;
-      case AppMode.RIDE_REQUEST:
-        return <UberRideModal onClose={() => handleNavigation(AppMode.DASHBOARD)} />;
-      case AppMode.SHOPPING_RESULT:
-        return <ProcurerShop onBack={() => handleNavigation(AppMode.PLAN)} />;
-
-      // 3. Main Tab Views (Has Bottom Nav)
-      case AppMode.FAMILY_CONNECTIONS:
-        return <FamilyConnectionsView />;
-      case AppMode.PLAN:
-        return <PlanView
-          onOpenGuide={() => setShowOnboarding(true)}
-          items={historyItems}
-          tasks={tasks}
-          onUpdateTasks={handleTaskUpdate}
-          onToggleImportant={handleToggleHistoryImportance}
-          onDelete={handleDeleteHistoryItem}
-          onShare={handleShareHistoryItem}
-        />;
-      case AppMode.PROFILE:
-        return <ProfileView onBack={() => handleNavigation(AppMode.DASHBOARD)} onOpenGuide={() => setShowOnboarding(true)} />;
-      case AppMode.SETTINGS:
-        return <SettingsView onBack={() => handleNavigation(AppMode.DASHBOARD)} />;
-
-      // 4. Default / Home
-      case AppMode.DASHBOARD:
-      default:
-        // Filter for pending tasks to show on Dashboard
-        const pendingTasks = tasks.filter(t => !t.completed);
-
-        return (
-          <Dashboard
-            isListening={false}
-            setIsListening={() => startChat()}
-            pendingTasks={pendingTasks} // Pass tasks to Dashboard
-            onSearch={(q) => startChat(q)}
-            onFileSelected={() => startChat("", "ANALYZE_FILE")}
-            onNavigateToPlan={() => handleNavigation(AppMode.PLAN)}
-            onNavigateToScan={() => setCurrentMode(AppMode.OMNIBUS)}
-            onNavigateToMate={() => handleNavigation(AppMode.FAMILY_CONNECTIONS)}
-            onNavigateToProfile={() => handleNavigation(AppMode.PROFILE)}
-            onNavigateToSettings={() => handleNavigation(AppMode.SETTINGS)}
-            onTriggerSOS={() => setCurrentMode(AppMode.GUARDIAN_ALERT)}
-            onVoiceUsed={() => trackUsage('voice')}
-          />
-        );
+  // --- AUTH GUARD COMPONENT ---
+  const RequireAuth = ({ children }: { children: React.ReactElement }) => {
+    if (!isAuthenticated) {
+      setLoginReason("Log in to view access this page.");
+      return <Navigate to="/login" replace />;
     }
+    return children;
   };
 
   if (isAppLoading) return <div className="w-full h-full bg-white flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#00E341] border-t-transparent rounded-full animate-spin"></div></div>;
+
+  // Paths requiring BottomNav
+  const showBottomNav = ![
+    '/login', '/signup', '/forgot-password',
+    '/omnibus', '/guardian-alert', '/chat',
+    '/ride-request', '/shopping-result'
+  ].includes(location.pathname);
 
   return (
     <div className="relative w-full h-[100dvh] overflow-hidden bg-[#F5F7F9] text-[#111827]">
       {showOnboarding && <Onboarding onComplete={() => { localStorage.setItem('aura_has_visited', 'true'); setShowOnboarding(false); }} />}
 
       <div className="relative w-full h-full z-10 flex flex-col">
-        {renderCurrentView()}
+        <Routes>
+          {/* 1. Auth Views */}
+          <Route path="/login" element={
+            <LoginView
+              onLoginSuccess={() => { setIsAuthenticated(true); setLoginReason(undefined); handleNavigation(AppMode.DASHBOARD); }}
+              onNavigate={handleNavigation} // Legacy prop support
+              loginMessage={loginReason}
+              onClose={() => handleNavigation(AppMode.DASHBOARD)}
+            />
+          } />
+          <Route path="/signup" element={
+            <SignUpView
+              onLoginSuccess={() => { setIsAuthenticated(true); handleNavigation(AppMode.DASHBOARD); }}
+              onNavigate={handleNavigation}
+            />
+          } />
+          <Route path="/forgot-password" element={<ForgotPasswordView onNavigate={handleNavigation} />} />
+
+          {/* 2. Full Screen Overlays */}
+          <Route path="/omnibus" element={
+            <OmnibusScan
+              onBack={() => handleNavigation(AppMode.DASHBOARD)}
+              onNavigateToShopping={() => navigate(getPathForMode(AppMode.SHOPPING_RESULT))}
+              onScanUsed={() => trackUsage('scan')}
+            />
+          } />
+          <Route path="/guardian-alert" element={
+            <GuardianAlert onDismiss={() => handleNavigation(AppMode.FAMILY_CONNECTIONS)} />
+          } />
+          <Route path="/chat" element={
+            <ChatOverlay
+              onClose={() => handleNavigation(AppMode.DASHBOARD)}
+              onTriggerAction={handleActionTrigger}
+              initialQuery={initialChatQuery}
+              initialAction={initialChatAction}
+              onVoiceInteraction={() => trackUsage('voice')}
+              onSaveHistory={handleAddHistoryItem}
+            />
+          } />
+          <Route path="/ride-request" element={
+            <UberRideModal onClose={() => handleNavigation(AppMode.DASHBOARD)} />
+          } />
+          <Route path="/shopping-result" element={
+            <ProcurerShop onBack={() => handleNavigation(AppMode.PLAN)} />
+          } />
+
+          {/* 3. Main Tab Views */}
+          <Route path="/family-connections" element={<FamilyConnectionsView />} />
+          <Route path="/plan" element={
+            <PlanView
+              onOpenGuide={() => setShowOnboarding(true)}
+              items={historyItems}
+              tasks={tasks}
+              onUpdateTasks={handleTaskUpdate}
+              onToggleImportant={handleToggleHistoryImportance}
+              onDelete={handleDeleteHistoryItem}
+              onShare={handleShareHistoryItem}
+            />
+          } />
+          <Route path="/profile" element={
+            <RequireAuth>
+              <ProfileView onBack={() => handleNavigation(AppMode.DASHBOARD)} onOpenGuide={() => setShowOnboarding(true)} />
+            </RequireAuth>
+          } />
+          <Route path="/settings" element={
+            <RequireAuth>
+              <SettingsView onBack={() => handleNavigation(AppMode.DASHBOARD)} />
+            </RequireAuth>
+          } />
+
+          {/* 4. Default / Home */}
+          <Route path="/" element={
+            <Dashboard
+              isListening={false}
+              setIsListening={() => startChat()}
+              pendingTasks={tasks.filter(t => !t.completed)}
+              onSearch={(q) => startChat(q)}
+              onFileSelected={() => startChat("", "ANALYZE_FILE")}
+              onTriggerSOS={() => navigate(getPathForMode(AppMode.GUARDIAN_ALERT))}
+              onVoiceUsed={() => trackUsage('voice')}
+            />
+          } />
+        </Routes>
       </div>
 
-      {/* Conditionally Render Bottom Nav based on current mode */}
-      {![
-        AppMode.LOGIN, AppMode.SIGNUP, AppMode.FORGOT_PASSWORD,
-        AppMode.OMNIBUS, AppMode.GUARDIAN_ALERT, AppMode.CHAT,
-        AppMode.RIDE_REQUEST, AppMode.SHOPPING_RESULT
-      ].includes(currentMode) && (
-          <BottomNav
-            currentMode={currentMode}
-            setMode={handleNavigation}
-            onMicTap={() => startChat()}
-            isListening={false}
-          />
-        )}
+      {/* Conditionally Render Bottom Nav */}
+      {showBottomNav && (
+        <BottomNav
+          onMicTap={() => startChat()}
+          isListening={false}
+        />
+      )}
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 };
 

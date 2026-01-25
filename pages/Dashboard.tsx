@@ -1,18 +1,14 @@
-
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AuraOrb from '../components/AuraOrb';
 import { Icons } from '../constants';
-import { TaskCard } from '../types';
+import { TaskCard, AppMode } from '../types';
+import { getPathForMode } from '../routes';
 
 interface DashboardProps {
   isListening: boolean; // Kept for interface compatibility
   setIsListening: (val: boolean) => void;
   pendingTasks?: TaskCard[]; // New Prop
-  onNavigateToPlan: () => void;
-  onNavigateToScan: () => void;
-  onNavigateToMate: () => void;
-  onNavigateToProfile: () => void;
-  onNavigateToSettings: () => void;
   onTriggerSOS: () => void;
   onSearch?: (query: string) => void;
   onFileSelected?: () => void;
@@ -25,16 +21,13 @@ type AuraState = 'neutral' | 'active' | 'thinking' | 'alert' | 'happy';
 const Dashboard: React.FC<DashboardProps> = ({ 
   setIsListening: setGlobalChat, 
   pendingTasks = [],
-  onNavigateToPlan, 
-  onNavigateToScan, 
-  onNavigateToMate, 
-  onNavigateToProfile,
-  onNavigateToSettings,
   onTriggerSOS,
   onSearch,
   onFileSelected,
   onVoiceUsed
 }) => {
+  const navigate = useNavigate();
+  const goTo = (mode: AppMode) => navigate(getPathForMode(mode));
   // --- 1. VISUAL STATE MACHINE ---
   // We control the AuraOrb strictly through this state.
   const [auraState, setAuraState] = useState<AuraState>('happy'); // Start happy
@@ -99,7 +92,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         // Simple Router
         setTimeout(() => {
             if (transcript.includes('scan') || transcript.includes('camera')) {
-                onNavigateToScan();
+                goTo(AppMode.OMNIBUS);
             } else {
                 // Pass to Global Chat for complex handling
                 if (onSearch) onSearch(transcript);
@@ -178,7 +171,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       
       {/* Top Header */}
       <div className="relative flex justify-between items-center mb-4 h-16">
-        <button onClick={onNavigateToSettings} className="w-12 h-12 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm z-20">
+        <button onClick={goTo(AppMode.SETTINGS)} className="w-12 h-12 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm z-20">
              <Icons.Settings className="w-6 h-6 text-gray-400" />
         </button>
         <span className="text-sm font-bold text-gray-400 tracking-wide absolute left-0 right-0 text-center pointer-events-none">Ask Aura anything...</span>
@@ -202,7 +195,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           {/* Replaces Input Area or sits above it when tasks are pending */}
           {primaryTask && !localIsListening ? (
               <div 
-                onClick={onNavigateToPlan}
+                onClick={() => goTo(AppMode.PLAN)}
                 className="w-full max-w-[280px] mt-2 relative z-30 animate-in slide-in-from-bottom duration-500 fade-in zoom-in cursor-pointer active:scale-95 transition-transform"
               >
                   <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-white flex items-center gap-4 relative overflow-hidden group">
@@ -230,7 +223,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                  {showUploadMenu ? (
                      <div className="absolute bottom-[-10px] left-1/2 -translate-x-1/2 w-[340px] h-32 bg-white rounded-[2rem] border border-gray-200 shadow-2xl p-4 flex items-center justify-between gap-3 animate-in fade-in zoom-in duration-200 z-50">
                          <button onClick={() => setShowUploadMenu(false)} className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center"><Icons.X className="w-6 h-6 text-gray-600" /></button>
-                         <button onClick={onNavigateToScan} className="flex flex-col items-center gap-2"><div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100"><Icons.Camera className="w-8 h-8" /></div><span className="text-xs font-bold text-gray-700">Camera</span></button>
+                         <button onClick={() => goTo(AppMode.OMNIBUS)} className="flex flex-col items-center gap-2"><div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100"><Icons.Camera className="w-8 h-8" /></div><span className="text-xs font-bold text-gray-700">Camera</span></button>
                          <button onClick={() => { setShowUploadMenu(false); if(onFileSelected) onFileSelected(); }} className="flex flex-col items-center gap-2"><div className="w-16 h-16 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 border border-purple-100"><Icons.Image className="w-8 h-8" /></div><span className="text-xs font-bold text-gray-700">Photo</span></button>
                      </div>
                  ) : (
@@ -254,7 +247,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Hero Cards */}
       <div className="grid grid-cols-2 gap-4 mt-8">
-          <div onClick={onNavigateToScan} className="h-48 rounded-[2.5rem] bg-[#2E5C7A] relative overflow-hidden shadow-lg active:scale-95 transition-transform cursor-pointer p-6 flex flex-col items-center justify-center gap-3 group">
+          <div onClick={() => goTo(AppMode.OMNIBUS)} className="h-48 rounded-[2.5rem] bg-[#2E5C7A] relative overflow-hidden shadow-lg active:scale-95 transition-transform cursor-pointer p-6 flex flex-col items-center justify-center gap-3 group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
               <div className="w-18 h-18 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-sm p-4"><Icons.Camera className="w-10 h-10 text-white" /></div>
               <div className="text-center"><span className="text-white font-bold text-3xl tracking-tight block mb-1">See</span><span className="text-white/90 text-sm font-bold leading-tight block">Identify & Help</span></div>
@@ -282,7 +275,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isExpanded ? 'bg-gray-100 rotate-90' : 'bg-transparent'}`}><Icons.ChevronLeft className="w-5 h-5 text-gray-400" /></div>
                       </div>
                       <div className={`grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
-                          <div className="overflow-hidden"><div className="px-5 pb-6 pt-0"><div className="pl-[5.25rem]"><div className="h-px w-full bg-gray-100 mb-4"></div><p className="text-base text-gray-600 mb-6 font-medium">{item.detail}</p>{item.actionLabel && <button onClick={(e) => { e.stopPropagation(); if(item.type === 'scam') onNavigateToMate(); if(item.type === 'order') onNavigateToPlan(); }} className="w-full py-4 rounded-xl text-base font-bold bg-gray-50 text-gray-900 flex items-center justify-center gap-2 hover:bg-gray-100">{item.actionLabel}<Icons.ArrowRight className="w-4 h-4" /></button>}</div></div></div>
+                          <div className="overflow-hidden"><div className="px-5 pb-6 pt-0"><div className="pl-[5.25rem]"><div className="h-px w-full bg-gray-100 mb-4"></div><p className="text-base text-gray-600 mb-6 font-medium">{item.detail}</p>{item.actionLabel && <button onClick={(e) => { e.stopPropagation(); if(item.type === 'scam') goTo(AppMode.FAMILY_CONNECTIONS); if(item.type === 'order') goTo(AppMode.PLAN); }} className="w-full py-4 rounded-xl text-base font-bold bg-gray-50 text-gray-900 flex items-center justify-center gap-2 hover:bg-gray-100">{item.actionLabel}<Icons.ArrowRight className="w-4 h-4" /></button>}</div></div></div>
                       </div>
                   </div>
               );

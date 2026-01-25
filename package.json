@@ -1,5 +1,5 @@
 {
-  "name": "copy-of-aura-ai-assistant",
+  "name": "sage-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,7 +12,8 @@
     "@google/genai": "^1.37.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "react-router-dom": "^6.30.3"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

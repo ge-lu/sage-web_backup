@@ -1,23 +1,26 @@
 
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Icons } from '../constants';
+import { getPathForMode } from '../routes';
 import { AppMode } from '../types';
 
 interface BottomNavProps {
-  currentMode: AppMode;
-  setMode: (mode: AppMode) => void;
   onMicTap: () => void;
   isListening: boolean;
 }
 
-const BottomNav: React.FC<BottomNavProps> = ({ currentMode, setMode }) => {
+const BottomNav: React.FC<BottomNavProps> = ({ }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const navItem = (mode: AppMode, Icon: any, label: string) => {
-    const isActive = currentMode === mode;
+    const path = getPathForMode(mode);
+    const isActive = location.pathname === path;
 
     return (
       <button
-        onClick={() => setMode(mode)}
+        onClick={() => navigate(path)}
         className={`flex flex-col items-center justify-center w-full h-full space-y-1.5 transition-all duration-200 active:scale-95`}
       >
         <div className={`relative p-1.5 transition-all duration-300 rounded-2xl ${isActive ? 'bg-[#DCFCE7]' : 'bg-transparent'}`}>
