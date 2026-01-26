@@ -1,6 +1,4 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+
 
 # Run and deploy your AI Studio app
 
@@ -11,7 +9,8 @@ View your app in AI Studio: https://ai.studio/apps/drive/1KocCI9SuNfx1-ZML3J03_E
 ## Run Locally
 
 **Prerequisites:**  Node.js
-
+.env.local 是本地运行项目读取的配置文件，GEMINI_API_KEY
+.env 是打包部署服务运行项目读取的配置文件，GEMINI_API_KEY
 
 1. Install dependencies:
    `npm install`
