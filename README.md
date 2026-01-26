@@ -10,8 +10,10 @@ View your app in AI Studio: https://ai.studio/apps/drive/1KocCI9SuNfx1-ZML3J03_E
 
 **Prerequisites:**  Node.js
 
-.env.local 是本地运行项目读取的配置文件，GEMINI_API_KEY  如果使用antigravity 可以不用配置，取默认登录账号
+.env.development 是本地运行项目读取的配置文件，GEMINI_API_KEY  如果使用antigravity 可以不用配置，取默认登录账号
 .env 是打包部署服务运行项目读取的配置文件，GEMINI_API_KEY
+
+获取gemini api key地址：https://aistudio.google.com/api-keys
 
 1. Install dependencies:
    `npm install`
