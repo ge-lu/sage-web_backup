@@ -27,7 +27,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   onVoiceUsed
 }) => {
   const navigate = useNavigate();
-  const goTo = (mode: AppMode) => navigate(getPathForMode(mode));
+  const goTo = (mode: AppMode) => {navigate(getPathForMode(mode))};
   // --- 1. VISUAL STATE MACHINE ---
   // We control the AuraOrb strictly through this state.
   const [auraState, setAuraState] = useState<AuraState>('happy'); // Start happy
@@ -171,7 +171,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       
       {/* Top Header */}
       <div className="relative flex justify-between items-center mb-4 h-16">
-        <button onClick={goTo(AppMode.SETTINGS)} className="w-12 h-12 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm z-20">
+        <button onClick={() => goTo(AppMode.SETTINGS)} className="w-12 h-12 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm z-20">
              <Icons.Settings className="w-6 h-6 text-gray-400" />
         </button>
         <span className="text-sm font-bold text-gray-400 tracking-wide absolute left-0 right-0 text-center pointer-events-none">Ask Aura anything...</span>
@@ -180,7 +180,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* --- AURA ORB CENTERPIECE --- */}
       <div className="mb-4 mt-0 relative flex flex-col items-center">
-          <div onClick={handleMicToggle} className="cursor-pointer transition-transform active:scale-95 transform scale-90 origin-center">
+          <div onClick={() => handleMicToggle} className="cursor-pointer transition-transform active:scale-95 transform scale-90 origin-center">
             {/* The Safe Zone: We strictly control the props passed here */}
             <AuraOrb isListening={localIsListening} sentiment={auraState} />
           </div>
