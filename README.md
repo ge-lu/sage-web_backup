@@ -9,13 +9,13 @@ View your app in AI Studio: https://ai.studio/apps/drive/1KocCI9SuNfx1-ZML3J03_E
 ## Run Locally
 
 **Prerequisites:**  Node.js
-.env.local 是本地运行项目读取的配置文件，GEMINI_API_KEY
+
+.env.local 是本地运行项目读取的配置文件，GEMINI_API_KEY  如果使用antigravity 可以不用配置，取默认登录账号
 .env 是打包部署服务运行项目读取的配置文件，GEMINI_API_KEY
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Run the app:
    `npm run dev`
 
 
