@@ -486,8 +486,8 @@ export const RobotView: React.FC<RobotViewProps> = ({ onBack }) => {
                         {activityLogs.map((log) => (
                             <div key={log.id} className="bg-zinc-900 border border-zinc-800 p-4 rounded-[20px] flex gap-4 items-start">
                                 <div className={`mt-1 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${log.type === 'success' ? 'bg-green-500/10 text-green-500' :
-                                        log.type === 'warning' ? 'bg-orange-500/10 text-orange-500' :
-                                            'bg-blue-500/10 text-blue-500'
+                                    log.type === 'warning' ? 'bg-orange-500/10 text-orange-500' :
+                                        'bg-blue-500/10 text-blue-500'
                                     }`}>
                                     {log.icon === 'check' && <ShieldCheck size={16} />}
                                     {log.icon === 'activity' && <Activity size={16} />}

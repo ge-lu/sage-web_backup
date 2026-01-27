@@ -69,7 +69,7 @@ const PhotoFixBanner: React.FC<PhotoFixBannerProps> = ({ status = 'idle' }) => {
   }
 
   return (
-    <div 
+    <div
       className="h-72 rounded-[2.5rem] relative overflow-hidden shadow-2xl group cursor-col-resize border-2 border-white/50"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => {
@@ -79,15 +79,15 @@ const PhotoFixBanner: React.FC<PhotoFixBannerProps> = ({ status = 'idle' }) => {
       onMouseMove={handleMouseMove}
     >
       {/* After Image */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.6) 100%), url(${photoUrl})` }}
       />
 
       {/* Before Image */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center transition-all duration-75 ease-out"
-        style={{ 
+        style={{
           backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.6) 100%), url(${photoUrl})`,
           clipPath: `inset(0 ${100 - sliderPos}% 0 0)`,
           filter: 'sepia(0.8) contrast(0.8) brightness(1.1) blur(1px) saturate(0.4)',
@@ -98,15 +98,15 @@ const PhotoFixBanner: React.FC<PhotoFixBannerProps> = ({ status = 'idle' }) => {
 
       {/* The Yellow Slider Line & Handle */}
       {status === 'idle' && (
-        <div 
+        <div
           className="absolute top-0 bottom-0 w-1.5 bg-[#FFD700] shadow-[0_0_20px_rgba(255,215,0,0.4)] z-10"
           style={{ left: `${sliderPos}%`, transform: 'translateX(-50%)' }}
         >
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#FFD700] border-4 border-white shadow-2xl flex items-center justify-center">
-             <div className="flex gap-1">
-               <div className="w-1 h-4 bg-white/60 rounded-full" />
-               <div className="w-1 h-4 bg-white/60 rounded-full" />
-             </div>
+            <div className="flex gap-1">
+              <div className="w-1 h-4 bg-white/60 rounded-full" />
+              <div className="w-1 h-4 bg-white/60 rounded-full" />
+            </div>
           </div>
         </div>
       )}

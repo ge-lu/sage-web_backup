@@ -22,7 +22,7 @@ const CreateGroupWizard: React.FC<CreateGroupWizardProps> = ({ onCancel, onFinis
   const [roomName, setRoomName] = useState('Nancy & Bob');
 
   const toggleMember = (id: string) => {
-    setSelectedMembers(prev => 
+    setSelectedMembers(prev =>
       prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
     );
   };
@@ -47,7 +47,7 @@ const CreateGroupWizard: React.FC<CreateGroupWizardProps> = ({ onCancel, onFinis
           <span className="text-gray-400">{Math.round(progress)}%</span>
         </div>
         <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-blue-600 transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
@@ -66,8 +66,8 @@ const CreateGroupWizard: React.FC<CreateGroupWizardProps> = ({ onCancel, onFinis
             {FAMILY_MEMBERS.map(member => {
               const isSelected = selectedMembers.includes(member.id);
               return (
-                <button 
-                  key={member.id} 
+                <button
+                  key={member.id}
                   onClick={() => toggleMember(member.id)}
                   className="flex flex-col items-center gap-4 group"
                 >
@@ -88,7 +88,7 @@ const CreateGroupWizard: React.FC<CreateGroupWizardProps> = ({ onCancel, onFinis
           </div>
 
           <div className="mt-auto pt-10">
-            <button 
+            <button
               onClick={() => setStep(2)}
               className="w-full bg-[#1152D4] text-white py-8 rounded-3xl text-2xl font-black shadow-xl active:scale-95 transition-all uppercase"
             >
@@ -105,9 +105,9 @@ const CreateGroupWizard: React.FC<CreateGroupWizardProps> = ({ onCancel, onFinis
             <h2 className="text-5xl font-black text-[#003366] leading-tight">
               What's this group's name?
             </h2>
-            
+
             <div className="relative w-full">
-              <input 
+              <input
                 value={roomName}
                 onChange={(e) => setRoomName(e.target.value)}
                 className="w-full bg-white border-2 border-blue-200 p-8 rounded-[2.5rem] text-3xl font-black text-[#003366] text-center shadow-lg outline-none focus:border-blue-500 transition-colors"
@@ -126,7 +126,7 @@ const CreateGroupWizard: React.FC<CreateGroupWizardProps> = ({ onCancel, onFinis
           </div>
 
           <div className="mt-auto w-full pt-8 pb-4">
-            <button 
+            <button
               onClick={() => onFinish(roomName, selectedMembers)}
               className="w-full bg-[#001A33] text-white py-8 rounded-3xl text-3xl font-black shadow-xl active:scale-95 transition-all uppercase"
             >

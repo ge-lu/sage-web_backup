@@ -13,18 +13,18 @@ interface JourneyBannerProps {
   smilesCount: number;
 }
 
-const JourneyBanner: React.FC<JourneyBannerProps> = ({ 
-  title, 
-  tag, 
-  bgImage, 
-  tagColor, 
-  icon, 
-  ctaText, 
-  restoredCount, 
-  smilesCount 
+const JourneyBanner: React.FC<JourneyBannerProps> = ({
+  title,
+  tag,
+  bgImage,
+  tagColor,
+  icon,
+  ctaText,
+  restoredCount,
+  smilesCount
 }) => {
   return (
-    <div 
+    <div
       className="h-72 rounded-[2.5rem] relative overflow-hidden shadow-2xl group cursor-pointer border-2 border-white/50"
       style={{
         backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.7) 100%), url(${bgImage})`,
@@ -46,7 +46,7 @@ const JourneyBanner: React.FC<JourneyBannerProps> = ({
         <h4 className="text-4xl font-black uppercase tracking-tight leading-none text-white drop-shadow-xl mb-2">
           {title}
         </h4>
-        
+
         {/* Stats List - Optimized spacing to avoid crowding bottom button */}
         <div className="space-y-1">
           <div className="flex items-center gap-3 text-white drop-shadow-md">

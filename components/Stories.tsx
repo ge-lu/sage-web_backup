@@ -14,14 +14,14 @@ const Stories: React.FC<StoriesProps> = ({ rooms, onAllRoomsClick, onClubClick }
       {rooms.map((room) => (
         <div key={room.id} className="flex flex-col items-center gap-2 shrink-0">
           {room.isAll ? (
-            <button 
+            <button
               onClick={onAllRoomsClick}
               className="w-20 h-20 bg-[#003366] rounded-full flex items-center justify-center text-white shadow-xl active:scale-95 transition-transform"
             >
               <LayoutGrid size={32} />
             </button>
           ) : (
-            <button 
+            <button
               onClick={() => onClubClick(room)}
               className="w-20 h-20 rounded-full bg-gray-200 shadow-md overflow-hidden ring-2 ring-white border border-gray-100 active:scale-95 transition-transform"
             >

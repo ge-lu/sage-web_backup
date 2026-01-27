@@ -15,7 +15,7 @@ interface BannerProps {
 
 const Banner: React.FC<BannerProps> = ({ title, subtitle, tag, bgImage, tagColor, icon, ctaText = "Start Now", stats }) => {
   return (
-    <div 
+    <div
       className="h-72 rounded-[2.5rem] relative overflow-hidden shadow-2xl group cursor-pointer border-2 border-white/50"
       style={{
         backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.7) 100%), url(${bgImage})`,
@@ -36,14 +36,14 @@ const Banner: React.FC<BannerProps> = ({ title, subtitle, tag, bgImage, tagColor
         <h4 className="text-4xl font-black uppercase tracking-tight leading-none drop-shadow-lg">
           {title}
         </h4>
-        
+
         {/* Subtitle - Only show if provided */}
         {subtitle && (
           <p className="text-xl text-white/90 font-bold drop-shadow-md leading-tight">
             {subtitle}
           </p>
         )}
-        
+
         {/* Stats Section */}
         {stats && (
           <div className="mt-1 text-base font-black text-white/90 tracking-wide bg-black/40 w-fit px-4 py-1.5 rounded-full backdrop-blur-md border border-white/10 shadow-sm">

@@ -23,7 +23,7 @@ const MyRooms: React.FC<MyRoomsProps> = ({ rooms, onStartNewGroup, onDone, onClu
       <div className="flex-1 overflow-y-auto px-6 pb-12 no-scrollbar">
         <div className="grid grid-cols-2 gap-6">
           {/* Start New Group Card */}
-          <button 
+          <button
             onClick={onStartNewGroup}
             className="aspect-square bg-[#E8F5E8] rounded-[2.5rem] border-[5px] border-[#13EC13] flex flex-col items-center justify-center gap-4 shadow-xl active:scale-95 transition-transform"
           >
@@ -31,14 +31,14 @@ const MyRooms: React.FC<MyRoomsProps> = ({ rooms, onStartNewGroup, onDone, onClu
               <Plus size={54} strokeWidth={4} />
             </div>
             <span className="text-3xl font-black text-black leading-tight text-center px-4">
-              Start New<br/>Group
+              Start New<br />Group
             </span>
           </button>
 
           {/* Room Cards */}
           {displayRooms.map((room) => (
-            <button 
-              key={room.id} 
+            <button
+              key={room.id}
               onClick={() => onClubClick(room)}
               className="relative bg-white rounded-[2.5rem] shadow-xl overflow-hidden flex flex-col group active:scale-95 transition-transform text-left"
             >
@@ -49,7 +49,7 @@ const MyRooms: React.FC<MyRoomsProps> = ({ rooms, onStartNewGroup, onDone, onClu
                   </div>
                 </div>
               )}
-              
+
               <div className="flex-1 overflow-hidden bg-gray-100 w-full h-full">
                 {room.isGroupGrid ? (
                   <div className="grid grid-cols-2 h-full">
@@ -64,7 +64,7 @@ const MyRooms: React.FC<MyRoomsProps> = ({ rooms, onStartNewGroup, onDone, onClu
                   <img src={room.imageUrl} className="w-full h-full object-cover" alt={room.name} />
                 )}
               </div>
-              
+
               <div className="py-6 px-4 text-center bg-white w-full">
                 <span className="text-3xl font-black text-black">{room.name}</span>
               </div>
@@ -75,7 +75,7 @@ const MyRooms: React.FC<MyRoomsProps> = ({ rooms, onStartNewGroup, onDone, onClu
 
       {/* Footer Action */}
       <div className="p-8 pb-12 bg-[#F6F6F8] border-t border-gray-200/50">
-        <button 
+        <button
           onClick={onDone}
           className="w-full bg-[#0047AB] text-white py-10 rounded-[2.5rem] text-5xl font-black flex items-center justify-center gap-4 shadow-[0_12px_0_#003380] active:translate-y-2 active:shadow-none transition-all uppercase tracking-tighter"
         >

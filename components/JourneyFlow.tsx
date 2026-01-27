@@ -68,7 +68,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
   const [isReading, setIsReading] = useState(false);
   const [sharingStep, setSharingStep] = useState<'select' | 'sending' | 'success'>('select');
   const [shareDestination, setShareDestination] = useState('');
-  
+
   // Image Viewer State
   const [selectedMemory, setSelectedMemory] = useState<typeof TIMELINE_MEMORIES[0] | null>(null);
   const [sliderPos, setSliderPos] = useState(50);
@@ -120,7 +120,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
       });
 
       const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-      
+
       if (!base64Audio) {
         throw new Error("No audio data received");
       }
@@ -128,7 +128,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
       if (!audioContextRef.current) {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       }
-      
+
       const ctx = audioContextRef.current;
       const audioBuffer = await decodeAudioData(
         decode(base64Audio),
@@ -140,7 +140,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
       const source = ctx.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(ctx.destination);
-      
+
       source.onended = () => {
         setIsReading(false);
       };
@@ -188,19 +188,19 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
               </h2>
               <div className="w-12" />
             </div>
-            
+
             <div className="flex-1 overflow-y-auto no-scrollbar px-6 pb-10">
               {/* Horizontal Preview Card */}
               <div className="mb-8">
                 <div className="bg-white rounded-[2.5rem] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-100 flex items-center gap-6">
                   <div className="w-24 h-24 rounded-[1.75rem] overflow-hidden bg-gray-50 shrink-0 shadow-md">
-                    <img 
-                      src={TIMELINE_MEMORIES[0].after} 
-                      className="w-full h-full object-cover" 
-                      alt="Preview" 
+                    <img
+                      src={TIMELINE_MEMORIES[0].after}
+                      className="w-full h-full object-cover"
+                      alt="Preview"
                     />
                   </div>
-                  
+
                   <div className="flex-1 flex flex-col justify-center overflow-hidden">
                     <span className="text-[#9CA3AF] font-black uppercase tracking-[0.2em] text-[12px] mb-1">PREVIEW</span>
                     <p className="text-[1.35rem] font-black text-[#003366] italic leading-tight line-clamp-2">
@@ -213,9 +213,9 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
               {/* Destination Buttons */}
               <div className="space-y-4">
                 <p className="text-center text-[#CCCCCC] font-black uppercase tracking-[0.25em] text-[10px] mb-2">CHOOSE WHERE TO SEND:</p>
-                
+
                 {/* 1. iMessage (Green) */}
-                <button 
+                <button
                   onClick={() => handleFinalShare('iMessage')}
                   className="w-full h-24 bg-[#25D366] text-white rounded-[2rem] flex items-center justify-center gap-6 px-10 shadow-[0_8px_0_#128c7e] active:translate-y-1 active:shadow-none transition-all group"
                 >
@@ -226,7 +226,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
                 </button>
 
                 {/* 2. Facebook (Blue) */}
-                <button 
+                <button
                   onClick={() => handleFinalShare('Facebook')}
                   className="w-full h-24 bg-[#1877F2] text-white rounded-[2rem] flex items-center justify-center gap-5 px-10 shadow-[0_8px_0_#0d52a8] active:translate-y-1 active:shadow-none transition-all group"
                 >
@@ -237,7 +237,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
                 </button>
 
                 {/* 3. WhatsApp (Dark Green) */}
-                <button 
+                <button
                   onClick={() => handleFinalShare('WhatsApp')}
                   className="w-full h-24 bg-[#075E54] text-white rounded-[2rem] flex items-center justify-center gap-6 px-10 shadow-[0_8px_0_#043e37] active:translate-y-1 active:shadow-none transition-all group"
                 >
@@ -248,7 +248,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
                 </button>
 
                 {/* 4. Twitter (Sky Blue) */}
-                <button 
+                <button
                   onClick={() => handleFinalShare('Twitter')}
                   className="w-full h-24 bg-[#1DA1F2] text-white rounded-[2rem] flex items-center justify-center gap-6 px-10 shadow-[0_8px_0_#0c85d0] active:translate-y-1 active:shadow-none transition-all group"
                 >
@@ -259,7 +259,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
                 </button>
 
                 {/* 5. TikTok (Black) */}
-                <button 
+                <button
                   onClick={() => handleFinalShare('TikTok')}
                   className="w-full h-24 bg-[#000000] text-white rounded-[2rem] flex items-center justify-center gap-6 px-10 shadow-[0_8px_0_#333333] active:translate-y-1 active:shadow-none transition-all group"
                 >
@@ -276,8 +276,8 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
         {sharingStep === 'sending' && (
           <div className="flex-1 bg-[#003366] flex flex-col items-center justify-center p-10">
             <div className="w-40 h-40 bg-white/10 rounded-full flex items-center justify-center mb-12 relative">
-               <div className="absolute inset-0 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
-               <Send size={64} className="text-white animate-bounce" />
+              <div className="absolute inset-0 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
+              <Send size={64} className="text-white animate-bounce" />
             </div>
             <h2 className="text-5xl font-black text-white text-center">Sending to {shareDestination}...</h2>
           </div>
@@ -285,16 +285,16 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
 
         {sharingStep === 'success' && (
           <div className="flex-1 bg-[#13EC13] flex flex-col items-center justify-center p-10 text-center">
-             <div className="w-56 h-56 bg-white rounded-full flex items-center justify-center mb-10 shadow-2xl">
-                <Check size={100} strokeWidth={4} className="text-[#13EC13]" />
-             </div>
-             <h2 className="text-6xl font-black text-white mb-4 uppercase">Done!</h2>
-             <button 
-               onClick={onClose}
-               className="w-full bg-white text-[#13EC13] py-8 rounded-[2.5rem] text-4xl font-black shadow-[0_12px_0_#0fbc0f] uppercase"
-             >
-               Back To Home
-             </button>
+            <div className="w-56 h-56 bg-white rounded-full flex items-center justify-center mb-10 shadow-2xl">
+              <Check size={100} strokeWidth={4} className="text-[#13EC13]" />
+            </div>
+            <h2 className="text-6xl font-black text-white mb-4 uppercase">Done!</h2>
+            <button
+              onClick={onClose}
+              className="w-full bg-white text-[#13EC13] py-8 rounded-[2.5rem] text-4xl font-black shadow-[0_12px_0_#0fbc0f] uppercase"
+            >
+              Back To Home
+            </button>
           </div>
         )}
       </div>
@@ -304,11 +304,11 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
   // Main Journey View
   return (
     <div className="fixed inset-0 z-[500] bg-white flex flex-col font-['Plus_Jakarta_Sans'] select-none overflow-hidden animate-in slide-in-from-bottom duration-500">
-      
+
       {/* Full Screen Image Slider Modal */}
       {selectedMemory && (
         <div className="fixed inset-0 z-[800] bg-black/95 flex flex-col items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-200">
-          <button 
+          <button
             onClick={() => setSelectedMemory(null)}
             className="absolute top-6 right-6 w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white active:bg-white/20 z-50"
           >
@@ -321,13 +321,13 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
               <p className="text-white/60 font-bold text-sm uppercase tracking-widest mt-1">Slide to compare</p>
             </div>
 
-            <div 
+            <div
               className="relative w-full aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white/20 cursor-col-resize touch-none"
               onMouseMove={handleSliderMove}
               onTouchMove={handleSliderMove}
             >
               {/* After Image (Background) */}
-              <div 
+              <div
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: `url(${selectedMemory.after})` }}
               >
@@ -337,9 +337,9 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
               </div>
 
               {/* Before Image (Clipped) */}
-              <div 
+              <div
                 className="absolute inset-0 bg-cover bg-center border-r-[3px] border-white/50"
-                style={{ 
+                style={{
                   backgroundImage: `url(${selectedMemory.before})`,
                   clipPath: `inset(0 ${100 - sliderPos}% 0 0)`
                 }}
@@ -350,7 +350,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
               </div>
 
               {/* Slider Handle */}
-              <div 
+              <div
                 className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_20px_rgba(0,0,0,0.5)] flex items-center justify-center pointer-events-none"
                 style={{ left: `${sliderPos}%`, transform: 'translateX(-50%)' }}
               >
@@ -362,31 +362,31 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center justify-center gap-2 text-white/50 text-sm font-bold uppercase tracking-widest animate-pulse">
-               <ArrowLeft size={16} /> Slide Left / Right <ArrowLeft size={16} className="rotate-180" />
+              <ArrowLeft size={16} /> Slide Left / Right <ArrowLeft size={16} className="rotate-180" />
             </div>
           </div>
         </div>
       )}
-      
+
       {/* Header Area */}
       <div className="px-6 pt-[calc(3rem+env(safe-area-inset-top))] pb-4 flex items-center justify-between bg-white z-50 shrink-0 border-b border-gray-100 shadow-sm">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={onClose}
             className="w-12 h-12 bg-[#F0F4F8] rounded-full flex items-center justify-center text-[#003366] active:scale-90 transition-transform shadow-sm hover:bg-[#E5E9F0]"
           >
             <ArrowLeft size={28} strokeWidth={4} />
           </button>
-          
+
           <div className="flex flex-col justify-center">
             <span className="text-[10px] font-black text-[#003366] uppercase leading-none tracking-widest mb-0.5">MY LIFE</span>
             <span className="text-xl font-black text-[#003366] uppercase leading-none tracking-tighter">STORY</span>
           </div>
         </div>
-        
-        <button 
+
+        <button
           onClick={handleShareClick}
           className="bg-[#003366] text-white px-5 py-2.5 rounded-full flex items-center gap-2 shadow-md active:scale-95 transition-all hover:bg-[#002244]"
         >
@@ -396,7 +396,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar">
-        
+
         <div className="bg-white px-8 pt-8 pb-6 relative z-50">
           <div className="flex items-center gap-5 mb-8">
             <div className="w-20 h-20 rounded-full border-[5px] border-[#FFB800] p-1 shadow-md bg-white shrink-0 overflow-hidden">
@@ -412,7 +412,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div className="bg-[#FFF9E6] p-5 rounded-[2.5rem] border-[4px] border-[#FFB800] text-center shadow-[0_12px_30px_rgba(255,184,0,0.1)]">
               <div className="h-10 flex items-center justify-center mb-2">
-                 <Award className="text-[#FFB800]" size={36} />
+                <Award className="text-[#FFB800]" size={36} />
               </div>
               <span className="block text-4xl font-black text-[#003366]">12</span>
               {/* Renamed to Pictures */}
@@ -420,7 +420,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
             </div>
             <div className="bg-[#EBF2FF] p-5 rounded-[2.5rem] border-[4px] border-[#1152D4] text-center shadow-[0_12px_30px_rgba(17,82,212,0.1)]">
               <div className="h-10 flex items-center justify-center mb-2">
-                 <Heart className="text-[#1152D4]" size={36} fill="currentColor" />
+                <Heart className="text-[#1152D4]" size={36} fill="currentColor" />
               </div>
               <span className="block text-4xl font-black text-[#003366]">80</span>
               {/* Renamed to Like */}
@@ -428,7 +428,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
             </div>
           </div>
 
-          <button 
+          <button
             onClick={handleSpeak}
             className={`w-full py-6 rounded-[2rem] flex items-center justify-center gap-4 font-black uppercase text-xl transition-all active:scale-95 mb-4 shadow-xl ${isReading ? 'bg-[#991b1b] text-white shadow-[#7f1d1d]' : 'bg-[#003366] text-white shadow-[#001a33]'}`}
           >
@@ -445,11 +445,11 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
 
           <div className="space-y-12 relative pl-2">
             <div className="absolute left-[2.4rem] top-6 bottom-6 w-0.5 bg-gray-100 rounded-full" />
-            
+
             {TIMELINE_MEMORIES.map((memory) => (
               <div key={memory.id} className="relative pl-14">
                 <div className="absolute left-6 top-8 w-6 h-6 rounded-full border-4 border-white bg-[#FFB800] shadow-sm z-10" />
-                
+
                 <div className="bg-white rounded-[3rem] p-6 shadow-2xl border border-gray-50 space-y-5">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 ring-2 ring-white shadow-sm shrink-0">
@@ -461,11 +461,11 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
                   </div>
 
                   {/* Clickable Image Container */}
-                  <div 
+                  <div
                     className="flex gap-3 h-48 cursor-pointer active:scale-95 transition-transform"
                     onClick={() => {
-                        setSliderPos(50); // Reset slider to middle
-                        setSelectedMemory(memory);
+                      setSliderPos(50); // Reset slider to middle
+                      setSelectedMemory(memory);
                     }}
                   >
                     <div className="flex-1 rounded-2xl overflow-hidden relative shadow-inner">
@@ -476,14 +476,14 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
                       <img src={memory.after} className="w-full h-full object-cover" />
                       <div className="absolute bottom-3 right-3 bg-[#13EC13] px-3 py-1 rounded-full text-[8px] text-white font-black uppercase tracking-widest shadow-lg">After</div>
                     </div>
-                    
+
                     {/* Visual cue for interactivity */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white/80 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm">
-                       <Hand size={20} className="text-[#003366]" />
+                      <Hand size={20} className="text-[#003366]" />
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     onClick={handleShareClick}
                     className="w-full bg-[#E6F0FF] py-4 rounded-full flex items-center justify-center gap-2 font-black text-[#003366] uppercase text-[11px] tracking-widest shadow-sm active:translate-y-1 transition-all border border-[#003366]/10 hover:bg-[#D1E5FF]"
                   >
@@ -513,7 +513,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
         </div>
 
         <div className="px-8 pb-20">
-          <button 
+          <button
             onClick={handleShareClick}
             className="w-full bg-[#001A33] text-white p-2 rounded-[3rem] flex flex-col active:translate-y-2 active:shadow-none transition-all"
           >

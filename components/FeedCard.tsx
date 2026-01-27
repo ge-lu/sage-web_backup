@@ -47,7 +47,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
   const [isReading, setIsReading] = useState(false);
   const [sent, setSent] = useState(false);
   const [voiceState, setVoiceState] = useState<'idle' | 'recording' | 'finished'>('idle');
-  
+
   const recognitionRef = useRef<any>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -139,13 +139,13 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
     recognition.lang = 'en-US';
     recognition.interimResults = true;
     recognition.continuous = true;
-    
+
     recognition.onstart = () => {
       setVoiceState('recording');
       setAiReply("");
       triggerVibration(50);
     };
-    
+
     recognition.onresult = (event: any) => {
       let currentTranscript = '';
       for (let i = 0; i < event.results.length; i++) {
@@ -153,11 +153,11 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
       }
       setAiReply(currentTranscript);
     };
-    
+
     recognition.onerror = () => {
       setVoiceState('idle');
     };
-    
+
     recognitionRef.current = recognition;
     try {
       recognition.start();
@@ -200,29 +200,29 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
 
   return (
     <>
-      <div 
+      <div
         onClick={onClick}
         className="bg-white rounded-[3rem] overflow-hidden shadow-xl border border-gray-100 cursor-pointer transition-transform active:scale-[0.98] relative"
       >
         <div className="aspect-square relative overflow-hidden group">
-          <img 
-            src={post.imageUrl} 
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-            alt={post.title} 
+          <img
+            src={post.imageUrl}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            alt={post.title}
           />
           <div className="absolute top-6 left-6 bg-black/50 text-white px-4 py-1.5 rounded-full font-bold text-sm">
             Today
           </div>
-          
+
           {/* Updated Like Button: Heart Shape with LIKE text */}
-          <button 
+          <button
             onClick={toggleLike}
             className="absolute bottom-6 right-6 w-16 h-16 flex items-center justify-center active:scale-90 transition-transform"
           >
             <div className="relative w-full h-full flex items-center justify-center">
-              <Heart 
-                size={64} 
-                fill={liked ? "#ff4d4d" : "rgba(0,0,0,0.5)"} 
+              <Heart
+                size={64}
+                fill={liked ? "#ff4d4d" : "rgba(0,0,0,0.5)"}
                 className={`transition-colors ${liked ? "text-[#ff4d4d]" : "text-white/80"}`}
                 strokeWidth={1.5}
               />
@@ -241,12 +241,12 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
 
           <div className="flex gap-4 pt-2">
             {/* Main Action Button */}
-            <button 
+            <button
               onClick={isNews ? handleReadToMe : handleReplyClick}
               disabled={loading}
               className={`flex-1 h-32 rounded-[2.5rem] flex flex-col items-center justify-center gap-2 transition-all active:translate-y-1 active:shadow-none font-black uppercase tracking-tighter
-                ${(voiceState === 'recording' || isReading) 
-                  ? 'bg-[#991b1b] text-white shadow-[0_6px_0_#450a0a]' 
+                ${(voiceState === 'recording' || isReading)
+                  ? 'bg-[#991b1b] text-white shadow-[0_6px_0_#450a0a]'
                   : 'bg-[#002B7F] text-white shadow-[0_6px_0_#001a4d]'}`}
             >
               {loading ? (
@@ -269,9 +269,9 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
                 </>
               )}
             </button>
-            
+
             {/* SHARE Button */}
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); if (onShare) onShare(aiReply || post.title); }}
               className="flex-1 h-32 rounded-[2.5rem] flex flex-col items-center justify-center gap-2 font-black uppercase tracking-tighter transition-all active:translate-y-1 active:shadow-none bg-[#9CA3AF] text-white shadow-[0_6px_0_#4B5563]"
             >
@@ -285,7 +285,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
       </div>
 
       {/* Full Screen Overlays */}
-      
+
       {/* Sent Success Overlay */}
       {sent && (
         <div className="fixed inset-0 z-[650] bg-[#13EC13] flex flex-col items-center justify-center p-10 text-center animate-in fade-in duration-500">
@@ -302,15 +302,15 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
         <div className="fixed inset-0 z-[550] bg-black/60 backdrop-blur-md flex flex-col justify-end animate-in fade-in duration-300" onClick={(e) => e.stopPropagation()}>
           <div className="bg-white rounded-t-[3.5rem] p-10 space-y-10 animate-in slide-in-from-bottom duration-500 shadow-[0_-20px_100px_rgba(0,0,0,0.5)]">
             <div className="flex justify-between items-center">
-               <span className="text-sm font-black text-gray-400 uppercase tracking-widest">
-                 {voiceState === 'recording' ? 'I AM LISTENING...' : 'READY TO SEND?'}
-               </span>
-               <button 
-                 onClick={closeOverlay} 
-                 className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 active:scale-90"
-               >
-                 <X size={32} strokeWidth={3} />
-               </button>
+              <span className="text-sm font-black text-gray-400 uppercase tracking-widest">
+                {voiceState === 'recording' ? 'I AM LISTENING...' : 'READY TO SEND?'}
+              </span>
+              <button
+                onClick={closeOverlay}
+                className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 active:scale-90"
+              >
+                <X size={32} strokeWidth={3} />
+              </button>
             </div>
 
             <div className={`p-10 rounded-[3rem] border-[6px] min-h-[200px] flex items-center justify-center text-center transition-all
@@ -322,36 +322,36 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
             </div>
 
             <div className="flex flex-col items-center gap-8 pb-8">
-               <div className="flex flex-col items-center gap-5">
-                  <button 
-                    onClick={(e) => handleVoiceToggle(e)}
-                    className={`w-40 h-40 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 border-[12px] border-white
-                      ${voiceState === 'recording' 
-                        ? 'bg-red-500 animate-pulse shadow-[0_0_80px_rgba(239,68,68,0.5)]' 
-                        : 'bg-[#1152D4] shadow-[0_25px_50px_rgba(17,82,212,0.4)]'}`}
-                  >
-                    {voiceState === 'recording' ? (
-                      <Square size={64} fill="white" className="text-white" />
-                    ) : (
-                      <Mic size={72} fill="white" className="text-white" />
-                    )}
-                  </button>
-                  <span className={`text-2xl font-black uppercase tracking-[0.1em] ${voiceState === 'recording' ? 'text-red-500' : 'text-[#003366]'}`}>
-                    {voiceState === 'recording' ? 'TAP TO STOP' : 'TAP TO TRY AGAIN'}
-                  </span>
-               </div>
+              <div className="flex flex-col items-center gap-5">
+                <button
+                  onClick={(e) => handleVoiceToggle(e)}
+                  className={`w-40 h-40 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 border-[12px] border-white
+                      ${voiceState === 'recording'
+                      ? 'bg-red-500 animate-pulse shadow-[0_0_80px_rgba(239,68,68,0.5)]'
+                      : 'bg-[#1152D4] shadow-[0_25px_50px_rgba(17,82,212,0.4)]'}`}
+                >
+                  {voiceState === 'recording' ? (
+                    <Square size={64} fill="white" className="text-white" />
+                  ) : (
+                    <Mic size={72} fill="white" className="text-white" />
+                  )}
+                </button>
+                <span className={`text-2xl font-black uppercase tracking-[0.1em] ${voiceState === 'recording' ? 'text-red-500' : 'text-[#003366]'}`}>
+                  {voiceState === 'recording' ? 'TAP TO STOP' : 'TAP TO TRY AGAIN'}
+                </span>
+              </div>
 
-               {aiReply && voiceState !== 'recording' && (
-                 <button 
-                   onClick={handleSendReply}
-                   className="w-full h-36 bg-[#059669] text-white rounded-[3rem] flex items-center justify-center gap-6 shadow-[0_15px_0_#064e3b] active:translate-y-2 active:shadow-none transition-all border-4 border-white animate-in zoom-in duration-300"
-                 >
-                   <Send size={48} fill="white" />
-                   <span className="text-4xl font-black uppercase tracking-tighter">
-                     SEND TO FAMILY
-                   </span>
-                 </button>
-               )}
+              {aiReply && voiceState !== 'recording' && (
+                <button
+                  onClick={handleSendReply}
+                  className="w-full h-36 bg-[#059669] text-white rounded-[3rem] flex items-center justify-center gap-6 shadow-[0_15px_0_#064e3b] active:translate-y-2 active:shadow-none transition-all border-4 border-white animate-in zoom-in duration-300"
+                >
+                  <Send size={48} fill="white" />
+                  <span className="text-4xl font-black uppercase tracking-tighter">
+                    SEND TO FAMILY
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -66,7 +66,7 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
   const [isSent, setIsSent] = useState(false);
   const [likedComments, setLikedComments] = useState<Record<string, boolean>>({});
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
-  
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -103,7 +103,7 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const commentsText = MOCK_COMMENTS.map(c => `${c.author} said: ${c.text}`).join(". ");
       const prompt = `Read this memory page for me clearly and warmly. Title: ${post.title}. Now, here are 5 messages from your family: ${commentsText}`;
-      
+
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: prompt }] }],
@@ -123,14 +123,14 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
       if (!audioContextRef.current) {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       }
-      
+
       const ctx = audioContextRef.current;
       const audioBuffer = await decodeAudioData(decode(base64Audio), ctx, 24000, 1);
       const source = ctx.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(ctx.destination);
       source.onended = () => setIsReading(false);
-      
+
       audioSourceRef.current = source;
       source.start();
     } catch (error) {
@@ -149,7 +149,7 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
 
   const handleVoiceToggle = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
+
     if (!SpeechRecognition) {
       alert("Voice transcription is not supported in this browser.");
       return;
@@ -171,7 +171,7 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
 
     recognition.onstart = () => {
       setVoiceState('recording');
-      setMessage(""); 
+      setMessage("");
       triggerVibration(50);
     };
 
@@ -225,7 +225,7 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
 
   return (
     <div className="fixed inset-0 z-[400] bg-white flex flex-col font-['Plus_Jakarta_Sans'] select-none overflow-hidden animate-in fade-in duration-300">
-      
+
       {/* Sent Success Overlay */}
       {isSent && (
         <div className="fixed inset-0 z-[650] bg-[#13EC13] flex flex-col items-center justify-center p-10 text-center animate-in fade-in duration-500">
@@ -242,17 +242,17 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
         <div className="fixed inset-0 z-[550] bg-black/60 backdrop-blur-md flex flex-col justify-end animate-in fade-in duration-300">
           <div className="bg-white rounded-t-[3.5rem] p-10 space-y-10 animate-in slide-in-from-bottom duration-500 shadow-[0_-20px_100px_rgba(0,0,0,0.5)]">
             <div className="flex justify-between items-center">
-               <span className="text-sm font-black text-gray-400 uppercase tracking-widest">
-                 {voiceState === 'recording' 
-                   ? (replyingTo ? `Replying to ${replyingTo.author}...` : 'I am listening...') 
-                   : 'Ready to send?'}
-               </span>
-               <button 
-                 onClick={closeOverlay} 
-                 className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 active:scale-90"
-               >
-                 <X size={32} strokeWidth={3} />
-               </button>
+              <span className="text-sm font-black text-gray-400 uppercase tracking-widest">
+                {voiceState === 'recording'
+                  ? (replyingTo ? `Replying to ${replyingTo.author}...` : 'I am listening...')
+                  : 'Ready to send?'}
+              </span>
+              <button
+                onClick={closeOverlay}
+                className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 active:scale-90"
+              >
+                <X size={32} strokeWidth={3} />
+              </button>
             </div>
 
             <div className={`p-10 rounded-[3rem] border-[6px] min-h-[200px] flex items-center justify-center text-center transition-all
@@ -264,36 +264,36 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
             </div>
 
             <div className="flex flex-col items-center gap-8 pb-8">
-               <div className="flex flex-col items-center gap-5">
-                  <button 
-                    onClick={handleVoiceToggle}
-                    className={`w-40 h-40 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 border-[12px] border-white
-                      ${voiceState === 'recording' 
-                        ? 'bg-red-500 animate-pulse shadow-[0_0_80px_rgba(239,68,68,0.5)]' 
-                        : 'bg-[#1152D4] shadow-[0_25px_50px_rgba(17,82,212,0.4)]'}`}
-                  >
-                    {voiceState === 'recording' ? (
-                      <Square size={64} fill="white" className="text-white" />
-                    ) : (
-                      <Mic size={72} fill="white" className="text-white" />
-                    )}
-                  </button>
-                  <span className={`text-2xl font-black uppercase tracking-[0.1em] ${voiceState === 'recording' ? 'text-red-500' : 'text-[#003366]'}`}>
-                    {voiceState === 'recording' ? 'Tap to Stop' : 'Tap to Try Again'}
-                  </span>
-               </div>
+              <div className="flex flex-col items-center gap-5">
+                <button
+                  onClick={handleVoiceToggle}
+                  className={`w-40 h-40 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 border-[12px] border-white
+                      ${voiceState === 'recording'
+                      ? 'bg-red-500 animate-pulse shadow-[0_0_80px_rgba(239,68,68,0.5)]'
+                      : 'bg-[#1152D4] shadow-[0_25px_50px_rgba(17,82,212,0.4)]'}`}
+                >
+                  {voiceState === 'recording' ? (
+                    <Square size={64} fill="white" className="text-white" />
+                  ) : (
+                    <Mic size={72} fill="white" className="text-white" />
+                  )}
+                </button>
+                <span className={`text-2xl font-black uppercase tracking-[0.1em] ${voiceState === 'recording' ? 'text-red-500' : 'text-[#003366]'}`}>
+                  {voiceState === 'recording' ? 'Tap to Stop' : 'Tap to Try Again'}
+                </span>
+              </div>
 
-               {message && voiceState !== 'recording' && (
-                 <button 
-                   onClick={handleSend}
-                   className="w-full h-36 bg-[#059669] text-white rounded-[3rem] flex items-center justify-center gap-6 shadow-[0_15px_0_#064e3b] active:translate-y-2 active:shadow-none transition-all border-4 border-white animate-in zoom-in duration-300"
-                 >
-                   <Send size={48} fill="white" />
-                   <span className="text-4xl font-black uppercase tracking-tighter">
-                     {replyingTo ? 'SEND REPLY' : 'SEND TO FAMILY'}
-                   </span>
-                 </button>
-               )}
+              {message && voiceState !== 'recording' && (
+                <button
+                  onClick={handleSend}
+                  className="w-full h-36 bg-[#059669] text-white rounded-[3rem] flex items-center justify-center gap-6 shadow-[0_15px_0_#064e3b] active:translate-y-2 active:shadow-none transition-all border-4 border-white animate-in zoom-in duration-300"
+                >
+                  <Send size={48} fill="white" />
+                  <span className="text-4xl font-black uppercase tracking-tighter">
+                    {replyingTo ? 'SEND REPLY' : 'SEND TO FAMILY'}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -301,16 +301,16 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
 
       {/* 1. Header Area */}
       <div className="px-6 pt-12 pb-4 flex items-center justify-between bg-white z-50 shrink-0 border-b border-gray-50">
-        <button 
+        <button
           onClick={onClose}
           className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-[#003366] active:scale-90 transition-transform shadow-sm"
         >
           <ArrowLeft size={44} strokeWidth={4} />
         </button>
-        
+
         <span className="text-2xl font-black text-[#003366] uppercase tracking-tight">Memory Details</span>
-        
-        <button 
+
+        <button
           onClick={(e) => { e.stopPropagation(); onShare(post.title); }}
           className="bg-[#003366] text-white px-5 py-3 rounded-full flex items-center gap-2 shadow-md active:scale-95 transition-all border-2 border-white"
         >
@@ -320,28 +320,28 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
       </div>
 
       {/* Main Content Area */}
-      <div 
+      <div
         ref={scrollContainerRef}
         className="flex-1 overflow-y-auto no-scrollbar bg-[#F6F6F8]"
       >
-        
+
         {/* 2. Feature Image Area */}
         <div className="relative w-full h-[38vh] bg-gray-200 overflow-hidden shadow-inner">
-          <img 
-            src={post.imageUrl} 
-            className="w-full h-full object-cover" 
-            alt={post.title} 
+          <img
+            src={post.imageUrl}
+            className="w-full h-full object-cover"
+            alt={post.title}
           />
         </div>
 
         {/* 3. Horizontal Large Action Buttons Row */}
         <div className="flex gap-4 px-6 mt-6">
           {/* READ TO ME Button */}
-          <button 
+          <button
             onClick={handleReadToMe}
             className={`flex-1 h-32 rounded-[2.5rem] flex flex-col items-center justify-center gap-2 transition-all active:translate-y-1 active:shadow-none font-black uppercase tracking-tighter
-              ${isReading 
-                ? 'bg-[#991b1b] text-white shadow-[0_8px_0_#7f1d1d]' 
+              ${isReading
+                ? 'bg-[#991b1b] text-white shadow-[0_8px_0_#7f1d1d]'
                 : 'bg-[#003366] text-white shadow-[0_8px_0_#001a33]'}`}
           >
             {isReadingLoading ? (
@@ -364,7 +364,7 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
           </button>
 
           {/* TAP TO REPLY Button */}
-          <button 
+          <button
             onClick={handleVoiceToggle}
             className={`flex-1 h-32 rounded-[2.5rem] flex flex-col items-center justify-center gap-2 transition-all active:translate-y-1 active:shadow-none font-black uppercase tracking-tighter bg-[#1152D4] text-white shadow-[0_8px_0_#0a3791]`}
           >
@@ -376,7 +376,7 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
         </div>
 
         <div className="px-8 py-10 space-y-14 pb-52">
-          
+
           {/* 4. Memory Title Area */}
           <div className="mt-2">
             <h2 className="text-[36px] font-black text-black leading-[1.1] tracking-tight">
@@ -393,15 +393,15 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
 
             <div className="flex flex-col gap-8">
               {MOCK_COMMENTS.map((comment) => (
-                <div 
-                  key={comment.id} 
+                <div
+                  key={comment.id}
                   className="bg-white p-8 rounded-[3.5rem] shadow-[0_15px_50px_rgba(0,0,0,0.06)] border border-gray-100 flex flex-col gap-6 active:scale-[0.99] transition-transform"
                 >
                   <div className="flex gap-6 items-start">
                     <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-50 border-4 border-white shadow-md shrink-0">
                       <img src={comment.avatar} alt={comment.author} className="w-full h-full object-cover" />
                     </div>
-                    
+
                     <div className="flex-1 space-y-3 min-w-0">
                       <div className="flex items-baseline gap-3">
                         <span className="text-3xl font-black text-[#003366]">{comment.author}</span>
@@ -414,7 +414,7 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
 
                   {/* Like and Voice Reply Actions */}
                   <div className="flex gap-3 mt-2 pl-2">
-                    <button 
+                    <button
                       onClick={(e) => { e.stopPropagation(); toggleCommentLike(comment.id); }}
                       className={`h-16 px-8 rounded-full flex items-center gap-3 font-black text-lg transition-all active:scale-95 
                         ${likedComments[comment.id] ? 'bg-red-50 text-red-500 ring-2 ring-red-100' : 'bg-gray-100 text-gray-500'}`}
@@ -423,7 +423,7 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, onClose, onShare }) => {
                       <span>{likedComments[comment.id] ? 'Liked' : 'Like'}</span>
                     </button>
 
-                    <button 
+                    <button
                       onClick={(e) => { e.stopPropagation(); handleCommentReply(comment); }}
                       className="h-16 px-8 rounded-full bg-blue-50 text-[#1152D4] flex items-center gap-3 font-black text-lg transition-all active:scale-95 hover:bg-blue-100"
                     >

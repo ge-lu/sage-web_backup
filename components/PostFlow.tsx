@@ -32,9 +32,9 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
-        audio: false 
+        audio: false
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -56,10 +56,10 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
+
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -75,7 +75,7 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
 
   const handleVoiceInput = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
+
     if (!SpeechRecognition) {
       alert("Voice transcription is not supported in this browser. Please try using Chrome or Safari.");
       return;
@@ -115,7 +115,7 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
     recognition.onerror = (event: any) => {
       console.error("Speech recognition error:", event.error);
       setIsListening(false);
-      
+
       if (event.error === 'no-speech') {
         setMessage("I didn't hear you. Please tap the blue button and try again!");
       }
@@ -141,7 +141,7 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
 
   return (
     <div className="fixed inset-0 z-[200] bg-white flex flex-col font-['Plus_Jakarta_Sans'] select-none">
-      
+
       <canvas ref={canvasRef} className="hidden" />
 
       {step !== 'success' && step !== 'sending' && (
@@ -151,7 +151,7 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
             {step === 'message' && 'Add a Message'}
             {step === 'share_select' && 'SHARE THE JOY'}
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 active:bg-gray-200"
           >
@@ -163,28 +163,28 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
       {step === 'camera' && (
         <div className="flex-1 flex flex-col">
           <div className="flex-1 bg-gray-900 relative flex items-center justify-center overflow-hidden">
-             <div className="absolute inset-0">
-                <video 
-                  ref={videoRef}
-                  autoPlay 
-                  playsInline 
-                  className="w-full h-full object-cover"
-                />
-             </div>
+            <div className="absolute inset-0">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-             <div className="relative w-72 h-72 border-2 border-white/30 rounded-full flex items-center justify-center pointer-events-none">
-                <div className="w-64 h-64 border border-white/10 rounded-full animate-pulse" />
-                <Camera size={64} className="text-white/20 absolute" />
-             </div>
-             
-             <div className="absolute bottom-10 left-6 right-6 flex justify-center items-center px-10">
-                <button 
-                  onClick={handleCapture}
-                  className="w-28 h-28 rounded-full bg-white p-2 shadow-2xl active:scale-90 transition-transform"
-                >
-                  <div className="w-full h-full rounded-full border-4 border-[#003366] flex items-center justify-center" />
-                </button>
-             </div>
+            <div className="relative w-72 h-72 border-2 border-white/30 rounded-full flex items-center justify-center pointer-events-none">
+              <div className="w-64 h-64 border border-white/10 rounded-full animate-pulse" />
+              <Camera size={64} className="text-white/20 absolute" />
+            </div>
+
+            <div className="absolute bottom-10 left-6 right-6 flex justify-center items-center px-10">
+              <button
+                onClick={handleCapture}
+                className="w-28 h-28 rounded-full bg-white p-2 shadow-2xl active:scale-90 transition-transform"
+              >
+                <div className="w-full h-full rounded-full border-4 border-[#003366] flex items-center justify-center" />
+              </button>
+            </div>
           </div>
           <div className="p-10 text-center">
             <p className="text-xl font-bold text-gray-400">Point at something beautiful</p>
@@ -196,7 +196,7 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
         <div className="flex-1 flex flex-col p-8 overflow-y-auto no-scrollbar">
           <div className="w-full aspect-square rounded-[3rem] overflow-hidden shadow-2xl mb-10 relative">
             <img src={capturedImage!} className="w-full h-full object-cover" />
-            <button 
+            <button
               onClick={() => setStep('camera')}
               className="absolute top-6 right-6 bg-black/50 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest"
             >
@@ -206,14 +206,14 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
           <div className="space-y-8 flex-1">
             <div className="space-y-4">
               <label className="text-xs font-black text-gray-400 uppercase tracking-widest block ml-2">Your Message</label>
-              <textarea 
+              <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Tap the blue button to speak..."
                 className={`w-full bg-[#F6F6F8] p-8 rounded-[2rem] text-2xl font-medium min-h-[180px] outline-none border-2 border-transparent focus:border-blue-200 transition-all resize-none ${message.includes("didn't hear") ? 'text-red-500' : 'text-[#003366]'}`}
               />
             </div>
-            <button 
+            <button
               onClick={handleVoiceInput}
               className={`w-full py-8 rounded-[2.5rem] flex items-center justify-center gap-6 shadow-xl transition-all active:scale-95 ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-[#1152D4] text-white'}`}
             >
@@ -233,7 +233,7 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
             </button>
           </div>
           <div className="mt-12 pb-6">
-            <button 
+            <button
               onClick={() => setStep('share_select')}
               className="w-full bg-[#001A33] text-white py-8 rounded-[2.5rem] text-4xl font-black shadow-[0_12px_0_#000a14] active:translate-y-2 active:shadow-none transition-all uppercase"
             >
@@ -249,13 +249,13 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
           <div className="px-8 pt-8 pb-4">
             <div className="bg-white rounded-[2.5rem] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-100 flex items-center gap-6">
               <div className="w-24 h-24 rounded-[1.75rem] overflow-hidden bg-gray-50 shrink-0 shadow-md">
-                <img 
-                  src={capturedImage!} 
-                  className="w-full h-full object-cover" 
-                  alt="Preview" 
+                <img
+                  src={capturedImage!}
+                  className="w-full h-full object-cover"
+                  alt="Preview"
                 />
               </div>
-              
+
               <div className="flex-1 flex flex-col justify-center overflow-hidden">
                 <span className="text-[#9CA3AF] font-black uppercase tracking-[0.2em] text-[12px] mb-1">PREVIEW</span>
                 <p className="text-[1.35rem] font-black text-[#003366] italic leading-tight line-clamp-2">
@@ -268,9 +268,9 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
           {/* Reduced padding top to tighten space */}
           <div className="flex-1 px-8 pt-0 pb-8 space-y-4">
             <p className="text-center text-[#CCCCCC] font-black uppercase tracking-[0.25em] text-[10px] mb-2">CHOOSE WHERE TO SEND:</p>
-            
+
             {/* 1. iMessage (Green) */}
-            <button 
+            <button
               onClick={() => startSending('iMessage')}
               className="w-full h-24 bg-[#25D366] text-white rounded-[2rem] flex items-center justify-center gap-6 px-10 shadow-[0_8px_0_#128c7e] active:translate-y-1 active:shadow-none transition-all group"
             >
@@ -281,7 +281,7 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
             </button>
 
             {/* 2. Facebook (Blue) */}
-            <button 
+            <button
               onClick={() => startSending('Facebook')}
               className="w-full h-24 bg-[#1877F2] text-white rounded-[2rem] flex items-center justify-center gap-5 px-10 shadow-[0_8px_0_#0d52a8] active:translate-y-1 active:shadow-none transition-all group"
             >
@@ -292,7 +292,7 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
             </button>
 
             {/* 3. WhatsApp (Dark Green) */}
-            <button 
+            <button
               onClick={() => startSending('WhatsApp')}
               className="w-full h-24 bg-[#075E54] text-white rounded-[2rem] flex items-center justify-center gap-6 px-10 shadow-[0_8px_0_#043e37] active:translate-y-1 active:shadow-none transition-all group"
             >
@@ -303,7 +303,7 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
             </button>
 
             {/* 4. Twitter (Sky Blue) */}
-            <button 
+            <button
               onClick={() => startSending('Twitter')}
               className="w-full h-24 bg-[#1DA1F2] text-white rounded-[2rem] flex items-center justify-center gap-6 px-10 shadow-[0_8px_0_#0c85d0] active:translate-y-1 active:shadow-none transition-all group"
             >
@@ -314,7 +314,7 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
             </button>
 
             {/* 5. TikTok (Black) */}
-            <button 
+            <button
               onClick={() => startSending('TikTok')}
               className="w-full h-24 bg-[#000000] text-white rounded-[2rem] flex items-center justify-center gap-6 px-10 shadow-[0_8px_0_#333333] active:translate-y-1 active:shadow-none transition-all group"
             >
@@ -346,8 +346,8 @@ const PostFlow: React.FC<PostFlowProps> = ({ onClose, onPostCreated }) => {
           </div>
           <h2 className="text-6xl font-black text-white mb-4">Done!</h2>
           <p className="text-2xl text-white font-bold mb-16 px-6">Your beautiful memory has been shared!</p>
-          
-          <button 
+
+          <button
             onClick={onClose}
             className="w-full bg-white text-[#13EC13] py-8 rounded-[2.5rem] text-4xl font-black shadow-[0_12px_0_#0fbc0f] active:translate-y-2 active:shadow-none transition-all uppercase"
           >

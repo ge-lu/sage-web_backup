@@ -30,11 +30,11 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-[500] bg-[#FDFBF7] flex flex-col font-['Plus_Jakarta_Sans'] select-none overflow-hidden animate-in fade-in duration-300">
-      
+
       {step === 'select' && (
         <div className="flex flex-col h-full relative">
           {/* Top-Right Close Button - Compact */}
-          <button 
+          <button
             onClick={onClose}
             className="absolute top-4 right-4 w-10 h-10 bg-gray-100/80 backdrop-blur rounded-full flex items-center justify-center text-gray-400 active:bg-gray-200 z-[600] shadow-sm transition-colors"
           >
@@ -53,7 +53,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
             {/* Horizontal Preview Card with Optional Comparison */}
             <div className="px-6">
               <div className="bg-white rounded-[2.5rem] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-100 flex items-center gap-5">
-                
+
                 {isPhotoFix ? (
                   /* Comparison View for Fixed Photos */
                   <div className="w-40 h-24 rounded-[1.5rem] overflow-hidden bg-gray-50 shrink-0 shadow-md flex relative border-2 border-gray-50">
@@ -70,14 +70,14 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
                 ) : (
                   /* Normal View */
                   <div className="w-24 h-24 rounded-[1.75rem] overflow-hidden bg-gray-50 shrink-0 shadow-md">
-                    <img 
-                      src={post.imageUrl} 
-                      className="w-full h-full object-cover" 
-                      alt="Preview" 
+                    <img
+                      src={post.imageUrl}
+                      className="w-full h-full object-cover"
+                      alt="Preview"
                     />
                   </div>
                 )}
-                
+
                 <div className="flex-1 flex flex-col justify-center overflow-hidden">
                   <span className="text-[#9CA3AF] font-black uppercase tracking-[0.2em] text-[10px] mb-1 leading-none">PREVIEW</span>
                   <p className="text-[1.25rem] font-black text-[#003366] italic leading-tight line-clamp-2 tracking-tight">
@@ -98,7 +98,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
             {/* Large Tactile Buttons - Centered Text & Icon */}
             <div className="px-5 space-y-3.5 flex flex-col items-stretch overflow-y-auto no-scrollbar pb-12">
               {/* 1. iMessage (Green) */}
-              <button 
+              <button
                 onClick={() => handleShare('iMessage')}
                 className="w-full min-h-[76px] bg-[#25D366] text-white rounded-[2rem] flex items-center justify-center gap-5 px-6 shadow-[0_6px_0_#128c7e] active:translate-y-1 active:shadow-none transition-all group"
               >
@@ -109,7 +109,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
               </button>
 
               {/* 2. Facebook (Blue) */}
-              <button 
+              <button
                 onClick={() => handleShare('Facebook')}
                 className="w-full min-h-[76px] bg-[#1877F2] text-white rounded-[2rem] flex items-center justify-center gap-5 px-6 shadow-[0_6px_0_#0d52a8] active:translate-y-1 active:shadow-none transition-all group"
               >
@@ -120,7 +120,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
               </button>
 
               {/* 3. WhatsApp (Dark Green) */}
-              <button 
+              <button
                 onClick={() => handleShare('WhatsApp')}
                 className="w-full min-h-[76px] bg-[#075E54] text-white rounded-[2rem] flex items-center justify-center gap-5 px-6 shadow-[0_6px_0_#043e37] active:translate-y-1 active:shadow-none transition-all group"
               >
@@ -131,7 +131,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
               </button>
 
               {/* 4. Twitter (Sky Blue) */}
-              <button 
+              <button
                 onClick={() => handleShare('Twitter')}
                 className="w-full min-h-[76px] bg-[#1DA1F2] text-white rounded-[2rem] flex items-center justify-center gap-5 px-6 shadow-[0_6px_0_#0c85d0] active:translate-y-1 active:shadow-none transition-all group"
               >
@@ -142,7 +142,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
               </button>
 
               {/* 5. TikTok (Black) */}
-              <button 
+              <button
                 onClick={() => handleShare('TikTok')}
                 className="w-full min-h-[76px] bg-[#000000] text-white rounded-[2rem] flex items-center justify-center gap-5 px-6 shadow-[0_6px_0_#333333] active:translate-y-1 active:shadow-none transition-all group"
               >
@@ -163,7 +163,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
             <Send size={64} className="text-white animate-bounce" />
           </div>
           <h2 className="text-4xl font-black text-white text-center leading-tight tracking-tight uppercase">
-            Sharing your<br/>joy...
+            Sharing your<br />joy...
           </h2>
         </div>
       )}
@@ -175,8 +175,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
           </div>
           <h2 className="text-6xl font-black text-white mb-4 uppercase tracking-tighter">SENT!</h2>
           <p className="text-2xl text-white font-bold mb-16 px-6 leading-tight">Your family will love this! ❤️</p>
-          
-          <button 
+
+          <button
             onClick={onClose}
             className="w-full h-20 bg-white text-[#13EC13] rounded-[2rem] text-3xl font-black shadow-[0_10px_0_#0fbc0f] active:translate-y-2 active:shadow-none transition-all uppercase tracking-tight"
           >

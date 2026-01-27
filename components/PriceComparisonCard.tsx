@@ -24,14 +24,14 @@ const PriceComparisonCard: React.FC<PriceComparisonCardProps> = ({ products, onS
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">Best Prices Found</h3>
             </div>
-            
+
             <p className="text-gray-500 mb-6 text-sm">
                 I found the exact same item. Left is faster, Right is cheaper. Which one?
             </p>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
                 {products.map((p, idx) => (
-                    <button 
+                    <button
                         key={idx}
                         onClick={() => onSelect(p.vendor)}
                         className={`relative flex flex-col items-center p-4 rounded-2xl border-2 transition-all active:scale-95 ${p.recommended ? 'border-[#00E341] bg-green-50/50' : 'border-gray-100 bg-white'}`}
@@ -48,7 +48,7 @@ const PriceComparisonCard: React.FC<PriceComparisonCardProps> = ({ products, onS
                 ))}
             </div>
 
-            <button 
+            <button
                 onClick={onCancel}
                 className="w-full h-12 rounded-full bg-gray-100 text-gray-600 font-bold"
             >

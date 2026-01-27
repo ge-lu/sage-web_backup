@@ -20,12 +20,12 @@ const UberRideModal: React.FC<UberRideModalProps> = ({ onClose }) => {
     return (
         <div className="fixed inset-0 z-[60] bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
             <div className="w-full max-w-md bg-white rounded-t-[2rem] sm:rounded-[2rem] overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300">
-                
+
                 {/* Header */}
                 <div className="bg-black text-white p-6 flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-black">
-                           <span className="font-bold text-xs">Uber</span>
+                            <span className="font-bold text-xs">Uber</span>
                         </div>
                         <span className="font-bold text-lg">Health & Life Assistant</span>
                     </div>
@@ -47,7 +47,7 @@ const UberRideModal: React.FC<UberRideModalProps> = ({ onClose }) => {
                             <p className="text-gray-500 text-sm mb-6">
                                 Based on your calendar, you have an appointment at 10:00 AM.
                             </p>
-                            <button 
+                            <button
                                 onClick={() => setStep('CONFIRM')}
                                 className="w-full h-14 bg-black text-white rounded-full font-bold text-lg"
                             >
@@ -59,7 +59,7 @@ const UberRideModal: React.FC<UberRideModalProps> = ({ onClose }) => {
                     {step === 'CONFIRM' && (
                         <>
                             <h2 className="text-2xl font-bold text-gray-900 mb-6">Confirm Ride</h2>
-                            
+
                             <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-6">
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Estimated Cost</p>
@@ -76,7 +76,7 @@ const UberRideModal: React.FC<UberRideModalProps> = ({ onClose }) => {
                                 Payment linked to Family Account (Ends in 4242)
                             </div>
 
-                            <button 
+                            <button
                                 onClick={() => setStep('TRACKING')}
                                 className="w-full h-14 bg-[#00E341] text-black rounded-full font-bold text-lg shadow-lg mb-3"
                             >
@@ -93,7 +93,7 @@ const UberRideModal: React.FC<UberRideModalProps> = ({ onClose }) => {
                             </div>
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">Driver is on the way!</h2>
                             <p className="text-gray-500 mb-6">Look for a {car} ({plate})</p>
-                            
+
                             <div className="bg-gray-100 rounded-xl h-48 w-full flex items-center justify-center mb-6">
                                 <span className="text-gray-400 font-medium">Map Simulation</span>
                             </div>
