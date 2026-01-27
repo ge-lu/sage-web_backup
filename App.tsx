@@ -21,15 +21,12 @@ import ForgotPasswordView from './pages/ForgotPasswordView';
 
 import { AppMode, HistoryItem, TaskCard } from './types';
 import { getPathForMode } from './routes';
-import VConsole from 'vconsole';
+// import VConsole from 'vconsole';
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    // if (process.env.NODE_ENV === 'development') {
-    //   new VConsole();
-    // }
   }, []);
 
   // --- 1. GLOBAL APP STATE (The Source of Truth) ---

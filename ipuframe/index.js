@@ -6,12 +6,13 @@ import IpuMobile from './ipu/frame/mobile/ipu-mobile'
 import jcl from './ipu/frame/base/jcl'
 import constant from './constant'
 import browserTool from './ipu/frame/mobile/browser-toolkit'
-import util from '@/util'
+// import util from '@/util'
 
 import { wrapBaiduLocation } from './extends'
+const REQUEST_TIME_OUT=(30 + 4) * 1000;
 
 // 设置超时
-browserTool.ajax.ajaxSettings.timeout = util.constant.default.REQUEST_TIME_OUT
+browserTool.ajax.ajaxSettings.timeout = REQUEST_TIME_OUT
 
 // 项目插件，请定义到biz/js/common/biz-mobile.js
 IpuMobile.constant = constant
