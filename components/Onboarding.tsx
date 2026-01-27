@@ -1,5 +1,5 @@
+import { Bot, Ear, Eye, HandHeart, Heart, Image as ImageIcon, MessageCircle, Pill, ShieldCheck, Sparkles, Users } from 'lucide-react';
 import React, { useState } from 'react';
-import { Icons } from '../constants';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -10,28 +10,83 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
   const steps = [
     {
-      title: "Meet Aura",
-      description: "Your voice-activated assistant. Just tap the microphone or say 'Help' to manage your daily life.",
-      icon: <div className="w-24 h-24 rounded-full bg-gradient-to-b from-gray-800 to-black shadow-[0_0_30px_rgba(0,227,65,0.3)] flex items-center justify-center border-4 border-white/10"><div className="w-4 h-4 rounded-full bg-[#00E341] animate-ping"></div></div>,
-      color: "bg-gray-900"
+      // Step 1: Eye/Ear/Robot - Help see, hear, answer questions
+      title: "Your Eyes & Ears",
+      description: "I can help you read, listen, and answer any questions to make your daily life easier.",
+      icon: (
+        <div className="relative w-40 h-40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-blue-100 rounded-full animate-pulse opacity-50"></div>
+          <div className="relative z-10 w-32 h-32 bg-white rounded-full shadow-xl flex items-center justify-center text-blue-600 border-4 border-blue-50">
+            <Bot className="w-16 h-16" />
+          </div>
+          <div className="absolute -right-2 top-0 bg-blue-500 text-white p-3 rounded-full shadow-lg animate-bounce delay-700">
+            <Eye className="w-6 h-6" />
+          </div>
+          <div className="absolute -left-2 top-0 bg-indigo-500 text-white p-3 rounded-full shadow-lg animate-bounce delay-100">
+            <Ear className="w-6 h-6" />
+          </div>
+        </div>
+      ),
+      bg: "bg-slate-50",
+      accent: "text-blue-600"
     },
     {
-      title: "Guardian Shield",
-      description: "Aura actively monitors for scam calls and dangerous messages to keep you safe automatically.",
-      icon: <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center text-red-500 animate-[pulse_2s_infinite]"><Icons.Shield className="w-12 h-12" /></div>,
-      color: "bg-white"
+      // Step 2: Companionship - Chat
+      title: "Always Here For You",
+      description: "A companion to chat with, listen to your stories, and keep you company anytime.",
+      icon: (
+        <div className="relative w-40 h-40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-pink-100 rounded-full animate-pulse opacity-50"></div>
+          <div className="relative z-10 w-32 h-32 bg-white rounded-full shadow-xl flex items-center justify-center text-pink-500 border-4 border-pink-50">
+            <Heart className="w-16 h-16 fill-pink-500" />
+          </div>
+          <div className="absolute -right-4 bottom-4 bg-white text-pink-500 p-2 rounded-xl shadow-md border border-pink-100 animate-[bounce_3s_infinite]">
+            <MessageCircle className="w-8 h-8" />
+          </div>
+        </div>
+      ),
+      bg: "bg-pink-50/30",
+      accent: "text-pink-600"
     },
     {
-      title: "Omnibus Vision",
-      description: "Use the camera to read bills, identify medication, or analyze prices instantly.",
-      icon: <div className="w-24 h-24 rounded-full bg-[#E0F2FE] flex items-center justify-center text-[#0284C7]"><Icons.Camera className="w-12 h-12" /></div>,
-      color: "bg-white"
+      // Step 3: Health & Safety - Meds & Scam
+      title: "Health & Safety",
+      description: "I'll remind you to take your meds on time and block scam calls to keep you safe.",
+      icon: (
+        <div className="relative w-40 h-40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-green-100 rounded-full animate-pulse opacity-50"></div>
+          <div className="relative z-10 w-32 h-32 bg-white rounded-full shadow-xl flex items-center justify-center text-green-600 border-4 border-green-50">
+            <ShieldCheck className="w-16 h-16" />
+          </div>
+          <div className="absolute -left-4 bottom-6 bg-white text-emerald-600 p-3 rounded-full shadow-lg border border-green-100">
+            <Pill className="w-8 h-8" />
+          </div>
+        </div>
+      ),
+      bg: "bg-green-50/30",
+      accent: "text-emerald-700"
     },
     {
-      title: "My Plan",
-      description: "Track orders, view history, and manage health reminders all in one simple timeline.",
-      icon: <div className="w-24 h-24 rounded-full bg-[#F0FDF4] flex items-center justify-center text-[#15803D]"><Icons.History className="w-12 h-12" /></div>,
-      color: "bg-white"
+      // Step 4: Memories & Circle - Photos & Social
+      title: "Memories & Friends",
+      description: "Restore old photos with one tap and share your favorite moments with your circle.",
+      icon: (
+        <div className="relative w-40 h-40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-purple-100 rounded-full animate-pulse opacity-50"></div>
+          <div className="relative z-10 w-32 h-32 bg-white rounded-full shadow-xl flex items-center justify-center text-purple-600 border-4 border-purple-50">
+            <Users className="w-16 h-16" />
+          </div>
+
+          <div className="absolute -right-2 top-2 bg-gradient-to-tr from-indigo-500 to-purple-500 text-white p-2 rounded-lg shadow-lg rotate-12">
+            <ImageIcon className="w-6 h-6" />
+          </div>
+          <div className="absolute -right-4 top-0 text-yellow-400 animate-spin-slow">
+            <Sparkles className="w-8 h-8 fill-yellow-400" />
+          </div>
+        </div>
+      ),
+      bg: "bg-purple-50/30",
+      accent: "text-purple-700"
     }
   ];
 
@@ -46,10 +101,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const step = steps[currentStep];
 
   return (
-    <div className={`fixed inset-0 z-[60] flex flex-col ${step.color} transition-colors duration-500`}>
+    <div className={`fixed inset-0 z-[60] flex flex-col ${step.bg} transition-colors duration-700`}>
       {/* Skip Button */}
       <div className="absolute top-6 right-6 z-10">
-        <button 
+        <button
           onClick={onComplete}
           className="text-sm font-bold text-gray-400 hover:text-gray-600 px-4 py-2"
         >
@@ -58,37 +113,40 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in slide-in-from-right-4 duration-300" key={currentStep}>
-        <div className="mb-10 scale-110 transition-transform duration-500">
-            {step.icon}
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in slide-in-from-right-8 duration-500 fill-mode-both" key={currentStep}>
+
+        {/* Dynamic Icon Composition */}
+        <div className="mb-12 scale-110 transition-transform duration-500">
+          {step.icon}
         </div>
-        
-        <h2 className={`text-3xl font-bold mb-4 ${step.color === 'bg-gray-900' ? 'text-white' : 'text-gray-900'}`}>
+
+        <h2 className={`text-3xl font-bold mb-6 ${step.accent}`}>
           {step.title}
         </h2>
-        
-        <p className={`text-lg leading-relaxed max-w-xs ${step.color === 'bg-gray-900' ? 'text-gray-400' : 'text-gray-500'}`}>
+
+        <p className="text-xl leading-relaxed max-w-xs text-gray-600 font-medium">
           {step.description}
         </p>
       </div>
 
       {/* Footer / Controls */}
-      <div className="p-8 w-full flex flex-col items-center gap-6">
+      <div className="p-8 w-full flex flex-col items-center gap-8">
         {/* Indicators */}
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           {steps.map((_, idx) => (
-            <div 
-              key={idx} 
-              className={`h-2 rounded-full transition-all duration-300 ${idx === currentStep ? 'w-8 bg-[#00E341]' : 'w-2 bg-gray-300'}`}
+            <div
+              key={idx}
+              className={`h-2.5 rounded-full transition-all duration-500 ${idx === currentStep ? `w-10 ${step.accent.replace('text-', 'bg-')}` : 'w-2.5 bg-gray-300'}`}
             ></div>
           ))}
         </div>
 
-        <button 
+        <button
           onClick={handleNext}
-          className="w-full h-14 bg-[#00E341] rounded-2xl text-black font-bold text-lg shadow-[0_4px_20px_rgba(0,227,65,0.3)] active:scale-95 transition-transform flex items-center justify-center"
+          className="w-full h-16 bg-[#00E341] rounded-2xl text-black font-bold text-xl shadow-[0_8px_30px_rgba(0,227,65,0.3)] active:scale-95 transition-transform flex items-center justify-center relative overflow-hidden group"
         >
-          {currentStep === steps.length - 1 ? "Get Started" : "Next"}
+          <span className="relative z-10">{currentStep === steps.length - 1 ? "Get Started" : "Next"}</span>
+          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
         </button>
       </div>
     </div>
