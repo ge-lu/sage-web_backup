@@ -260,19 +260,20 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Context List */}
       <div className="mt-10">
-          <h3 className="text-2xl font-bold text-gray-900 mb-5 px-2">Recent Context</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-5 px-2">Recent Activity</h3>
           {activities.map((item) => {
               const styles = getColorsForType(item.type);
               const isExpanded = expandedActivity === item.id;
               return (
                   <div key={item.id} onClick={() => setExpandedActivity(isExpanded ? null : item.id)} className={`group relative rounded-[2rem] overflow-hidden mb-4 cursor-pointer transition-all duration-300 bg-white border border-gray-100 border-l-[6px] ${styles.border} ${isExpanded ? 'shadow-lg scale-[1.02] z-10' : 'shadow-sm z-0'}`}>
-                      <div className="p-5 flex items-center gap-5">
+                      <div className="p-5 flex items-start gap-5">
                           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 ${styles.iconBg} ${styles.icon}`}>{getIconForType(item.type)}</div>
                           <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-start"><h4 className="font-bold text-xl truncate pr-2 text-gray-900">{item.title}</h4><span className="text-[11px] font-bold text-gray-400 uppercase mt-1">{item.time}</span></div>
-                              <p className="text-sm font-medium mt-1 text-gray-500 truncate">{item.subtitle}</p>
+                              <div className="flex justify-between items-start gap-2"><h4 className="font-bold text-xl pr-2 text-gray-900 break-words">{item.title}</h4><span className="text-[11px] font-bold text-gray-400 uppercase mt-1 shrink-0">{item.id === '3' ? 'Shipped' : item.time}</span></div>
+                              {item.id === '2' && <p className="text-sm font-medium mt-1 text-gray-500 break-words">{item.subtitle.split(' • ')[0]}</p>}
+                              {item.id === '3' && <p className="text-sm font-medium mt-1 text-gray-500 break-words">Arriving tomorrow</p>}
                           </div>
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isExpanded ? 'bg-gray-100 rotate-90' : 'bg-transparent'}`}><Icons.ChevronLeft className="w-5 h-5 text-gray-400" /></div>
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all mt-6 ${isExpanded ? 'bg-gray-100 rotate-180' : 'bg-transparent'}`}><Icons.ChevronDown className="w-5 h-5 text-gray-400" /></div>
                       </div>
                       <div className={`grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
                           <div className="overflow-hidden"><div className="px-5 pb-6 pt-0"><div className="pl-[5.25rem]"><div className="h-px w-full bg-gray-100 mb-4"></div><p className="text-base text-gray-600 mb-6 font-medium">{item.detail}</p>{item.actionLabel && <button onClick={(e) => { e.stopPropagation(); if(item.type === 'scam') goTo(AppMode.FAMILY_CONNECTIONS); if(item.type === 'order') goTo(AppMode.PLAN); }} className="w-full py-4 rounded-xl text-base font-bold bg-gray-50 text-gray-900 flex items-center justify-center gap-2 hover:bg-gray-100">{item.actionLabel}<Icons.ArrowRight className="w-4 h-4" /></button>}</div></div></div>

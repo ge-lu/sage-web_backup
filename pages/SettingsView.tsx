@@ -8,7 +8,7 @@ interface SettingsViewProps {
 
 const SettingsView: React.FC<SettingsViewProps> = ({ onBack }) => {
   return (
-    <div className="w-full h-full bg-[#F5F7F9] px-6 pt-12 pb-32">
+    <div className="w-full h-full bg-[#F5F7F9] px-6 pt-12 pb-32 overflow-y-auto">
       
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
