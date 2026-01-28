@@ -168,7 +168,8 @@
 | :--- | :--- | :--- |
 | `reply` | string | AI 回复内容 |
 | `emotion` | string | 情感状态 ('HAPPY', 'SAD', 'ANGRY', 'FEAR', 'SURPRISE', 'DISGUST', 'THINKING', 'NEUTRAL') |
-| `action` | string | (可选) AI 建议的动作 |
+| `action` | string | (可选) AI 建议的动作 ('create_task', 'none') |
+| `taskSuggestion` | object | (可选) 当 action 为 'create_task' 时返回的任务建议数据 |
 
 #### 8.2 视觉分析 (Vision API)
 *   **函数**: `analyzeVisualContext`
@@ -187,6 +188,25 @@
 | `products` | array | (购物) `Array<{ vendor, price, delivery, recommended }>` |
 | `overlayIndicators` | array | (电器指南) `Array<{ x, y, label, direction }>` |
 | `qrData` | string | (二维码) 扫描到的数据 |
+
+#### 8.3 AI 智能任务创建 (AI Smart Task Creation)
+*   **功能**: 通过自然语言指令创建待办事项与提醒。
+*   **流程**: 用户输入指令 -> AI 解析意图 -> 返回结构化数据 -> 前端确认并保存 -> Firestore 存储。
+*   **示例指令**: "提醒我每天晚上 8 点吃降压药"
+*   **数据结构 (TaskSuggestion)**:
+
+| 字段 | 类型 | 描述 |
+| :--- | :--- | :--- |
+| `title` | string | 任务标题 (例如: "服用降压药") |
+| `subtitle` | string | 辅助描述 (例如: "记得喝水") |
+| `time` | string | ISO 8601 时间字符串或 Cron 表达式 |
+| `recurrence` | string | 重复模式 ('daily', 'weekly', 'monthly', 'none') |
+| `type` | string | 任务类型 ('medication', 'appointment', 'general') |
+
+*   **UI 交互**:
+    *   聊天界面显示任务卡片预览。
+    *   用户点击“确认添加”后，调用 `createTask` API 保存至数据库。
+    *   任务将显示在“任务”页面，并在预定时间触发应用内通知。
 
 ## 过渡策略：从模拟数据到 Firebase
 

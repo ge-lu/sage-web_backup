@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Icons } from '../constants';
-import { ChatMessage, HistoryItem, AuraEmotion } from '../types';
-import { chatWithAura } from '../services/geminiService';
+import { ChatMessage, HistoryItem, AuraEmotion, Task } from '../types';
+import { chatWithAura, TaskSuggestion } from '../services/geminiService';
+import { createTask } from '../services/api';
 import AuraAvatar from './AuraAvatar';
 
 interface ChatOverlayProps {
@@ -166,7 +167,21 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ onClose, onTriggerAction, ini
                 setCurrentEmotion('FEAR');
             }
 
-            if (response.action) {
+            if (response.action === 'create_task' && response.taskSuggestion) {
+                const suggestion = response.taskSuggestion;
+                await createTask({
+                    title: suggestion.title,
+                    subtitle: suggestion.subtitle,
+                    time: suggestion.time,
+                    recurrence: suggestion.recurrence,
+                    icon: suggestion.type === 'medication' ? 'pill' : 'activity',
+                    status: 'pending',
+                    reminderSettings: { snoozeEnabled: true, alertSound: 'chime' }
+                });
+                console.log("Task created via AI:", suggestion.title);
+            }
+
+            if (response.action && response.action !== 'create_task') {
                 setTimeout(() => {
                     onTriggerAction(response.action!);
                 }, 1500);

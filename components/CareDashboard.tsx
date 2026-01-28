@@ -1,13 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafetyNet } from './SafetyNet';
 import { TaskCard } from './TaskCard';
 import { BillCard } from './BillCard';
 import { SecurityCard } from './SecurityCard';
 import { CommerceCard } from './CommerceCard';
 import { RideCard } from './RideCard';
-import { MOCK_TASKS, MOCK_BILLS, MOCK_SECURITY_EVENTS, MOCK_COMMERCE_ITEMS, MOCK_RIDE } from '../constants';
+import { MOCK_BILLS, MOCK_SECURITY_EVENTS, MOCK_COMMERCE_ITEMS, MOCK_RIDE } from '../constants';
 import { Task, Bill, ViewType, SecurityEvent, CommerceItem, RideSession } from '../types';
+import { getTasks, deleteTask } from '../services/api';
 
 interface DashboardProps {
     onNavigate: (view: ViewType) => void;
@@ -15,14 +16,31 @@ interface DashboardProps {
 }
 
 export const CareDashboard: React.FC<DashboardProps> = ({ onNavigate, onSelectContact }) => {
-    const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
+    const [tasks, setTasks] = useState<Task[]>([]);
     const [bills, setBills] = useState<Bill[]>(MOCK_BILLS);
     const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>(MOCK_SECURITY_EVENTS);
     const [commerceItems, setCommerceItems] = useState<CommerceItem[]>(MOCK_COMMERCE_ITEMS);
     const [ride, setRide] = useState<RideSession | null>(MOCK_RIDE);
 
+    useEffect(() => {
+        const loadTasks = async () => {
+            const data = await getTasks();
+            setTasks(data);
+        };
+        loadTasks();
+    }, []);
+
     const handleCompleteTask = (id: string) => {
         setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'completed' } : t));
+    };
+
+    const handleDeleteTask = async (id: string) => {
+        try {
+            await deleteTask(id);
+            setTasks(prev => prev.filter(t => t.id !== id));
+        } catch (error) {
+            console.error("Failed to delete task:", error);
+        }
     };
 
     const handleUpdateTask = (id: string, updates: Partial<Task>) => {
@@ -95,6 +113,7 @@ export const CareDashboard: React.FC<DashboardProps> = ({ onNavigate, onSelectCo
                             task={task}
                             onComplete={() => handleCompleteTask(task.id)}
                             onUpdate={(updates) => handleUpdateTask(task.id, updates)}
+                            onDelete={() => handleDeleteTask(task.id)}
                         />
                     ))}
 

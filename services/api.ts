@@ -18,6 +18,8 @@ import {
     AuthResponse,
     User
 } from '../types';
+import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { db } from './db';
 
 // This service layer acts as the bridge. 
 // Currently it returns MOCK data, but it is structured to easily switch to Firebase calls.
@@ -30,8 +32,36 @@ export const getContacts = async (): Promise<Contact[]> => {
 
 // 2. Tasks
 export const getTasks = async (): Promise<Task[]> => {
-    // TODO: Switch to: (await getDocs(collection(db, 'tasks'))).docs.map(...)
-    return Promise.resolve(MOCK_TASKS);
+    try {
+        const snapshot = await getDocs(collection(db, 'tasks'));
+        if (snapshot.empty) {
+            console.log("No tasks in Firestore, returning MOCK_TASKS");
+            return MOCK_TASKS;
+        }
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
+    } catch (error) {
+        console.warn("Error fetching tasks from Firestore, returning MOCK_TASKS", error);
+        return MOCK_TASKS;
+    }
+};
+
+export const createTask = async (task: Omit<Task, 'id'>): Promise<Task> => {
+    try {
+        const docRef = await addDoc(collection(db, 'tasks'), task);
+        return { id: docRef.id, ...task };
+    } catch (error) {
+        console.error("Error creating task:", error);
+        throw error;
+    }
+};
+
+export const deleteTask = async (taskId: string): Promise<void> => {
+    try {
+        await deleteDoc(doc(db, 'tasks', taskId));
+    } catch (error) {
+        console.error("Error deleting task:", error);
+        throw error;
+    }
 };
 
 // 3. Bills

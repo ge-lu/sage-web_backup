@@ -51,10 +51,19 @@ export interface ScanResult {
     qrData?: string;
 }
 
+export interface TaskSuggestion {
+    title: string;
+    subtitle: string;
+    time: string;
+    recurrence: 'daily' | 'weekly' | 'monthly' | 'none';
+    type: 'medication' | 'appointment' | 'general';
+}
+
 export interface ChatResponse {
     reply: string;
     emotion: AuraEmotion;
     action?: string;
+    taskSuggestion?: TaskSuggestion;
 }
 
 // --- CORE AGENT FUNCTIONS ---
@@ -69,8 +78,22 @@ export const chatWithAura = async (message: string, history: {role: string, text
             Goals: Clear, concise, warm responses.
             Emotions: HAPPY, SAD, ANGRY, FEAR, SURPRISE, DISGUST, THINKING, NEUTRAL.
             
+            If the user asks to set a reminder or create a task, set 'action' to 'create_task' and populate 'taskSuggestion'.
+            For 'time', try to convert to ISO 8601 format if possible, or keep as clear text.
+            
             Output strictly JSON:
-            { "reply": "string", "emotion": "enum", "action": "optional_string" }
+            { 
+                "reply": "string", 
+                "emotion": "enum", 
+                "action": "optional_string",
+                "taskSuggestion": {
+                    "title": "summary title",
+                    "subtitle": "details",
+                    "time": "ISO8601 time",
+                    "recurrence": "daily|weekly|monthly|none",
+                    "type": "medication|appointment|general"
+                }
+            }
         `;
 
         const response = await ai.models.generateContent({
@@ -90,7 +113,18 @@ export const chatWithAura = async (message: string, history: {role: string, text
                     properties: {
                         reply: { type: Type.STRING },
                         emotion: { type: Type.STRING },
-                        action: { type: Type.STRING }
+                        action: { type: Type.STRING },
+                        taskSuggestion: {
+                            type: Type.OBJECT,
+                            properties: {
+                                title: { type: Type.STRING },
+                                subtitle: { type: Type.STRING },
+                                time: { type: Type.STRING },
+                                recurrence: { type: Type.STRING },
+                                type: { type: Type.STRING }
+                            },
+                            nullable: true
+                        }
                     },
                     required: ['reply', 'emotion']
                 }
@@ -101,7 +135,8 @@ export const chatWithAura = async (message: string, history: {role: string, text
         return {
             reply: data.reply || "I'm here for you.",
             emotion: (data.emotion as AuraEmotion) || 'NEUTRAL',
-            action: data.action
+            action: data.action,
+            taskSuggestion: data.taskSuggestion
         };
 
     } catch (error) {

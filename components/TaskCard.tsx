@@ -7,9 +7,10 @@ interface TaskCardProps {
     task: Task;
     onComplete: () => void;
     onUpdate: (updates: Partial<Task>) => void;
+    onDelete: () => void;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task, onComplete, onUpdate }) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ task, onComplete, onUpdate, onDelete }) => {
     const [showSettings, setShowSettings] = useState(false);
     const [snoozed, setSnoozed] = useState(false);
 
