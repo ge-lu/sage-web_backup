@@ -37,6 +37,36 @@
 }
 ```
 
+#### 2.1 获取任务列表 (Get Tasks)
+*   **函数**: `getTasks`
+*   **描述**: 获取当前用户的所有任务列表。优先从 Firestore 获取，为空时返回模拟数据。
+*   **参数**: 无
+*   **响应**: `Promise<Task[]>`
+
+#### 2.2 创建任务 (Create Task)
+*   **函数**: `createTask`
+*   **描述**: 创建一个新的任务文档。
+*   **参数**: `task` (不包含 ID 的 `Task` 对象)
+
+| 字段 | 类型 | 描述 |
+| :--- | :--- | :--- |
+| `title` | string | 任务标题 |
+| `subtitle` | string | 任务副标题/详情 |
+| `time` | string | 时间字符串 |
+| `status` | string | e.g. 'pending' |
+| `icon` | string | e.g. 'pill', 'heart' |
+| `recurrence` | string | 'daily', 'weekly', etc. |
+| `reminderSettings`| object | 提醒设置 |
+
+*   **响应**: `Promise<Task>` (包含生成的 ID)
+
+#### 2.3 删除任务 (Delete Task)
+*   **函数**: `deleteTask`
+*   **描述**: 根据 ID 删除指定任务。
+*   **参数**:
+    *   `taskId`: string (任务文档 ID)
+*   **响应**: `Promise<void>`
+
 ### 2. 任务（日常惯例与健康）
 *   **集合**: `tasks`
 *   **接口**: `Task`
