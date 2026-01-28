@@ -99,17 +99,18 @@ export const SmartRideCard: React.FC = () => {
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900">Appointment Alert</h3>
-                <p className="text-sm text-gray-600 mt-1">City General Hospital • Tomorrow 10:00 AM</p>
+                <h3 className="text-lg font-bold text-gray-900">Need a ride tomorrow? </h3>
               </div>
             </div>
-            <p className="text-sm text-gray-700 font-medium mb-4">Would you like me to book your ride?</p>
+            <p className="text-base text-gray-800 leading-relaxed mb-4">
+               <span className=" text-gray-900">10:00 AM at City General Hospital.</span> <span className="font-black text-gray-900"></span>
+            </p>
             <div className="flex gap-3">
               <button 
                 onClick={(e) => { e.stopPropagation(); setStage(RideStage.IDLE); }}
-                className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl text-sm font-bold active:scale-95"
+                className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl text-sm font-bold active:scale-95 border-2 border-gray-300"
               >
-                No
+                No, Thanks
               </button>
               <button 
                 onClick={(e) => { e.stopPropagation(); setStage(RideStage.WAITING); }}
