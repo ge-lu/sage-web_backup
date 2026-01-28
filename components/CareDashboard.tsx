@@ -6,6 +6,7 @@ import { BillCard } from './BillCard';
 import { SecurityCard } from './SecurityCard';
 import { CommerceCard } from './CommerceCard';
 import { RideCard } from './RideCard';
+import { SmartRideCard } from './SmartRideCard';
 import { MOCK_BILLS, MOCK_SECURITY_EVENTS, MOCK_COMMERCE_ITEMS, MOCK_RIDE } from '../constants';
 import { Task, Bill, ViewType, SecurityEvent, CommerceItem, RideSession } from '../types';
 import { getTasks, deleteTask } from '../services/api';
@@ -81,7 +82,10 @@ export const CareDashboard: React.FC<DashboardProps> = ({ onNavigate, onSelectCo
                 {/* Section Title */}
                 <h2 className="text-xl font-bold text-text-main px-1">Today's Focus</h2>
 
-                {/* Priority 1: Active Ride */}
+                {/* Priority 1: Smart Ride Card */}
+                <SmartRideCard />
+
+                {/* Priority 2: Active Ride */}
                 {ride && ride.status !== 'completed' && (
                     <RideCard ride={ride} />
                 )}
