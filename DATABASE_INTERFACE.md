@@ -37,10 +37,39 @@
 }
 ```
 
+#### 1.1 获取联系人列表 (Get Contacts)
+*   **函数**: `getContacts`
+*   **描述**: 获取所有联系人。优先从 Firestore 获取，为空时返回模拟数据。
+*   **参数**: 无
+*   **响应**: `Promise<Contact[]>`
+
+#### 1.2 创建联系人 (Create Contact)
+*   **函数**: `createContact`
+*   **描述**: 创建一个新的联系人文档。
+*   **参数**: `contact` (不包含 ID 的 `Contact` 对象)
+
+| 字段 | 类型 | 描述 |
+| :--- | :--- | :--- |
+| `name` | string | 显示名称 |
+| `avatarSeed` | string | 头像生成种子 |
+| `status` | string | 'active' \| 'inactive' |
+| `isOnline` | boolean | 在线状态 |
+| `color` | string | UI 主题颜色 |
+| `role` | string | 'caregiver' \| 'family' \| 'doctor' |
+
+*   **响应**: `Promise<Contact>` (包含生成的 ID)
+
+#### 1.3 删除联系人 (Delete Contact)
+*   **函数**: `deleteContact`
+*   **描述**: 根据 ID 删除指定联系人。
+*   **参数**:
+    *   `contactId`: string (联系人文档 ID)
+*   **响应**: `Promise<void>`
+
 ### 2. 任务（日常惯例与健康）
 *   **集合**: `tasks`
 *   **接口**: `Task`
-*   **描述**: 日常提醒、用药计划和健康检查。
+*   **描述**: 日常提醒、用药计划和健康检查。提供任务的增删改查功能，直接与 Firestore 交互。
 
 | 字段 | 类型 | 描述 |
 | :--- | :--- | :--- |
@@ -52,6 +81,37 @@
 | `icon` | string | 'heart' (心) \| 'pill' (药丸) \| 'activity' (活动) |
 | `recurrence` | string | 'daily' (每日) \| 'weekly' (每周) \| 'monthly' (每月) \| 'none' (无) |
 | `reminderSettings` | object | `{ snoozeEnabled: boolean, alertSound: string }` |
+
+#### 2.1 获取任务列表 (Get Tasks)
+*   **函数**: `getTasks`
+*   **描述**: 获取当前用户的所有任务列表。优先从 Firestore 获取，为空时返回模拟数据。
+*   **参数**: 无
+*   **响应**: `Promise<Task[]>`
+
+#### 2.2 创建任务 (Create Task)
+*   **函数**: `createTask`
+*   **描述**: 创建一个新的任务文档。
+*   **参数**: `task` (不包含 ID 的 `Task` 对象)
+
+| 字段 | 类型 | 描述 |
+| :--- | :--- | :--- |
+| `title` | string | 任务标题 |
+| `subtitle` | string | 任务副标题/详情 |
+| `time` | string | 时间字符串 |
+| `status` | string | e.g. 'pending' |
+| `icon` | string | e.g. 'pill', 'heart' |
+| `recurrence` | string | 'daily', 'weekly', etc. |
+| `reminderSettings`| object | 提醒设置 |
+
+*   **响应**: `Promise<Task>` (包含生成的 ID)
+
+#### 2.3 删除任务 (Delete Task)
+*   **函数**: `deleteTask`
+*   **描述**: 根据 ID 删除指定任务。
+*   **参数**:
+    *   `taskId`: string (任务文档 ID)
+*   **响应**: `Promise<void>`
+
 
 ### 3. 账单（财务与医疗保险）
 *   **集合**: `bills`
@@ -209,6 +269,7 @@
     *   任务将显示在“任务”页面，并在预定时间触发应用内通知。
 
 ## 过渡策略：从模拟数据到 Firebase
+
 
 1.  **第一阶段（当前）**:
     *   UI 组件使用 `constants.tsx` 中的数据。

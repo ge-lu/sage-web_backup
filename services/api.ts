@@ -26,8 +26,36 @@ import { db } from './db';
 
 // 1. Contacts
 export const getContacts = async (): Promise<Contact[]> => {
-    // TODO: Switch to: (await getDocs(collection(db, 'contacts'))).docs.map(...)
-    return Promise.resolve(MOCK_CONTACTS);
+    try {
+        const snapshot = await getDocs(collection(db, 'contacts'));
+        if (snapshot.empty) {
+            console.log("No contacts in Firestore, returning MOCK_CONTACTS");
+            return MOCK_CONTACTS;
+        }
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Contact));
+    } catch (error) {
+        console.warn("Error fetching contacts from Firestore, returning MOCK_CONTACTS", error);
+        return MOCK_CONTACTS;
+    }
+};
+
+export const createContact = async (contact: Omit<Contact, 'id'>): Promise<Contact> => {
+    try {
+        const docRef = await addDoc(collection(db, 'contacts'), contact);
+        return { id: docRef.id, ...contact };
+    } catch (error) {
+        console.error("Error creating contact:", error);
+        throw error;
+    }
+};
+
+export const deleteContact = async (contactId: string): Promise<void> => {
+    try {
+        await deleteDoc(doc(db, 'contacts', contactId));
+    } catch (error) {
+        console.error("Error deleting contact:", error);
+        throw error;
+    }
 };
 
 // 2. Tasks
