@@ -45,7 +45,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           </div>
         </div>
       ),
-      bg: "bg-pink-50/30",
+      bg: "bg-pink-50",
       accent: "text-pink-600"
     },
     {
@@ -63,7 +63,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           </div>
         </div>
       ),
-      bg: "bg-green-50/30",
+      bg: "bg-green-50",
       accent: "text-emerald-700"
     },
     {
@@ -85,7 +85,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           </div>
         </div>
       ),
-      bg: "bg-purple-50/30",
+      bg: "bg-purple-50",
       accent: "text-purple-700"
     }
   ];
@@ -130,7 +130,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       </div>
 
       {/* Footer / Controls */}
-      <div className="p-8 w-full flex flex-col items-center gap-8">
+      <div className="p-8 w-full  flex flex-col items-center gap-8">
         {/* Indicators */}
         <div className="flex gap-3">
           {steps.map((_, idx) => (
