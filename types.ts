@@ -14,6 +14,7 @@ export enum AppMode {
   PLAN = 'PLAN',           // History & Logistics
   PROFILE = 'PROFILE',     // Settings & Account
   SETTINGS = 'SETTINGS',   // New Settings View
+  ALL_ACTIVITY = 'ALL_ACTIVITY', // Full History View
 
   // Overlays / Full Screen Modes
   OMNIBUS = 'OMNIBUS',     // Camera Scanning
@@ -21,6 +22,7 @@ export enum AppMode {
   CHAT = 'CHAT',           // Soul Companion / Master Router Interface
   RIDE_REQUEST = 'RIDE_REQUEST', // Uber Interface
   SHOPPING_RESULT = 'SHOPPING_RESULT', // Logistics Manager Result
+  RIDE_DETAIL = 'RIDE_DETAIL', // Smart Ride Detail Page
 }
 
 export enum ScanMode {
@@ -152,10 +154,14 @@ export interface Bill {
   amount: number;
   dueDate: string;
   status: 'unpaid' | 'paid';
-  category: 'utility' | 'subscription' | 'medical' | 'other';
+  category: 'utility' | 'subscription' | 'medical' | 'tax' | 'other';
   history: PaymentRecord[];
   aiAnalysis?: string; // AI's preliminary judgment
   assistanceStatus?: 'none' | 'requested' | 'resolved'; // Help status
+  /** 税务账单：税年，如 "2024" */
+  taxYear?: string;
+  /** 税务账单：表单项，如 "1040", "Estimated" */
+  formType?: string;
 }
 
 export interface SecurityEvent {
@@ -219,4 +225,47 @@ export interface User {
 export interface AuthResponse {
   token: string;
   user: User;
+}
+
+// --- Medication Types ---
+export interface Medication {
+  id: string;
+  name: string; // 药物名称
+  dosage: string; // 剂量，如 "10mg", "1片"
+  frequency: string; // 频率，如 "每日3次", "每8小时一次"
+  times: string[]; // 具体服药时间，如 ["08:00", "14:00", "20:00"]
+  instructions?: string; // 服用说明，如 "饭后服用", "随水服用"
+  startDate: string; // 开始日期
+  endDate?: string; // 结束日期（可选）
+  expiryDate?: string; // 有效期/过期日期 (YYYY-MM-DD format)
+  imageUrl?: string; // 处方单图片 URL
+  source?: 'prescription' | 'discharge_summary' | 'manual'; // 来源
+  createdAt: string; // 创建时间
+  status: 'active' | 'completed' | 'paused'; // 状态
+}
+
+export interface MedicationReminder {
+  medicationId: string;
+  time: string; // 提醒时间，如 "08:00"
+  isActive: boolean; // 是否激活
+  lastTaken?: string; // 上次服药时间
+  nextReminder?: string; // 下次提醒时间
+}
+
+// --- Family Member Update Types ---
+export type AlertLevel = 'CRITICAL' | 'FAIR' | 'NORMAL';
+
+export interface FamilyMemberUpdate {
+  id: string;
+  name: string;
+  relation: string;
+  location: string;
+  weatherTitle: string;
+  temperature: number;
+  feelsLike: number;
+  condition: string;
+  message: string;
+  imageUrl: string;
+  alertLevel: AlertLevel;
+  actionType: 'warmup' | 'voice' | 'none';
 }

@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Volume2, Heart, Share2, Award, Send, Facebook, MessageCircle, Check, ArrowLeft, StopCircle, MessageSquare, Twitter, Music, Hand } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
+import GuardianButton from './GuardianButton';
+import SectionTitle from './SectionTitle';
 
 interface JourneyFlowProps {
   onClose: () => void;
@@ -176,123 +178,126 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
   // Full Screen Sharing View
   if (view === 'sharing') {
     return (
-      <div className="fixed inset-0 z-[600] bg-[#FDFBF7] flex flex-col font-['Plus_Jakarta_Sans'] select-none overflow-hidden animate-in fade-in slide-in-from-right duration-300">
+      <div className="fixed inset-0 z-[600] bg-[#F5F7F9] flex flex-col font-sans select-none overflow-hidden animate-in fade-in slide-in-from-right duration-300">
         {sharingStep === 'select' && (
           <>
-            <div className="px-8 pt-[calc(3rem+env(safe-area-inset-top))] pb-6 flex items-center justify-between">
-              <button onClick={() => setView('main')} className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-[#003366]">
-                <ArrowLeft size={28} />
-              </button>
-              <h2 className="text-[2.25rem] font-black text-[#000000] uppercase tracking-tighter leading-none">
-                SHARE THE JOY
-              </h2>
+            <div className="sticky top-0 z-50 bg-[#F5F7F9] px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-6 border-b border-gray-200 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setView('main')}
+                  className="w-12 h-12 rounded-full flex items-center justify-center hover:bg-gray-200 active:scale-90 transition-transform -ml-2"
+                >
+                  <ArrowLeft size={28} className="text-gray-900" strokeWidth={3} />
+                </button>
+                <h2 className="text-gray-900 font-heading text-2xl font-bold tracking-tight whitespace-nowrap">SHARE THE JOY</h2>
+              </div>
               <div className="w-12" />
             </div>
 
-            <div className="flex-1 overflow-y-auto no-scrollbar px-6 pb-10">
+            <div className="flex-1 overflow-y-auto no-scrollbar px-6 pt-6 pb-10 space-y-4">
               {/* Horizontal Preview Card */}
-              <div className="mb-8">
-                <div className="bg-white rounded-[2.5rem] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-100 flex items-center gap-6">
-                  <div className="w-24 h-24 rounded-[1.75rem] overflow-hidden bg-gray-50 shrink-0 shadow-md">
-                    <img
-                      src={TIMELINE_MEMORIES[0].after}
-                      className="w-full h-full object-cover"
-                      alt="Preview"
-                    />
-                  </div>
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 flex items-center gap-4">
+                <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
+                  <img
+                    src={TIMELINE_MEMORIES[0].after}
+                    className="w-full h-full object-cover"
+                    alt="Preview"
+                  />
+                </div>
 
-                  <div className="flex-1 flex flex-col justify-center overflow-hidden">
-                    <span className="text-[#9CA3AF] font-black uppercase tracking-[0.2em] text-[12px] mb-1">PREVIEW</span>
-                    <p className="text-[1.35rem] font-black text-[#003366] italic leading-tight line-clamp-2">
-                      "Look at the joy you've created today!"
-                    </p>
-                  </div>
+                <div className="flex-1 flex flex-col justify-center overflow-hidden">
+                  <span className="text-gray-500 font-bold font-heading uppercase tracking-wider text-xs mb-1">PREVIEW</span>
+                  <p className="text-lg font-bold font-heading text-guardian-blue italic leading-snug line-clamp-2">
+                    "Look at the joy you've created today!"
+                  </p>
                 </div>
               </div>
 
               {/* Destination Buttons */}
-              <div className="space-y-4">
-                <p className="text-center text-[#CCCCCC] font-black uppercase tracking-[0.25em] text-[10px] mb-2">CHOOSE WHERE TO SEND:</p>
+              <div>
+                <p className="text-center text-gray-400 font-bold font-heading uppercase tracking-widest text-xs mb-4">CHOOSE WHERE TO SEND:</p>
+                <div className="space-y-3">
 
-                {/* 1. iMessage (Green) */}
-                <button
-                  onClick={() => handleFinalShare('iMessage')}
-                  className="w-full h-24 bg-[#25D366] text-white rounded-[2rem] flex items-center justify-center gap-6 px-10 shadow-[0_8px_0_#128c7e] active:translate-y-1 active:shadow-none transition-all group"
-                >
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0 group-active:scale-90 transition-transform">
-                    <MessageSquare size={32} fill="white" className="text-white" />
-                  </div>
-                  <span className="text-3xl font-black uppercase tracking-tight">IMESSAGE</span>
-                </button>
+                  {/* 1. iMessage */}
+                  <button
+                    onClick={() => handleFinalShare('iMessage')}
+                    className="w-full py-4 bg-[#F5F9FF] rounded-xl flex items-center px-6 gap-4 border border-blue-100 shadow-sm active:scale-[0.98] transition-all hover:bg-blue-50"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-[#34C759] flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                      <MessageSquare size={18} fill="white" className="text-white" />
+                    </div>
+                    <span className="text-sm font-bold font-heading uppercase text-guardian-blue tracking-wide">iMessage</span>
+                  </button>
 
-                {/* 2. Facebook (Blue) */}
-                <button
-                  onClick={() => handleFinalShare('Facebook')}
-                  className="w-full h-24 bg-[#1877F2] text-white rounded-[2rem] flex items-center justify-center gap-5 px-10 shadow-[0_8px_0_#0d52a8] active:translate-y-1 active:shadow-none transition-all group"
-                >
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0 group-active:scale-90 transition-transform">
-                    <Facebook size={32} fill="white" className="text-white" />
-                  </div>
-                  <span className="text-3xl font-black uppercase tracking-tight">Facebook</span>
-                </button>
+                  {/* 2. Facebook */}
+                  <button
+                    onClick={() => handleFinalShare('Facebook')}
+                    className="w-full py-4 bg-[#F5F9FF] rounded-xl flex items-center px-6 gap-4 border border-blue-100 shadow-sm active:scale-[0.98] transition-all hover:bg-blue-50"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                      <Facebook size={18} fill="white" className="text-white" />
+                    </div>
+                    <span className="text-sm font-bold font-heading uppercase text-guardian-blue tracking-wide">Facebook</span>
+                  </button>
 
-                {/* 3. WhatsApp (Dark Green) */}
-                <button
-                  onClick={() => handleFinalShare('WhatsApp')}
-                  className="w-full h-24 bg-[#075E54] text-white rounded-[2rem] flex items-center justify-center gap-6 px-10 shadow-[0_8px_0_#043e37] active:translate-y-1 active:shadow-none transition-all group"
-                >
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0 group-active:scale-90 transition-transform">
-                    <MessageCircle size={32} fill="white" className="text-white" />
-                  </div>
-                  <span className="text-3xl font-black uppercase tracking-tight">WhatsApp</span>
-                </button>
+                  {/* 3. WhatsApp */}
+                  <button
+                    onClick={() => handleFinalShare('WhatsApp')}
+                    className="w-full py-4 bg-[#F5F9FF] rounded-xl flex items-center px-6 gap-4 border border-blue-100 shadow-sm active:scale-[0.98] transition-all hover:bg-blue-50"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                      <MessageCircle size={18} fill="white" className="text-white" />
+                    </div>
+                    <span className="text-sm font-bold font-heading uppercase text-guardian-blue tracking-wide">WhatsApp</span>
+                  </button>
 
-                {/* 4. Twitter (Sky Blue) */}
-                <button
-                  onClick={() => handleFinalShare('Twitter')}
-                  className="w-full h-24 bg-[#1DA1F2] text-white rounded-[2rem] flex items-center justify-center gap-6 px-10 shadow-[0_8px_0_#0c85d0] active:translate-y-1 active:shadow-none transition-all group"
-                >
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0 group-active:scale-90 transition-transform">
-                    <Twitter size={32} fill="white" className="text-white" />
-                  </div>
-                  <span className="text-3xl font-black uppercase tracking-tight">Twitter</span>
-                </button>
+                  {/* 4. Twitter */}
+                  <button
+                    onClick={() => handleFinalShare('Twitter')}
+                    className="w-full py-4 bg-[#F5F9FF] rounded-xl flex items-center px-6 gap-4 border border-blue-100 shadow-sm active:scale-[0.98] transition-all hover:bg-blue-50"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-[#1DA1F2] flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                      <Twitter size={18} fill="white" className="text-white" />
+                    </div>
+                    <span className="text-sm font-bold font-heading uppercase text-guardian-blue tracking-wide">Twitter</span>
+                  </button>
 
-                {/* 5. TikTok (Black) */}
-                <button
-                  onClick={() => handleFinalShare('TikTok')}
-                  className="w-full h-24 bg-[#000000] text-white rounded-[2rem] flex items-center justify-center gap-6 px-10 shadow-[0_8px_0_#333333] active:translate-y-1 active:shadow-none transition-all group"
-                >
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0 group-active:scale-90 transition-transform">
-                    <Music size={32} fill="white" className="text-white" />
-                  </div>
-                  <span className="text-3xl font-black uppercase tracking-tight">TikTok</span>
-                </button>
+                  {/* 5. TikTok */}
+                  <button
+                    onClick={() => handleFinalShare('TikTok')}
+                    className="w-full py-4 bg-[#F5F9FF] rounded-xl flex items-center px-6 gap-4 border border-blue-100 shadow-sm active:scale-[0.98] transition-all hover:bg-blue-50"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                      <Music size={18} fill="white" className="text-white" />
+                    </div>
+                    <span className="text-sm font-bold font-heading uppercase text-guardian-blue tracking-wide">TikTok</span>
+                  </button>
+                </div>
               </div>
             </div>
           </>
         )}
 
         {sharingStep === 'sending' && (
-          <div className="flex-1 bg-[#003366] flex flex-col items-center justify-center p-10">
+          <div className="flex-1 bg-guardian-blue flex flex-col items-center justify-center p-10">
             <div className="w-40 h-40 bg-white/10 rounded-full flex items-center justify-center mb-12 relative">
               <div className="absolute inset-0 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
               <Send size={64} className="text-white animate-bounce" />
             </div>
-            <h2 className="text-5xl font-black text-white text-center">Sending to {shareDestination}...</h2>
+            <h2 className="text-4xl font-black font-heading text-white text-center">Sending to {shareDestination}...</h2>
           </div>
         )}
 
         {sharingStep === 'success' && (
-          <div className="flex-1 bg-[#13EC13] flex flex-col items-center justify-center p-10 text-center">
-            <div className="w-56 h-56 bg-white rounded-full flex items-center justify-center mb-10 shadow-2xl">
-              <Check size={100} strokeWidth={4} className="text-[#13EC13]" />
-            </div>
-            <h2 className="text-6xl font-black text-white mb-4 uppercase">Done!</h2>
-            <button
-              onClick={onClose}
-              className="w-full bg-white text-[#13EC13] py-8 rounded-[2.5rem] text-4xl font-black shadow-[0_12px_0_#0fbc0f] uppercase"
-            >
+        <div className="flex-1 bg-green-500 flex flex-col items-center justify-center p-10 text-center">
+          <div className="w-56 h-56 bg-white rounded-full flex items-center justify-center mb-10 shadow-2xl">
+            <Check size={100} strokeWidth={4} className="text-green-500" />
+          </div>
+          <h2 className="text-5xl font-black font-heading text-white mb-4 uppercase">Done!</h2>
+          <button
+            onClick={onClose}
+            className="w-full bg-white text-green-500 py-8 rounded-[2.5rem] text-4xl font-black shadow-[0_12px_0_rgba(20,200,20,0.5)] uppercase"
+          >
               Back To Home
             </button>
           </div>
@@ -303,7 +308,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
 
   // Main Journey View
   return (
-    <div className="fixed inset-0 z-[500] bg-white flex flex-col font-['Plus_Jakarta_Sans'] select-none overflow-hidden animate-in slide-in-from-bottom duration-500">
+    <div className="fixed inset-0 z-[500] bg-[#F5F7F9] flex flex-col font-sans select-none overflow-hidden animate-in slide-in-from-bottom duration-500">
 
       {/* Full Screen Image Slider Modal */}
       {selectedMemory && (
@@ -317,8 +322,8 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
 
           <div className="w-full max-w-lg space-y-6">
             <div className="text-center text-white mb-2">
-              <h3 className="text-2xl font-black uppercase tracking-tight">{selectedMemory.title}</h3>
-              <p className="text-white/60 font-bold text-sm uppercase tracking-widest mt-1">Slide to compare</p>
+              <h3 className="text-3xl font-bold font-heading uppercase tracking-tight">{selectedMemory.title}</h3>
+              <p className="text-white/60 font-medium font-heading text-base uppercase tracking-widest mt-1">Slide to compare</p>
             </div>
 
             <div
@@ -331,7 +336,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: `url(${selectedMemory.after})` }}
               >
-                <div className="absolute top-4 left-4 bg-[#13EC13] text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">
+                <div className="absolute top-4 left-4 bg-guardian-blue text-white text-sm font-bold font-heading px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
                   Restored
                 </div>
               </div>
@@ -344,7 +349,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
                   clipPath: `inset(0 ${100 - sliderPos}% 0 0)`
                 }}
               >
-                <div className="absolute top-4 right-4 bg-black/60 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest backdrop-blur-md">
+                <div className="absolute top-4 right-4 bg-black/60 text-white text-sm font-bold font-heading px-4 py-1.5 rounded-full uppercase tracking-widest backdrop-blur-md">
                   Original
                 </div>
               </div>
@@ -363,101 +368,102 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-white/50 text-sm font-bold uppercase tracking-widest animate-pulse">
-              <ArrowLeft size={16} /> Slide Left / Right <ArrowLeft size={16} className="rotate-180" />
+            <div className="flex items-center justify-center gap-3 text-white/50 text-base font-bold font-heading uppercase tracking-widest animate-pulse">
+              <ArrowLeft size={20} /> Slide Left / Right <ArrowLeft size={20} className="rotate-180" />
             </div>
           </div>
         </div>
       )}
 
       {/* Header Area */}
-      <div className="px-6 pt-[calc(3rem+env(safe-area-inset-top))] pb-4 flex items-center justify-between bg-white z-50 shrink-0 border-b border-gray-100 shadow-sm">
+      {/* Header Area */}
+      <div className="sticky top-0 z-50 bg-[#F5F7F9] px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-6 border-b border-gray-200 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
           <button
             onClick={onClose}
-            className="w-12 h-12 bg-[#F0F4F8] rounded-full flex items-center justify-center text-[#003366] active:scale-90 transition-transform shadow-sm hover:bg-[#E5E9F0]"
+            className="w-12 h-12 rounded-full flex items-center justify-center hover:bg-gray-200 active:scale-90 transition-transform -ml-2"
           >
-            <ArrowLeft size={28} strokeWidth={4} />
+            <ArrowLeft size={28} className="text-gray-900" strokeWidth={3} />
           </button>
 
-          <div className="flex flex-col justify-center">
-            <span className="text-[10px] font-black text-[#003366] uppercase leading-none tracking-widest mb-0.5">MY LIFE</span>
-            <span className="text-xl font-black text-[#003366] uppercase leading-none tracking-tighter">STORY</span>
-          </div>
+          <h2 className="text-gray-900 font-heading text-2xl font-bold tracking-tight whitespace-nowrap">Life Story</h2>
         </div>
 
         <button
           onClick={handleShareClick}
-          className="bg-[#003366] text-white px-5 py-2.5 rounded-full flex items-center gap-2 shadow-md active:scale-95 transition-all hover:bg-[#002244]"
+          className="bg-guardian-blue text-white px-5 py-3 rounded-full flex items-center gap-2 shadow-md active:scale-95 transition-all"
         >
           <Share2 size={18} strokeWidth={3} />
-          <span className="text-xs font-black uppercase tracking-widest">Share</span>
+          <span className="text-sm font-black font-heading uppercase tracking-widest">Share</span>
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar">
+      <div className="flex-1 overflow-y-auto no-scrollbar pt-6">
 
-        <div className="bg-white px-8 pt-8 pb-6 relative z-50">
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mx-6 mb-6 shadow-sm relative z-50">
           <div className="flex items-center gap-5 mb-8">
-            <div className="w-20 h-20 rounded-full border-[5px] border-[#FFB800] p-1 shadow-md bg-white shrink-0 overflow-hidden">
+            <div className="w-20 h-20 rounded-full border-[5px] border-white ring-4 ring-gray-100 p-1 shadow-md bg-white shrink-0 overflow-hidden">
               <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Grandma" className="w-full h-full object-cover" alt="Avatar" />
             </div>
             <div className="flex-1">
-              <h2 className="text-3xl font-black text-[#003366] leading-[1.1]">
-                Wonderful job Grandma!
-              </h2>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold font-heading text-gray-500 uppercase tracking-wide">Wonderful job,</span>
+                <span className="text-3xl font-black font-heading text-gray-900 leading-none">Grandma!</span>
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="bg-[#FFF9E6] p-5 rounded-[2.5rem] border-[4px] border-[#FFB800] text-center shadow-[0_12px_30px_rgba(255,184,0,0.1)]">
+            <div className="bg-white p-5 rounded-xl border border-gray-200 text-center shadow-sm">
               <div className="h-10 flex items-center justify-center mb-2">
-                <Award className="text-[#FFB800]" size={36} />
+                <Award className="text-guardian-blue" size={36} />
               </div>
-              <span className="block text-4xl font-black text-[#003366]">12</span>
+              <span className="block text-4xl font-black font-heading text-gray-900">12</span>
               {/* Renamed to Pictures */}
-              <span className="text-sm font-black uppercase text-[#8B6E1C] tracking-widest mt-1">Pictures</span>
+              <span className="text-sm font-black font-heading uppercase text-gray-500 tracking-widest mt-1">Pictures</span>
             </div>
-            <div className="bg-[#EBF2FF] p-5 rounded-[2.5rem] border-[4px] border-[#1152D4] text-center shadow-[0_12px_30px_rgba(17,82,212,0.1)]">
+            <div className="bg-white p-5 rounded-xl border border-gray-200 text-center shadow-sm">
               <div className="h-10 flex items-center justify-center mb-2">
-                <Heart className="text-[#1152D4]" size={36} fill="currentColor" />
+                <Heart className="text-guardian-blue" size={36} fill="currentColor" />
               </div>
-              <span className="block text-4xl font-black text-[#003366]">80</span>
+              <span className="block text-4xl font-black font-heading text-gray-900">80</span>
               {/* Renamed to Like */}
-              <span className="text-sm font-black uppercase text-[#1152D4] tracking-widest mt-1">Like</span>
+              <span className="text-sm font-black font-heading uppercase text-guardian-blue tracking-widest mt-1">Like</span>
             </div>
           </div>
 
           <button
             onClick={handleSpeak}
-            className={`w-full py-6 rounded-[2rem] flex items-center justify-center gap-4 font-black uppercase text-xl transition-all active:scale-95 mb-4 shadow-xl ${isReading ? 'bg-[#991b1b] text-white shadow-[#7f1d1d]' : 'bg-[#003366] text-white shadow-[#001a33]'}`}
+            className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold font-heading uppercase text-sm tracking-wide shadow-sm active:translate-y-0.5 transition-all border mb-4
+              ${isReading 
+                ? 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100' 
+                : 'bg-[#F5F9FF] text-guardian-blue border-blue-100 hover:bg-blue-50'
+              }`}
           >
-            {isReading ? <StopCircle size={32} fill="white" className="text-white" /> : <Volume2 size={32} fill="white" className="text-white" />}
+            {isReading ? <StopCircle size={18} /> : <Volume2 size={18} />}
             {isReading ? 'Stop Reading' : 'Listen to my progress'}
           </button>
         </div>
 
-        <div className="px-8 pt-8">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-1.5 h-10 bg-[#FFB800] rounded-full" />
-            <h3 className="text-3xl font-black text-[#003366] uppercase tracking-tighter">Your Impact</h3>
-          </div>
+        <div className="px-6 pt-8">
+          <SectionTitle className="ml-0">Your Impact</SectionTitle>
 
-          <div className="space-y-12 relative pl-2">
-            <div className="absolute left-[2.4rem] top-6 bottom-6 w-0.5 bg-gray-100 rounded-full" />
+          <div className="space-y-6 relative">
+            {/* Journey Line */}
+            <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-0.5 bg-gray-200" />
 
             {TIMELINE_MEMORIES.map((memory) => (
-              <div key={memory.id} className="relative pl-14">
-                <div className="absolute left-6 top-8 w-6 h-6 rounded-full border-4 border-white bg-[#FFB800] shadow-sm z-10" />
+              <div key={memory.id} className="relative z-10">
 
-                <div className="bg-white rounded-[3rem] p-6 shadow-2xl border border-gray-50 space-y-5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 ring-2 ring-white shadow-sm shrink-0">
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-5">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
                       <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${memory.who}`} />
                     </div>
-                    <p className="text-lg font-bold text-gray-600 leading-tight">
-                      <span className="text-[#003366] font-black">{memory.who}</span> {memory.action}
-                    </p>
+                    <div>
+                      <p className="font-bold font-heading text-xl text-gray-900">{memory.who}</p>
+                      <p className="text-xs text-gray-500">{memory.action}</p>
+                    </div>
                   </div>
 
                   {/* Clickable Image Container */}
@@ -468,24 +474,24 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
                       setSelectedMemory(memory);
                     }}
                   >
-                    <div className="flex-1 rounded-2xl overflow-hidden relative shadow-inner">
+                    <div className="flex-1 rounded-xl overflow-hidden relative shadow-sm border border-gray-200">
                       <img src={memory.before} className="w-full h-full object-cover grayscale opacity-60" />
-                      <div className="absolute bottom-3 left-3 bg-black/40 px-3 py-1 rounded-full text-[8px] text-white font-black uppercase tracking-widest">Before</div>
+                      <div className="absolute bottom-3 left-3 bg-black/60 px-2 py-1 rounded text-xs text-white font-bold font-heading uppercase tracking-wide">Before</div>
                     </div>
-                    <div className="flex-1 rounded-2xl overflow-hidden relative border-[3px] border-[#13EC13] shadow-md">
+                    <div className="flex-1 rounded-xl overflow-hidden relative shadow-sm border border-gray-200">
                       <img src={memory.after} className="w-full h-full object-cover" />
-                      <div className="absolute bottom-3 right-3 bg-[#13EC13] px-3 py-1 rounded-full text-[8px] text-white font-black uppercase tracking-widest shadow-lg">After</div>
+                      <div className="absolute bottom-3 right-3 bg-guardian-blue px-2 py-1 rounded text-xs text-white font-bold font-heading uppercase tracking-wide shadow-sm">After</div>
                     </div>
 
                     {/* Visual cue for interactivity */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white/80 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm">
-                      <Hand size={20} className="text-[#003366]" />
+                      <Hand size={20} className="text-guardian-blue" />
                     </div>
                   </div>
 
                   <button
                     onClick={handleShareClick}
-                    className="w-full bg-[#E6F0FF] py-4 rounded-full flex items-center justify-center gap-2 font-black text-[#003366] uppercase text-[11px] tracking-widest shadow-sm active:translate-y-1 transition-all border border-[#003366]/10 hover:bg-[#D1E5FF]"
+                    className="w-full bg-[#F5F9FF] py-3 rounded-xl flex items-center justify-center gap-2 font-bold font-heading text-guardian-blue uppercase text-sm tracking-wide shadow-sm active:translate-y-0.5 transition-all border border-blue-100 hover:bg-blue-50"
                   >
                     <Share2 size={18} />
                     SHARE
@@ -496,32 +502,32 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
           </div>
         </div>
 
-        <div className="mt-16 bg-[#FFF9E6]/40 rounded-[3rem] p-8 border-2 border-dashed border-[#FFB800]/10 text-center mb-10 mx-8">
-          <h3 className="text-xl font-black text-[#003366] mb-8 uppercase tracking-tight leading-snug">
+        <div className="mt-8 bg-white rounded-xl p-6 border border-gray-200 text-center mb-10 mx-6 shadow-sm">
+          <h3 className="text-xl font-bold font-heading text-gray-900 mb-6 leading-snug">
             These people are smiling because of you
           </h3>
           <div className="flex justify-center gap-5">
             {THINKING_OF_YOU.map((person, i) => (
-              <div key={i} className="flex flex-col items-center gap-3">
-                <div className="w-16 h-16 rounded-full border-[3px] border-white bg-white shadow-lg p-0.5 overflow-hidden">
-                  <img src={person.avatar} className="w-full h-full rounded-full" alt={person.name} />
+              <div key={i} className="flex flex-col items-center gap-2">
+                <div className="w-14 h-14 rounded-full border border-gray-200 shadow-sm overflow-hidden">
+                  <img src={person.avatar} className="w-full h-full object-cover" alt={person.name} />
                 </div>
-                <span className="text-[10px] font-black text-[#003366] uppercase tracking-tighter">{person.name}</span>
+                <span className="text-sm font-bold font-heading text-gray-700">{person.name}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="px-8 pb-20">
+        <div className="px-6 pb-20">
           <button
             onClick={handleShareClick}
-            className="w-full bg-[#001A33] text-white p-2 rounded-[3rem] flex flex-col active:translate-y-2 active:shadow-none transition-all"
+            className="w-full"
           >
-            <div className="bg-[#1152D4] rounded-[2.8rem] py-8 flex flex-col items-center justify-center gap-4 shadow-[0_12px_0_#000a14]">
-              <div className="w-16 h-12 bg-[#3b82f6] rounded-2xl flex items-center justify-center shadow-lg transform rotate-2">
-                <Send size={32} fill="white" className="text-white transform -rotate-12" />
+            <div className="bg-guardian-blue rounded-xl py-4 flex items-center justify-center gap-4 shadow-lg active:scale-95 transition-all">
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <Send size={20} fill="white" className="text-white" />
               </div>
-              <span className="text-xl font-black uppercase tracking-[0.2em]">Share Summary</span>
+              <span className="text-lg font-bold font-heading text-white uppercase tracking-wide">Share Summary</span>
             </div>
           </button>
         </div>

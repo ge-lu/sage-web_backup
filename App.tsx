@@ -15,9 +15,13 @@ import PlanView from './pages/PlanView';
 import ProfileView from './pages/ProfileView';
 import SettingsView from './pages/SettingsView';
 import ProcurerShop from './pages/ProcurerShop';
+import RideDetailPage from './pages/RideDetailPage';
 import LoginView from './pages/LoginView';
 import SignUpView from './pages/SignUpView';
 import ForgotPasswordView from './pages/ForgotPasswordView';
+import AllActivityView from './pages/AllActivityView';
+import PlusPaywall from './components/Paywall/PlusPaywall';
+import { checkPaywallTrigger } from './util/paywallUtils';
 
 import { AppMode, HistoryItem, TaskCard } from './types';
 import { getPathForMode } from './routes';
@@ -35,6 +39,7 @@ const AppContent: React.FC = () => {
   // --- 2. USER & AUTH STATE ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const [loginReason, setLoginReason] = useState<string | undefined>(undefined);
 
   // --- 3. DATA STATE (Shared across views) ---
@@ -168,6 +173,13 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const handleCheckPaywall = (type: 'voice' | 'photo') => {
+    const shouldShow = checkPaywallTrigger(type);
+    if (shouldShow) {
+      setShowPaywall(true);
+    }
+  };
+
   const startChat = (query: string = "", action: string | null = null) => {
     setInitialChatQuery(query);
     setInitialChatAction(action);
@@ -186,15 +198,13 @@ const AppContent: React.FC = () => {
   if (isAppLoading) return <div className="w-full h-full bg-white flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#00E341] border-t-transparent rounded-full animate-spin"></div></div>;
 
   // Paths requiring BottomNav
-  const showBottomNav = ![
-    '/login', '/signup', '/forgot-password',
-    '/omnibus', '/guardian-alert', '/chat',
-    '/ride-request', '/shopping-result'
-  ].includes(location.pathname);
+  // Only show BottomNav on main tabs
+  const showBottomNav = ['/', '/plan', '/family-connections', '/profile'].includes(location.pathname);
 
   return (
     <div className="relative w-full h-[100dvh] overflow-hidden bg-[#F5F7F9] text-[#111827]">
-      {showOnboarding && <Onboarding onComplete={() => { localStorage.setItem('aura_has_visited', 'true'); setShowOnboarding(false); }} />}
+      {showPaywall && <PlusPaywall onClose={() => setShowPaywall(false)} />}
+      {showOnboarding && <Onboarding onComplete={() => { localStorage.setItem('aura_has_visited', 'true'); setShowOnboarding(false); setShowPaywall(true); }} />}
 
       <div className="relative w-full h-full z-10 flex flex-col">
         <Routes>
@@ -224,7 +234,7 @@ const AppContent: React.FC = () => {
             />
           } />
           <Route path="/guardian-alert" element={
-            <GuardianAlert onDismiss={() => handleNavigation(AppMode.FAMILY_CONNECTIONS)} />
+            <GuardianAlert onDismiss={() => handleNavigation(AppMode.DASHBOARD)} />
           } />
           <Route path="/chat" element={
             <ChatOverlay
@@ -232,7 +242,7 @@ const AppContent: React.FC = () => {
               onTriggerAction={handleActionTrigger}
               initialQuery={initialChatQuery}
               initialAction={initialChatAction}
-              onVoiceInteraction={() => trackUsage('voice')}
+              onVoiceInteraction={() => { trackUsage('voice'); handleCheckPaywall('voice'); }}
               onSaveHistory={handleAddHistoryItem}
             />
           } />
@@ -242,9 +252,10 @@ const AppContent: React.FC = () => {
           <Route path="/shopping-result" element={
             <ProcurerShop onBack={() => handleNavigation(AppMode.PLAN)} />
           } />
+          <Route path="/ride-detail" element={<RideDetailPage />} />
 
           {/* 3. Main Tab Views */}
-          <Route path="/family-connections" element={<FamilyConnectionsView />} />
+          <Route path="/family-connections" element={<FamilyConnectionsView onPhotoFixUsed={() => handleCheckPaywall('photo')} />} />
           <Route path="/plan" element={
             <PlanView
               onOpenGuide={() => setShowOnboarding(true)}
@@ -258,13 +269,16 @@ const AppContent: React.FC = () => {
           } />
           <Route path="/profile" element={
             <RequireAuth>
-              <ProfileView onBack={() => handleNavigation(AppMode.DASHBOARD)} onOpenGuide={() => setShowOnboarding(true)} />
+              <ProfileView onBack={() => handleNavigation(AppMode.DASHBOARD)} onOpenGuide={() => setShowOnboarding(true)} onSubscriptionClick={() => setShowPaywall(true)} />
             </RequireAuth>
           } />
           <Route path="/settings" element={
             <RequireAuth>
               <SettingsView onBack={() => handleNavigation(AppMode.DASHBOARD)} />
             </RequireAuth>
+          } />
+          <Route path="/all-activity" element={
+            <AllActivityView onBack={() => handleNavigation(AppMode.DASHBOARD)} />
           } />
 
           {/* 4. Default / Home */}

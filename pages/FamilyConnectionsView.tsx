@@ -13,7 +13,10 @@ import ShareModal from '../components/ShareModal';
 import PostDetail from '../components/PostDetail';
 import ClubDetail from '../components/ClubDetail';
 import ClubSuggestionCard from '../components/ClubSuggestionCard';
-import { Post, Room } from '../types';
+import GuardianButton from '../components/GuardianButton';
+import SectionTitle from '../components/SectionTitle';
+import UpdateCard from '../components/UpdateCard';
+import { Post, Room, FamilyMemberUpdate } from '../types';
 
 const INITIAL_ROOMS: Room[] = [
   { id: '1', name: 'Groups', imageUrl: '', isAll: true },
@@ -61,10 +64,44 @@ const INITIAL_POSTS: Post[] = [
   }
 ];
 
+const LUCY_UPDATE: FamilyMemberUpdate = {
+  id: '2',
+  name: 'LUCY',
+  relation: 'Granddaughter',
+  location: 'London',
+  temperature: 22,
+  feelsLike: 24,
+  weatherTitle: 'Clear Skies',
+  condition: 'Sunny',
+  message: 'Perfect day for a walk in Hyde Park!',
+  imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDJKcnh2e7dkj7DkmBbG0rloN_bq8E6l4Fi4VIyeMWyayrvhRwXexIH1hjeeVvoNXIM_qM7efXyChahIPKdKpG1EPPzmhkdYcXklJJLA-p0vquGaMbB0MxvXaq5nXg9lUWkG2bvDHnBr04pdj5OJUzN2uQEW0GMFaW_24LMWgbL5p8sIQ0l8PMJBdySlzcXLevGEHQvp6pbatVuGC9eJmXzYq35rFOKMqdqp3UvYt3E5bG4M5-gyFQF9n08CSL6WOF6_gIyMCXa2qO9',
+  alertLevel: 'FAIR',
+  actionType: 'voice',
+};
+
+const SUSAN_UPDATE: FamilyMemberUpdate = {
+  id: '3',
+  name: 'SUSAN',
+  relation: 'Daughter',
+  location: 'London',
+  temperature: 22,
+  feelsLike: 24,
+  weatherTitle: 'Clear Skies',
+  condition: 'Sunny',
+  message: 'Perfect day for a walk in Hyde Park!',
+  imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDJKcnh2e7dkj7DkmBbG0rloN_bq8E6l4Fi4VIyeMWyayrvhRwXexIH1hjeeVvoNXIM_qM7efXyChahIPKdKpG1EPPzmhkdYcXklJJLA-p0vquGaMbB0MxvXaq5nXg9lUWkG2bvDHnBr04pdj5OJUzN2uQEW0GMFaW_24LMWgbL5p8sIQ0l8PMJBdySlzcXLevGEHQvp6pbatVuGC9eJmXzYq35rFOKMqdqp3UvYt3E5bG4M5-gyFQF9n08CSL6WOF6_gIyMCXa2qO9',
+  alertLevel: 'FAIR',
+  actionType: 'voice',
+};
+
 type ViewState = 'feed' | 'rooms' | 'create-group';
 type FixStatus = 'idle' | 'processing' | 'ready';
 
-const FamilyConnectionsView: React.FC = () => {
+interface FamilyConnectionsViewProps {
+  onPhotoFixUsed?: () => void;
+}
+
+const FamilyConnectionsView: React.FC<FamilyConnectionsViewProps> = ({ onPhotoFixUsed }) => {
   const [rooms, setRooms] = useState<Room[]>(INITIAL_ROOMS);
   const [posts, setPosts] = useState<Post[]>(INITIAL_POSTS);
 
@@ -95,6 +132,11 @@ const FamilyConnectionsView: React.FC = () => {
     setRestoredImage(imageUrl);
     setFixStatus('processing');
     setIsPhotoFixOpen(false); // Close the modal so user can do other things
+    
+    // Trigger global paywall check if provided
+    if (onPhotoFixUsed) {
+      onPhotoFixUsed();
+    }
 
     // Simulate a delay (e.g., 8 seconds for demo purposes, representing the "5 minutes")
     setTimeout(() => {
@@ -190,7 +232,7 @@ const FamilyConnectionsView: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full bg-[#FDFBF7] shadow-2xl overflow-hidden relative flex flex-col font-['Plus_Jakarta_Sans']">
+    <div className="w-full h-full bg-[#F5F7F9] shadow-2xl overflow-hidden relative flex flex-col font-sans">
 
       {/* Toast Notification for Photo Fix Ready */}
       {showFixNotification && (
@@ -199,18 +241,18 @@ const FamilyConnectionsView: React.FC = () => {
             setShowFixNotification(false);
             setIsPhotoFixOpen(true); // Open directly to result
           }}
-          className="absolute top-[calc(5rem+env(safe-area-inset-top))] left-4 right-4 z-[90] bg-[#13EC13] text-white p-4 rounded-3xl shadow-2xl flex items-center justify-between cursor-pointer animate-in slide-in-from-top-4 duration-500"
+          className="absolute top-[calc(5rem+env(safe-area-inset-top))] left-6 right-6 z-[90] bg-guardian-blue text-white p-4 rounded-xl shadow-xl flex items-center justify-between cursor-pointer animate-in slide-in-from-top-4 duration-500 hover:scale-[1.02] active:scale-95 transition-transform"
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-              <Sparkles size={24} fill="white" />
+              <Sparkles size={24} fill="white" className="text-white" />
             </div>
             <div>
-              <p className="font-black uppercase text-sm tracking-widest opacity-80">Good News!</p>
-              <p className="text-xl font-black leading-none">Your photo is fixed</p>
+              <p className="font-heading font-black uppercase text-sm tracking-widest opacity-80">Good News!</p>
+              <p className="text-xl font-heading font-black leading-none">Your photo is fixed</p>
             </div>
           </div>
-          <div className="bg-white text-[#13EC13] px-4 py-2 rounded-full font-black text-xs uppercase tracking-wider">
+          <div className="bg-white text-guardian-blue px-4 py-2 rounded-lg font-heading font-black text-sm uppercase tracking-wider shadow-sm">
             View
           </div>
         </div>
@@ -267,16 +309,17 @@ const FamilyConnectionsView: React.FC = () => {
       {view === 'create-group' && <CreateGroupWizard onCancel={() => setView('rooms')} onFinish={handleCreateGroup} />}
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#FDFBF7] px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 flex items-center justify-between shadow-sm border-b border-gray-100">
-        <h1 className="text-[#003366] font-lexend text-3xl font-black tracking-tighter">With</h1>
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-[#F5F7F9] px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-6 border-b border-gray-200 flex items-center justify-between">
+        <h1 className="text-gray-900 font-heading text-2xl font-bold tracking-tight">With</h1>
 
         <div
           onClick={openJourney}
-          className="flex flex-col bg-[#F2F4F7] px-4 py-2.5 rounded-[1.8rem] border border-gray-200 cursor-pointer active:scale-95 active:bg-[#E5E9F0] transition-all shadow-md hover:shadow-lg gap-2"
+          className="flex flex-col bg-white px-4 py-2.5 rounded-xl border border-gray-200 cursor-pointer active:bg-gray-50 transition-all gap-2"
         >
           <div className="flex items-center justify-between w-full">
-            <span className="text-[11px] font-black text-[#4267B2] uppercase tracking-widest leading-none">My Life Story</span>
-            <ChevronRight size={14} strokeWidth={3} className="text-[#4267B2]/50 ml-2" />
+            <span className="text-sm font-heading font-black text-gray-900 uppercase tracking-widest leading-none">My Life Story</span>
+            <ChevronRight size={14} strokeWidth={3} className="text-gray-400 ml-2" />
           </div>
 
           <div className="flex items-center gap-3">
@@ -286,12 +329,12 @@ const FamilyConnectionsView: React.FC = () => {
 
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <span className="text-lg font-black text-[#003366] leading-none">12</span>
-                <ImageIcon size={16} strokeWidth={2.5} className="text-[#003366]/70" />
+                <span className="text-xl font-heading font-black text-gray-900 leading-none">12</span>
+                <ImageIcon size={16} strokeWidth={2.5} className="text-gray-500" />
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-lg font-black text-[#003366] leading-none">80</span>
+                <span className="text-xl font-heading font-black text-gray-900 leading-none">80</span>
                 <Heart size={16} fill="#FF4D4D" strokeWidth={2.5} className="text-[#FF4D4D]" />
               </div>
             </div>
@@ -300,7 +343,7 @@ const FamilyConnectionsView: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto no-scrollbar pb-[calc(6rem+env(safe-area-inset-bottom))] bg-[#FDFBF7]">
+      <main className="flex-1 overflow-y-auto no-scrollbar pb-[calc(6rem+env(safe-area-inset-bottom))] bg-[#F5F7F9]">
 
         {/* Photo Fix Banner */}
         <div className="px-6 pt-8">
@@ -320,23 +363,48 @@ const FamilyConnectionsView: React.FC = () => {
 
         {/* Post Launcher */}
         <section className="mt-4 px-6">
-          <div
-            onClick={openPostFlow}
-            className="bg-[#EBF5FF] rounded-full p-3 border-[4px] border-[#1152D4] shadow-xl flex items-center justify-center gap-5 cursor-pointer active:scale-95 transition-all hover:bg-[#DBEAFE] w-full group"
-          >
-            <div className="w-11 h-11 bg-[#1152D4] rounded-full flex items-center justify-center text-white shrink-0 shadow-md group-hover:scale-110 transition-transform">
-              <Camera size={22} fill="white" />
-            </div>
-            <p className="text-2xl font-black text-[#003366] tracking-tight whitespace-nowrap uppercase">Click here to post</p>
-          </div>
+          <GuardianButton onClick={openPostFlow} className="gap-4">
+            <Camera size={24} fill="white" />
+            <span className="text-lg font-black uppercase tracking-wide">Click here to post</span>
+          </GuardianButton>
         </section>
 
         {/* Feed */}
-        <section className="mt-8 px-6 space-y-10">
-          <div className="flex items-center gap-4 px-2">
-            <div className="w-2.5 h-10 bg-[#13EC13] rounded-full shadow-sm" />
-            <h2 className="text-4xl font-black text-[#003366] tracking-tight">What's New</h2>
-          </div>
+        <section className="mt-8 px-4 space-y-6">
+          <SectionTitle className="ml-0">What's New</SectionTitle>
+          {/* Family Member Update Card - First Card */}
+          <UpdateCard 
+            update={LUCY_UPDATE} 
+            onShare={(msg) => {
+              // Create a temporary Post object for sharing
+              const tempPost: Post = {
+                id: 'update-' + LUCY_UPDATE.id,
+                title: `Lovely weather for ${LUCY_UPDATE.name}!`,
+                author: LUCY_UPDATE.name,
+                time: 'today',
+                imageUrl: LUCY_UPDATE.imageUrl,
+                likes: 0
+              };
+              setSharingPost({ post: tempPost, message: msg });
+            }}
+          />
+          {/* Family Member Update Card - Second Card */}
+          <UpdateCard 
+            update={SUSAN_UPDATE} 
+            customTitle="Susan is thinking of you and your lovely weather!"
+            onShare={(msg) => {
+              // Create a temporary Post object for sharing
+              const tempPost: Post = {
+                id: 'update-' + SUSAN_UPDATE.id,
+                title: "Susan is thinking of you and your lovely weather!",
+                author: SUSAN_UPDATE.name,
+                time: 'today',
+                imageUrl: SUSAN_UPDATE.imageUrl,
+                likes: 0
+              };
+              setSharingPost({ post: tempPost, message: msg });
+            }}
+          />
           {posts.map((post, index) => (
             <React.Fragment key={post.id}>
               <FeedCard

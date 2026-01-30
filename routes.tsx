@@ -14,6 +14,7 @@ import PlanView from './pages/PlanView';
 import ProfileView from './pages/ProfileView';
 import SettingsView from './pages/SettingsView';
 import ProcurerShop from './pages/ProcurerShop';
+import RideDetailPage from './pages/RideDetailPage';
 
 // Components acting as pages/modals
 import ChatOverlay from './components/ChatOverlay';
@@ -72,6 +73,10 @@ export const routes: RouteObject[] = [
     path: '/settings',
     element: <SettingsView />,
   },
+  {
+    path: '/ride-detail',
+    element: <RideDetailPage />,
+  },
 ];
 
 // Helper to map AppMode to path (for legacy support during migration)
@@ -86,11 +91,13 @@ export const getPathForMode = (mode: AppMode): string => {
     case AppMode.PLAN: return '/plan';
     case AppMode.PROFILE: return '/profile';
     case AppMode.SETTINGS: return '/settings';
+    case AppMode.ALL_ACTIVITY: return '/all-activity';
     case AppMode.OMNIBUS: return '/omnibus';
     case AppMode.GUARDIAN_ALERT: return '/guardian-alert';
     case AppMode.CHAT: return '/chat';
     case AppMode.RIDE_REQUEST: return '/ride-request';
     case AppMode.SHOPPING_RESULT: return '/shopping-result';
+    case AppMode.RIDE_DETAIL: return '/ride-detail';
     default: return '/';
   }
 };

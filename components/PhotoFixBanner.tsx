@@ -70,7 +70,7 @@ const PhotoFixBanner: React.FC<PhotoFixBannerProps> = ({ status = 'idle' }) => {
 
   return (
     <div
-      className="h-72 rounded-[2.5rem] relative overflow-hidden shadow-2xl group cursor-col-resize border-2 border-white/50"
+      className="h-72 rounded-xl relative overflow-hidden shadow-sm group cursor-col-resize border border-gray-200"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => {
         setIsHovering(false);
@@ -111,14 +111,10 @@ const PhotoFixBanner: React.FC<PhotoFixBannerProps> = ({ status = 'idle' }) => {
         </div>
       )}
 
-      {/* AI MAGIC Tag */}
-      <div className={`absolute top-6 right-6 ${tagColor} text-white px-5 py-2 rounded-full font-black text-xs flex items-center gap-2 shadow-xl z-20`}>
-        <Sparkles size={16} fill="white" />
-        <span className="tracking-widest uppercase">{tagText}</span>
-      </div>
+      {/* AI MAGIC Tag Removed */}
 
       {/* Text Overlay */}
-      <div className="absolute bottom-6 left-8 text-white z-20 pointer-events-none flex flex-col gap-2">
+      <div className="absolute bottom-8 left-8 text-white z-20 pointer-events-none flex flex-col gap-2">
         <h4 className="text-4xl font-black uppercase tracking-tight leading-none drop-shadow-lg">{title}</h4>
         <p className="text-xl text-white/90 font-bold drop-shadow-md">{subtitle}</p>
         <div className="mt-4 inline-flex items-center gap-3 bg-white text-[#003366] px-6 py-3 rounded-2xl w-fit font-black uppercase text-sm shadow-xl">

@@ -29,10 +29,10 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
   const isPhotoFix = message?.includes("memory is alive") || post.title.toLowerCase().includes("fix");
 
   return (
-    <div className="fixed inset-0 z-[500] bg-[#FDFBF7] flex flex-col font-['Plus_Jakarta_Sans'] select-none overflow-hidden animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[500] bg-[#FDFBF7] flex flex-col font-['Plus_Jakarta_Sans'] select-none overflow-y-auto animate-in fade-in duration-300">
 
       {step === 'select' && (
-        <div className="flex flex-col h-full relative">
+        <div className="flex flex-col min-h-full relative">
           {/* Top-Right Close Button - Compact */}
           <button
             onClick={onClose}
@@ -89,14 +89,14 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
           </div>
 
           {/* Section 2: Bottom - Sharing Buttons (Centered Layout & No White Background) */}
-          <div className="flex-1 flex flex-col pt-6">
+          <div className="flex-1 flex flex-col pt-6 pb-8">
             {/* Send To Label */}
             <div className="text-center mb-4">
               <p className="text-[#CCCCCC] font-black uppercase tracking-[0.25em] text-[10px]">CHOOSE WHERE TO SEND:</p>
             </div>
 
             {/* Large Tactile Buttons - Centered Text & Icon */}
-            <div className="px-5 space-y-3.5 flex flex-col items-stretch overflow-y-auto no-scrollbar pb-12">
+            <div className="px-5 space-y-3.5 flex flex-col items-stretch pb-12">
               {/* 1. iMessage (Green) */}
               <button
                 onClick={() => handleShare('iMessage')}

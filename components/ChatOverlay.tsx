@@ -4,7 +4,10 @@ import { Icons } from '../constants';
 import { ChatMessage, HistoryItem, AuraEmotion, Task } from '../types';
 import { chatWithAura, TaskSuggestion } from '../services/geminiService';
 import { createTask } from '../services/api';
+import tts from '../util/TTSindex';
+import asr from '../util/ASRindex';
 import AuraAvatar from './AuraAvatar';
+import { IpuMobile } from "@/ipuframe";
 
 interface ChatOverlayProps {
     onClose: () => void;
@@ -20,7 +23,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ onClose, onTriggerAction, ini
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     
     // Default to listening immediately on entry
-    const [isListening, setIsListening] = useState(true);
+    const [isListening, setIsListening] = useState(false);
     
     // Ref to track if user explicitly stopped listening
     const userStoppedRef = useRef(false);
@@ -40,7 +43,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ onClose, onTriggerAction, ini
     const photoInputRef = useRef<HTMLInputElement>(null);
 
     const handleClose = () => {
-        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        tts.cancel();
         if (messages.length > 1 && onSaveHistory) {
             const firstUserMsg = messages.find(m => m.role === 'user');
             const lastMsg = messages[messages.length - 1];
@@ -67,28 +70,35 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ onClose, onTriggerAction, ini
         } else {
             userStoppedRef.current = true;
             setIsListening(false);
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            tts.cancel(); // Cancel speaking if user stops listening manually
+            handleUserMessage(currentTranscript);
+            asr.stop({
+              // onResult: (text, isFinal) => {
+              //     console.log(text, isFinal, 'text');
+              //       setCurrentTranscript1(text);
+              //       if (onVoiceInteraction) onVoiceInteraction();
+              //       // Optional: only send on final result
+              //       if (isFinal) {
+              //            handleUserMessage(text);
+              //       }
+              //   },
+            });
         }
     };
 
     const speak = (text: string) => {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); 
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.volume = 1.0; 
-            utterance.rate = 0.90; 
-            utterance.pitch = 1.0;
-            
-            // Auto-resume listening after speaking if not stopped by user
-            utterance.onend = () => {
+        tts.speak(text, {
+            onEnd: () => {
                 setCurrentEmotion('NEUTRAL');
-                if (!userStoppedRef.current) {
-                    setIsListening(true);
-                }
-            };
-            
-            window.speechSynthesis.speak(utterance);
-        }
+                // 播放结束之后，立马监听
+                // if (!userStoppedRef.current) {
+                //     setIsListening(true);
+                // }
+            },
+            onError: (err: any) => {
+                console.error(err);
+            }
+        });
     };
 
     const processFileAnalysis = async (fileType: 'IMAGE' | 'DOC') => {
@@ -255,9 +265,13 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ onClose, onTriggerAction, ini
         if (initialAction === 'ANALYZE_FILE') {
             processFileAnalysis('IMAGE');
         }
-        
         // Start listening on mount
-        setIsListening(true);
+        // setIsListening(true);
+
+        IpuMobile.listenerEvent("asrPartialResultEvent", function (res: any) {
+            const text = typeof res === 'string' ? res : JSON.stringify(res);
+            setCurrentTranscript(text)
+        })
     }, []);
 
     // Scroll to bottom
@@ -267,32 +281,43 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ onClose, onTriggerAction, ini
 
     // Voice Input Processing
     useEffect(() => {
-        let recognition: any = null;
         if (isListening) {
             setCurrentEmotion('LISTENING');
-            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-            
-            if (SpeechRecognition) {
-                recognition = new SpeechRecognition();
-                recognition.lang = 'en-US';
-                recognition.continuous = false;
-                
-                recognition.onresult = async (event: any) => {
-                    const text = event.results[0][0].transcript;
+            setCurrentTranscript('')
+            asr.start({
+                onResult: (text, isFinal) => {
+                  console.log(text, isFinal, 'text');
                     setCurrentTranscript(text);
                     if (onVoiceInteraction) onVoiceInteraction();
-                    handleUserMessage(text);
-                };
-                
-                recognition.onend = () => {
-                   setIsListening(false); 
-                };
-
-                try { recognition.start(); } catch(e) {}
-            }
+                    // Optional: only send on final result
+                    if (isFinal) {
+                         handleUserMessage(text);
+                    }
+                },
+                onEnd: () => {
+                     setIsListening(false);
+                },
+                onError: (e) => {
+                    console.error("ASR Error", e);
+                    setIsListening(false);
+                }
+            });
+        } else {
+            asr.stop({
+              // onResult: (text, isFinal) => {
+              //     console.log(text, isFinal, 'text');
+              //       setCurrentTranscript1(text);
+              //       if (onVoiceInteraction) onVoiceInteraction();
+              //       // Optional: only send on final result
+              //       if (isFinal) {
+              //            handleUserMessage(text);
+              //       }
+              //   },
+            });
         }
+
         return () => {
-            if (recognition) recognition.stop();
+            asr.stop();
         };
     }, [isListening]);
 
@@ -324,7 +349,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ onClose, onTriggerAction, ini
                      <span className="text-xl font-bold text-[#546E7A]">Home</span>
                 </button>
             </div>
-
+            
             {/* Chat Area */}
             <div className="flex-1 overflow-y-auto px-4 py-6 bg-[#FDFBF7] pb-48" ref={chatContainerRef}>
                 <div className="flex flex-col items-center mb-8 opacity-60">

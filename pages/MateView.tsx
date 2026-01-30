@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Icons } from '../constants';
+import tts from '../util/TTSindex';
 
 interface MateViewProps {
   onTriggerAlert: () => void;
@@ -69,14 +70,14 @@ const MateView: React.FC<MateViewProps> = ({ onTriggerAlert }) => {
       navigator.vibrate(pattern);
     }
   };
-
-  const speak = (text: string) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
-      window.speechSynthesis.speak(utterance);
+  // 页面关闭的时候，取消播报
+  useEffect(() => {
+    return () => {
+      tts.cancel();
     }
+  }, [])
+  const speak = (text: string) => {
+    tts.speak(text, { rate: 0.95 });
   };
 
   const handleRestorePhoto = () => {

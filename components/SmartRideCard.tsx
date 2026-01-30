@@ -1,7 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin } from 'lucide-react';
 import { Icons } from '../constants';
-import { RobotBubble } from './RobotBubble';
+import { getPathForMode } from '../routes';
+import { AppMode } from '../types';
 
 enum RideStage {
   RECOMMENDATION = 'RECOMMENDATION',
@@ -39,6 +42,7 @@ const WAITING_MESSAGES = [
 ];
 
 export const SmartRideCard: React.FC = () => {
+  const navigate = useNavigate();
   const [stage, setStage] = useState<RideStage>(RideStage.RECOMMENDATION);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [waitingMsgIndex, setWaitingMsgIndex] = useState(0);
@@ -83,6 +87,15 @@ export const SmartRideCard: React.FC = () => {
     window.location.href = `tel:5550123`;
   };
 
+  const openRideDetail = () => {
+    navigate(getPathForMode(AppMode.RIDE_DETAIL), {
+      state: {
+        stage: stage === RideStage.PICKUP ? 'PICKUP' : 'IN_TRIP',
+        driver: MOCK_DRIVER
+      }
+    });
+  };
+
   // Card preview (collapsed state)
   const renderCardPreview = () => {
     switch (stage) {
@@ -124,24 +137,41 @@ export const SmartRideCard: React.FC = () => {
 
       case RideStage.WAITING:
         return (
-          <div className="bg-[#121926] rounded-2xl p-6 shadow-xl text-white">
-            <div className="bg-blue-600/20 text-blue-300 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase flex items-center gap-2 border border-blue-500/30 w-fit mb-4">
-              <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
+          <div className="bg-[#121926] rounded-2xl shadow-xl overflow-hidden text-white relative border border-white/5 p-6">
+            <div className="bg-blue-600/20 text-blue-300 px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase flex items-center gap-2 border border-blue-500/30 w-fit mb-5">
+              <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
               Searching...
             </div>
-            <div className="flex items-center gap-4">
+
+            <div className="flex justify-between items-center mb-6">
               <div className="relative">
-                <div className="absolute inset-0 w-16 h-16 bg-blue-500/30 rounded-full animate-pulse"></div>
-                <div className="w-16 h-16 rounded-full border-4 border-[#121926] bg-white flex items-center justify-center relative z-10">
-                  <Icons.Sparkles className="w-8 h-8 text-blue-600" />
+                <div className="absolute inset-0 w-20 h-20 bg-blue-500/30 rounded-full blur-sm"></div>
+                <div className="w-20 h-20 rounded-full border-4 border-[#121926] shadow-lg bg-white flex items-center justify-center relative z-10">
+                  <Icons.Sparkles className="w-10 h-10 text-blue-600" />
                 </div>
               </div>
-              <div className="flex-1">
-                <div className="text-3xl font-black mb-1 text-cyan-400">3-5 min</div>
-                <div className="text-slate-400 text-xs font-bold uppercase tracking-widest">Expected wait</div>
+              <div className="text-right">
+                <div className="text-4xl font-black mb-1 text-cyan-400 tracking-tighter">3-5 min</div>
+                <div className="text-slate-500 font-extrabold uppercase tracking-widest text-[11px] opacity-80">Expected wait</div>
               </div>
             </div>
-            <p className="text-lg font-black mt-4">{WAITING_MESSAGES[waitingMsgIndex]}</p>
+
+            <div className="mb-6">
+              <h3 key={waitingMsgIndex} className="text-2xl font-black mb-3 animate-in fade-in duration-1000">
+                {WAITING_MESSAGES[waitingMsgIndex]}
+              </h3>
+              <div className="flex items-center gap-2 text-slate-400 font-bold text-base">
+                <MapPin className="w-5 h-5 text-cyan-400" />
+                <span>Scanning Main St Area</span>
+              </div>
+            </div>
+
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(true); }}
+              className="w-full py-4 bg-slate-800 text-slate-300 rounded-xl text-base font-black active:scale-95 transition-colors hover:text-white"
+            >
+              Cancel
+            </button>
           </div>
         );
 
@@ -208,10 +238,6 @@ export const SmartRideCard: React.FC = () => {
                 </button>
               </div>
               <h3 className="text-xl font-black mb-2">To General Hospital</h3>
-              <div className="flex items-center gap-2 text-emerald-400 text-sm font-bold">
-                <Icons.Shield className="w-4 h-4" />
-                <span>Sarah is following your trip</span>
-              </div>
             </div>
           </div>
         );
@@ -225,24 +251,7 @@ export const SmartRideCard: React.FC = () => {
   const renderExpandedView = () => {
     return (
       <div className="space-y-4">
-        {stage === RideStage.WAITING && (
-          <RobotBubble message="I'm searching for the best driver near your home. One moment..." />
-        )}
-        {stage === RideStage.PICKUP && (
-          <RobotBubble message={`Success! ${MOCK_DRIVER.name} is on his way to pick you up.`} />
-        )}
-        {stage === RideStage.IN_TRIP && (
-          <RobotBubble message="You're on your way! I've shared your live trip with Sarah." />
-        )}
         {renderCardPreview()}
-        {stage === RideStage.WAITING && (
-          <button 
-            onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(true); }}
-            className="w-full py-4 bg-slate-800 text-slate-400 rounded-xl text-base font-bold active:scale-95"
-          >
-            Cancel
-          </button>
-        )}
       </div>
     );
   };
@@ -251,11 +260,14 @@ export const SmartRideCard: React.FC = () => {
     return null; // Don't show card when idle
   }
 
+  const canToggleExpand = stage !== RideStage.PICKUP && stage !== RideStage.IN_TRIP;
+  const canOpenRideDetail = stage === RideStage.PICKUP || stage === RideStage.IN_TRIP;
+
   return (
     <>
       <div 
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="cursor-pointer transition-all"
+        onClick={canOpenRideDetail ? openRideDetail : (canToggleExpand ? () => setIsExpanded(!isExpanded) : undefined)}
+        className={(canOpenRideDetail || canToggleExpand) ? "cursor-pointer transition-all" : "transition-all"}
       >
         {isExpanded ? renderExpandedView() : renderCardPreview()}
       </div>

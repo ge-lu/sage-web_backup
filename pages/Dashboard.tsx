@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuraOrb from '../components/AuraOrb';
-import { Icons } from '../constants';
+import { Icons, MOCK_ACTIVITIES } from '../constants';
+import ActivityItem from '../components/ActivityItem';
 import { TaskCard, AppMode } from '../types';
 import { getPathForMode } from '../routes';
+import asr from '../util/ASRindex';
 
 interface DashboardProps {
   isListening: boolean; // Kept for interface compatibility
@@ -71,54 +73,43 @@ const Dashboard: React.FC<DashboardProps> = ({
     setLocalIsListening(true);
     setAuraState('active'); // 'active' = Speaking/Listening animation in AuraOrb
 
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    asr.start({
+      onResult: (text, isFinal) => {
+        // Wait for final result
+        if (isFinal) {
+          const transcript = text.toLowerCase();
+          // Transition to Thinking
+          setLocalIsListening(false);
+          setAuraState('thinking');
 
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'en-US';
-      recognition.continuous = false;
+          if (onVoiceUsed) onVoiceUsed();
 
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript.toLowerCase();
+          console.log("Command:", transcript);
 
-        // Transition to Thinking
-        setLocalIsListening(false);
-        setAuraState('thinking');
-
-        if (onVoiceUsed) onVoiceUsed();
-
-        console.log("Command:", transcript);
-
-        // Simple Router
-        setTimeout(() => {
-          if (transcript.includes('scan') || transcript.includes('camera')) {
-            goTo(AppMode.OMNIBUS);
-          } else {
-            // Pass to Global Chat for complex handling
-            if (onSearch) onSearch(transcript);
-          }
-          // Reset to neutral if navigation didn't happen fast enough
-          setAuraState('neutral');
-        }, 1000);
-      };
-
-      recognition.onerror = () => {
+          // Simple Router
+          setTimeout(() => {
+            if (transcript.includes('scan') || transcript.includes('camera')) {
+              goTo(AppMode.OMNIBUS);
+            } else {
+              // Pass to Global Chat for complex handling
+              if (onSearch) onSearch(transcript);
+            }
+            // Reset to neutral if navigation didn't happen fast enough
+            setAuraState('neutral');
+          }, 1000);
+        }
+      },
+      onError: () => {
         setLocalIsListening(false);
         setAuraState('neutral'); // Fail safe to neutral
-      };
-
-      recognition.onend = () => {
+      },
+      onEnd: () => {
         if (localIsListening) {
           setLocalIsListening(false);
           setAuraState('neutral');
         }
-      };
-
-      recognition.start();
-    } else {
-      console.log("Speech API missing");
-      setGlobalChat(true); // Fallback to text chat overlay
-    }
+      }
+    });
   };
 
   const handleSearchSubmit = () => {
@@ -138,30 +129,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     onTriggerSOS();
   };
 
-  // --- DATA ---
-  const activities = [
-    { id: '1', type: 'scam', title: 'Scam Call Blocked', subtitle: 'Guardian AI • 2:30 PM', detail: 'Blocked 555-0123 (Known Robocall).', time: '2:30 PM', actionLabel: 'View Block List' },
-    { id: '2', type: 'health', title: 'Medication Reminder', subtitle: 'Take Lisinopril • Due Now', detail: 'Take 10mg with food.', time: 'Now', actionLabel: 'Mark Taken' },
-    { id: '3', type: 'order', title: 'Pharmacy Order', subtitle: 'Procurer AI • Arriving Tomorrow', detail: 'Vitamin D shipped via UPS.', time: 'Yesterday', actionLabel: 'Track Package' }
-  ];
-
-  const getColorsForType = (type: string) => {
-    switch (type) {
-      case 'scam': return { iconBg: 'bg-red-100', icon: 'text-red-600', border: 'border-l-red-500' };
-      case 'order': return { iconBg: 'bg-blue-100', icon: 'text-blue-600', border: 'border-l-blue-500' };
-      case 'health': return { iconBg: 'bg-emerald-100', icon: 'text-emerald-600', border: 'border-l-emerald-500' };
-      default: return { iconBg: 'bg-purple-100', icon: 'text-purple-600', border: 'border-l-purple-500' };
-    }
-  };
-
-  const getIconForType = (type: string) => {
-    switch (type) {
-      case 'scam': return <Icons.Shield className="w-8 h-8" />;
-      case 'order': return <Icons.ShoppingBag className="w-8 h-8" />;
-      case 'health': return <Icons.Check className="w-8 h-8" />;
-      default: return <Icons.Camera className="w-8 h-8" />;
-    }
-  };
+  // Helper to determine the "next" or most important task
 
   // Helper to determine the "next" or most important task
   const primaryTask = pendingTasks.length > 0 ? pendingTasks[0] : null;
@@ -171,8 +139,8 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Top Header */}
       <div className="relative flex justify-between items-center mb-4 h-16">
-        <button onClick={() => goTo(AppMode.SETTINGS)} className="w-12 h-12 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm z-20">
-          <Icons.Settings className="w-6 h-6 text-gray-400" />
+        <button onClick={() => goTo(AppMode.ALL_ACTIVITY)} className="w-12 h-12 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm z-20">
+          <Icons.MoreHorizontal className="w-6 h-6 text-gray-400" />
         </button>
         <span className="text-sm font-bold text-gray-400 tracking-wide absolute left-0 right-0 text-center pointer-events-none">Ask Aura anything...</span>
         <button onClick={handleSOS} className="w-14 h-14 rounded-full bg-red-50 border-2 border-red-100 flex items-center justify-center text-red-500 font-bold shadow-sm animate-pulse z-20">SOS</button>
@@ -180,7 +148,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* --- AURA ORB CENTERPIECE --- */}
       <div className="mb-4 mt-0 relative flex flex-col items-center">
-        <div onClick={() => handleMicToggle} className="cursor-pointer transition-transform active:scale-95 transform scale-90 origin-center">
+        <div onClick={handleMicToggle} className="cursor-pointer transition-transform active:scale-95 transform scale-90 origin-center">
           {/* The Safe Zone: We strictly control the props passed here */}
           <AuraOrb isListening={localIsListening} sentiment={auraState} />
         </div>
@@ -261,28 +229,18 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* Context List */}
       <div className="mt-10">
         <h3 className="text-2xl font-bold text-gray-900 mb-5 px-2">Recent Activity</h3>
-        {activities.map((item) => {
-          const styles = getColorsForType(item.type);
-          const isExpanded = expandedActivity === item.id;
-          return (
-            <div key={item.id} onClick={() => setExpandedActivity(isExpanded ? null : item.id)} className={`group relative rounded-[2rem] overflow-hidden mb-4 cursor-pointer transition-all duration-300 bg-white border border-gray-100 border-l-[6px] ${styles.border} ${isExpanded ? 'shadow-lg scale-[1.02] z-10' : 'shadow-sm z-0'}`}>
-              <div className="p-5 flex items-center gap-5">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 ${styles.iconBg} ${styles.icon}`}>{getIconForType(item.type)}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start gap-3">
-                    <h4 className="font-bold text-xl text-gray-900 leading-snug">{item.title}</h4>
-                    <span className="text-[11px] font-extrabold text-gray-400 uppercase whitespace-nowrap bg-gray-50 px-2 py-1 rounded-lg border border-gray-100 shrink-0 mt-0.5">{item.time}</span>
-                  </div>
-                  <p className="text-sm font-medium mt-1 text-gray-500 truncate">{item.subtitle}</p>
-                </div>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isExpanded ? 'bg-gray-100 rotate-90' : 'bg-transparent'}`}><Icons.ChevronLeft className="w-5 h-5 text-gray-400" /></div>
-              </div>
-              <div className={`grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
-                <div className="overflow-hidden"><div className="px-5 pb-6 pt-0"><div className="pl-[5.25rem]"><div className="h-px w-full bg-gray-100 mb-4"></div><p className="text-base text-gray-600 mb-6 font-medium">{item.detail}</p>{item.actionLabel && <button onClick={(e) => { e.stopPropagation(); if (item.type === 'scam') goTo(AppMode.FAMILY_CONNECTIONS); if (item.type === 'order') goTo(AppMode.PLAN); }} className="w-full py-4 rounded-xl text-base font-bold bg-gray-50 text-gray-900 flex items-center justify-center gap-2 hover:bg-gray-100">{item.actionLabel}<Icons.ArrowRight className="w-4 h-4" /></button>}</div></div></div>
-              </div>
-            </div>
-          );
-        })}
+        {MOCK_ACTIVITIES.slice(0, 3).map((item) => (
+          <ActivityItem
+            key={item.id}
+            item={item}
+            isExpanded={expandedActivity === item.id}
+            onToggle={() => setExpandedActivity(expandedActivity === item.id ? null : item.id)}
+            onAction={(action) => {
+               if (action === 'scam') goTo(AppMode.FAMILY_CONNECTIONS);
+               if (action === 'order') goTo(AppMode.PLAN);
+            }}
+          />
+        ))}
       </div>
     </div>
   );

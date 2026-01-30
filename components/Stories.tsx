@@ -16,20 +16,20 @@ const Stories: React.FC<StoriesProps> = ({ rooms, onAllRoomsClick, onClubClick }
           {room.isAll ? (
             <button
               onClick={onAllRoomsClick}
-              className="w-20 h-20 bg-[#003366] rounded-full flex items-center justify-center text-white shadow-xl active:scale-95 transition-transform"
+              className="w-20 h-20 bg-guardian-blue rounded-full flex items-center justify-center text-white shadow-xl active:scale-95 transition-transform border border-[#F5F9FF]"
             >
               <LayoutGrid size={32} />
             </button>
           ) : (
             <button
               onClick={() => onClubClick(room)}
-              className="w-20 h-20 rounded-full bg-gray-200 shadow-md overflow-hidden ring-2 ring-white border border-gray-100 active:scale-95 transition-transform"
+              className="w-20 h-20 rounded-full bg-gray-200 shadow-sm overflow-hidden border border-[#F5F9FF] active:scale-95 transition-transform"
             >
               <img src={room.imageUrl} className="w-full h-full object-cover" alt={room.name} />
             </button>
           )}
-          <div className={`text-[10px] font-black uppercase text-center leading-tight w-16 truncate ${room.isAll ? 'text-[#3b82f6]' : 'text-gray-500'}`}>
-            {room.name}
+          <div className={`text-sm font-bold text-gray-900 font-sans text-center leading-tight w-24 ${room.isAll ? 'text-guardian-blue' : ''}`}>
+            {room.name.split(' ')[0]}
           </div>
         </div>
       ))}

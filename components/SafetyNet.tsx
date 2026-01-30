@@ -40,12 +40,8 @@ export const SafetyNet: React.FC<SafetyNetProps> = ({ onNavigate, onSelectContac
 			<div className="bg-white pt-10 pb-4 px-6 rounded-b-[40px] shadow-soft z-50 relative">
 				<div className="flex items-center justify-between mb-6">
 					<div className="flex flex-col">
-						<h1 className="text-2xl font-bold text-text-main">Care Circle</h1>
-						<p className="text-text-sub text-xs font-medium">Your safety network is active</p>
+						<h1 className="text-2xl font-bold text-text-main">Trusted People</h1>
 					</div>
-					<span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-						<span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> LIVE
-					</span>
 				</div>
 
 				<div className="flex gap-6 items-center overflow-x-auto pb-4 no-scrollbar">

@@ -1,8 +1,13 @@
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icons } from '../constants';
 import { analyzeVisualContext, ScanResult } from '../services/geminiService';
 import PriceComparisonCard from '../components/PriceComparisonCard';
+import { createMedication } from '../services/api';
+import { Medication } from '../types';
+import asr from '../util/ASRindex';
+import tts from '../util/TTSindex';
 
 interface OmnibusScanProps {
     onBack?: () => void;
@@ -11,6 +16,7 @@ interface OmnibusScanProps {
 }
 
 const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping, onScanUsed }) => {
+  const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'));
   
@@ -31,12 +37,9 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
   
   // Helper for TTS
   const speak = (text: string) => {
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 1.0; // Slightly faster for responsiveness
-        window.speechSynthesis.speak(utterance);
-    }
+      // Clear previous if any, though tts.speak probably handles it
+      tts.cancel();
+      tts.speak(text, { rate: 1.0 });
   };
 
   // Helper for Haptics
@@ -90,89 +93,89 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
 
   // Voice Command Listener for Result View
   useEffect(() => {
-    let recognition: any = null;
-
     if (processingState === 'RESULT') {
         // Start listening when result is shown
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'en-US'; 
-            recognition.continuous = true;
-            recognition.interimResults = false;
+        // Use continuous mode if possible, or restart onEnd
+        const startListening = () => {
+             asr.start({
+                continuous: true,
+                onResult: (text, isFinal) => {
+                    const command = text.trim().toLowerCase();
+                    console.log("Omnibus Voice Command:", command);
+                    
+                    if (!isFinal) return; // Wait for final command to avoid jitter? Or utilize partials? 
+                    // Original code used results[last], which implies partials or finals.
+                    // Let's use isFinal for now to be safe, or just check text.
 
-            recognition.onresult = (event: any) => {
-                const last = event.results.length - 1;
-                const command = event.results[last][0].transcript.trim().toLowerCase();
-                console.log("Omnibus Voice Command:", command);
+                    // --- 1. GLOBAL NAVIGATION COMMANDS ---
+                    if (command.includes('okay') || command.includes('thanks') || command.includes('close') || command.includes('stop') || command.includes('done') || command.includes('back')) {
+                        handleCloseResult();
+                        return;
+                    }
+                    
+                    // --- 2. GLOBAL READ ACTIONS ---
+                    if (command.includes('read') || command.includes('speak') || command.includes('what does it say')) {
+                        if (result?.summary) speak(result.summary);
+                        return;
+                    }
 
-                // --- 1. GLOBAL NAVIGATION COMMANDS ---
-                if (command.includes('okay') || command.includes('thanks') || command.includes('close') || command.includes('stop') || command.includes('done') || command.includes('back')) {
-                    handleCloseResult();
-                    return;
-                }
-                
-                // --- 2. GLOBAL READ ACTIONS ---
-                if (command.includes('read') || command.includes('speak') || command.includes('what does it say')) {
-                    if (result?.summary) speak(result.summary);
-                    return;
-                }
-
-                // --- 3. CONTEXT-AWARE FOLLOW-UP LOGIC ---
-                if (result) {
-                    // SCENARIO: SHOPPING / PRODUCT
-                    if (result.type === 'PRODUCT') {
-                        if (command.includes('buy') || command.includes('purchase') || command.includes('get it')) {
-                            // Vendor Selection Logic
-                            if (command.includes('amazon')) {
-                                speak("Opening Amazon.");
-                                handleShopSelect('Amazon');
-                            } else if (command.includes('walmart')) {
-                                speak("Opening Walmart.");
-                                handleShopSelect('Walmart');
-                            } else {
-                                speak("I found it at Walmart and Amazon. Which store do you prefer?");
+                    // --- 3. CONTEXT-AWARE FOLLOW-UP LOGIC ---
+                    if (result) {
+                        // SCENARIO: SHOPPING / PRODUCT
+                        if (result.type === 'PRODUCT') {
+                            if (command.includes('buy') || command.includes('purchase') || command.includes('get it')) {
+                                // Vendor Selection Logic
+                                if (command.includes('amazon')) {
+                                    speak("Opening Amazon.");
+                                    handleShopSelect('Amazon');
+                                } else if (command.includes('walmart')) {
+                                    speak("Opening Walmart.");
+                                    handleShopSelect('Walmart');
+                                } else {
+                                    speak("I found it at Walmart and Amazon. Which store do you prefer?");
+                                }
+                            } else if (command.includes('cheapest') || command.includes('best price') || command.includes('lower price')) {
+                                    // Simple logic to find lowest price in mock data
+                                    const products = result.products || [];
+                                    const cheapest = products.reduce((prev, curr) => {
+                                        const p1 = parseFloat(prev.price.replace(/[^0-9.]/g, ''));
+                                        const p2 = parseFloat(curr.price.replace(/[^0-9.]/g, ''));
+                                        return p1 < p2 ? prev : curr;
+                                    });
+                                    if (cheapest) speak(`The best price is ${cheapest.price} at ${cheapest.vendor}.`);
                             }
-                        } else if (command.includes('cheapest') || command.includes('best price') || command.includes('lower price')) {
-                             // Simple logic to find lowest price in mock data
-                             const products = result.products || [];
-                             const cheapest = products.reduce((prev, curr) => {
-                                 const p1 = parseFloat(prev.price.replace(/[^0-9.]/g, ''));
-                                 const p2 = parseFloat(curr.price.replace(/[^0-9.]/g, ''));
-                                 return p1 < p2 ? prev : curr;
-                             });
-                             if (cheapest) speak(`The best price is ${cheapest.price} at ${cheapest.vendor}.`);
                         }
-                    }
 
-                    // SCENARIO: DOCUMENT / BILL
-                    else if (result.type === 'DOCUMENT') {
-                        if (command.includes('pay') || command.includes('paid')) {
-                            speak("I can help you pay this. Would you like to use your card ending in 4242?");
-                        } else if (command.includes('yes') || command.includes('sure') || command.includes('please')) {
-                            speak("Payment scheduled for the due date. I've sent a confirmation to your email.");
-                        } else if (command.includes('due') || command.includes('when')) {
-                             speak("It looks like this bill is due on October 28th.");
+                        // SCENARIO: DOCUMENT / BILL
+                        else if (result.type === 'DOCUMENT') {
+                            if (command.includes('pay') || command.includes('paid')) {
+                                speak("I can help you pay this. Would you like to use your card ending in 4242?");
+                            } else if (command.includes('yes') || command.includes('sure') || command.includes('please')) {
+                                speak("Payment scheduled for the due date. I've sent a confirmation to your email.");
+                            } else if (command.includes('due') || command.includes('when')) {
+                                    speak("It looks like this bill is due on October 28th.");
+                            }
                         }
                     }
+                },
+                onError: (e) => {
+                    console.error("Voice recognition start failed", e);
                 }
-            };
-
-            try {
-                recognition.start();
-                setListeningForCommand(true);
-            } catch (e) {
-                console.error("Voice recognition start failed", e);
-            }
-        }
+            });
+            setListeningForCommand(true);
+        };
+        
+        startListening();
+        
     } else {
         setListeningForCommand(false);
         // Stop TTS when leaving result view
-        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        tts.cancel();
+        asr.stop();
     }
 
     return () => {
-        if (recognition) recognition.stop();
+        asr.stop();
     };
   }, [processingState, result]);
 
@@ -237,7 +240,7 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
       setIsFavorite(false);
       setShowScanComplete(false);
       // Clean up voice synthesis
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      tts.cancel();
   };
 
   const captureAndAnalyze = async () => {
@@ -319,10 +322,123 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
       }
   };
 
+  const handleSaveMedications = async () => {
+      if (!result || !result.medications || result.medications.length === 0) return;
+      
+      try {
+          const today = new Date().toISOString().split('T')[0];
+          
+          // Save each medication
+          for (const med of result.medications) {
+              const medication: Omit<Medication, 'id'> = {
+                  name: med.name,
+                  dosage: med.dosage,
+                  frequency: med.frequency,
+                  times: med.times || [],
+                  instructions: med.instructions,
+                  startDate: today,
+                  endDate: med.duration ? undefined : undefined, // Can calculate from duration
+                  source: result.type === 'PRESCRIPTION' ? 'prescription' : 'discharge_summary',
+                  createdAt: new Date().toISOString(),
+                  status: 'active'
+              };
+              
+              await createMedication(medication);
+          }
+          
+          speak(`Saved ${result.medications.length} medication${result.medications.length > 1 ? 's' : ''} to medication management`);
+          vibrate([50, 50, 50]);
+          
+          // Close result page and return to Care page
+          handleCloseResult();
+          if (onBack) {
+              onBack();
+          }
+          // Navigate to Care page (assuming route is /care or similar)
+          // Adjust based on actual routing
+          setTimeout(() => {
+              // Can trigger an event or use global state to refresh Care page
+              window.dispatchEvent(new CustomEvent('medications-updated'));
+          }, 500);
+          
+      } catch (error) {
+          console.error("Failed to save medications:", error);
+          speak("Failed to save. Please try again.");
+      }
+  };
+
   // --- RENDER FUNCTIONS FOR DIFFERENT AGENT MODES ---
 
   const renderResultSheet = () => {
       if (!result) return null;
+
+      // 💊 Prescription/Discharge Summary Handler
+      if ((result.type === 'PRESCRIPTION' || result.type === 'DISCHARGE_SUMMARY') && result.medications) {
+          return (
+             <div className="absolute bottom-0 left-0 right-0 z-40 pb-safe">
+                 <div className="bg-white rounded-t-[32px] animate-in slide-in-from-bottom duration-300 p-6 pb-safe-offset shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+                     <div className="w-16 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 shrink-0"></div>
+                     
+                     <div className="flex items-start gap-4 mb-6">
+                         <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0">
+                             <Icons.Heart className="w-7 h-7" />
+                         </div>
+                         <div className="pt-1">
+                             <h2 className="text-2xl font-bold text-gray-900 leading-tight">{result.title}</h2>
+                             <p className="text-sm text-blue-600 font-bold uppercase tracking-wide mt-1">
+                                 Medication Recognition
+                             </p>
+                         </div>
+                     </div>
+                     
+                     <div className="bg-gray-50 p-6 rounded-3xl mb-6 border border-gray-100">
+                         <p className="text-gray-900 text-lg leading-relaxed font-medium mb-4">"{result.summary}"</p>
+                         <p className="text-sm text-gray-600 font-bold mb-3">Found {result.medications.length} medication{result.medications.length > 1 ? 's' : ''}:</p>
+                         <div className="space-y-3 max-h-64 overflow-y-auto">
+                             {result.medications.map((med, idx) => (
+                                 <div key={idx} className="bg-white p-4 rounded-2xl border border-gray-200">
+                                     <div className="flex items-start justify-between mb-2">
+                                         <h4 className="font-bold text-gray-900">{med.name}</h4>
+                                         <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">
+                                             {med.dosage}
+                                         </span>
+                                     </div>
+                                     <p className="text-sm text-gray-600 mb-2">{med.frequency}</p>
+                                     {med.times && med.times.length > 0 && (
+                                         <div className="flex flex-wrap gap-2">
+                                             {med.times.map((time, tIdx) => (
+                                                 <span key={tIdx} className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-lg">
+                                                     {time}
+                                                 </span>
+                                             ))}
+                                         </div>
+                                     )}
+                                     {med.instructions && (
+                                         <p className="text-xs text-gray-500 italic mt-2">{med.instructions}</p>
+                                     )}
+                                 </div>
+                             ))}
+                         </div>
+                     </div>
+
+                     <div className="flex gap-3 mt-auto">
+                         <button 
+                             onClick={handleCloseResult}
+                             className="flex-1 h-16 bg-gray-100 text-gray-700 rounded-2xl font-bold text-lg active:scale-95 transition-transform"
+                         >
+                             Cancel
+                         </button>
+                         <button 
+                             onClick={handleSaveMedications}
+                             className="flex-1 h-16 bg-[#00E341] text-white rounded-2xl font-bold text-lg active:scale-95 transition-transform shadow-lg shadow-emerald-500/20"
+                         >
+                             Save to Medications
+                         </button>
+                     </div>
+                 </div>
+             </div>
+          );
+      }
 
       // 🚚 Logistics Manager (Shopping)
       if (result.type === 'PRODUCT' && result.products) {

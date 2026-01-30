@@ -16,10 +16,11 @@ import {
     LoginRequest,
     RegisterRequest,
     AuthResponse,
-    User
+    User,
+    Medication
 } from '../types';
-import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db } from './db';
+import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { db } from './firebase';
 
 // This service layer acts as the bridge. 
 // Currently it returns MOCK data, but it is structured to easily switch to Firebase calls.
@@ -160,4 +161,47 @@ export const register = async (req: RegisterRequest): Promise<AuthResponse> => {
             });
         }, 1000);
     });
+};
+
+// 7. Medications
+export const getMedications = async (): Promise<Medication[]> => {
+    try {
+        const snapshot = await getDocs(collection(db, 'medications'));
+        if (snapshot.empty) {
+            console.log("No medications in Firestore, returning empty array");
+            return [];
+        }
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Medication));
+    } catch (error) {
+        console.warn("Error fetching medications from Firestore, returning empty array", error);
+        return [];
+    }
+};
+
+export const createMedication = async (medication: Omit<Medication, 'id'>): Promise<Medication> => {
+    try {
+        const docRef = await addDoc(collection(db, 'medications'), medication);
+        return { id: docRef.id, ...medication };
+    } catch (error) {
+        console.error("Error creating medication:", error);
+        throw error;
+    }
+};
+
+export const updateMedication = async (medicationId: string, updates: Partial<Medication>): Promise<void> => {
+    try {
+        await updateDoc(doc(db, 'medications', medicationId), updates);
+    } catch (error) {
+        console.error("Error updating medication:", error);
+        throw error;
+    }
+};
+
+export const deleteMedication = async (medicationId: string): Promise<void> => {
+    try {
+        await deleteDoc(doc(db, 'medications', medicationId));
+    } catch (error) {
+        console.error("Error deleting medication:", error);
+        throw error;
+    }
 };

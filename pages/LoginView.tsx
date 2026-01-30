@@ -15,14 +15,29 @@ const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate, login
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleAuthSuccess = async (user: {
+    token: string;
+      uid: string;
+      email: string;
+  }) => {
+    localStorage.setItem('aura_user_token', user.token);
+    localStorage.setItem('aura_user_uid', user.uid);
+    localStorage.setItem('aura_user_email', user.email || '');
+    localStorage.setItem('aura_is_authenticated', 'true');
+
+    setIsLoading(false);
+    onLoginSuccess();
+  };
+
+  const handleLogin = async () => {
     if (!identifier || !password) return;
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-        setIsLoading(false);
-        onLoginSuccess();
-    }, 1500);
+
+    handleAuthSuccess({
+      token: '123xxadjqeiqoeda',
+      uid: '456',
+      email: identifier,
+    });
   };
 
   const handleSocialLogin = (provider: string) => {

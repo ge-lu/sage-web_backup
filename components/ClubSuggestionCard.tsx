@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
+import GuardianButton from './GuardianButton';
 
 interface ClubSuggestionCardProps {
   onJoin: () => void;
@@ -11,7 +12,7 @@ const ClubSuggestionCard: React.FC<ClubSuggestionCardProps> = ({ onJoin }) => {
 
   return (
     <div
-      className="relative h-96 rounded-[3rem] overflow-hidden shadow-xl w-full shrink-0 group cursor-pointer transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+      className="relative h-96 rounded-xl overflow-hidden shadow-sm border border-gray-200 w-full shrink-0 group cursor-pointer transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
       onClick={onJoin}
     >
       {/* Background Image - Gardening Theme */}
@@ -31,27 +32,29 @@ const ClubSuggestionCard: React.FC<ClubSuggestionCardProps> = ({ onJoin }) => {
       {/* Overlay */}
       <div className="absolute inset-0 bg-[#4A7A68]/85 mix-blend-multiply transition-opacity group-hover:bg-[#4A7A68]/90" />
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-10">
-        <div className="flex items-center justify-center mb-3">
-          <h2 className="text-[2.5rem] font-black text-white leading-tight drop-shadow-lg tracking-tight">
-            You'll love this<br />group!
-          </h2>
-        </div>
+      <div className="absolute inset-0 flex items-center justify-center p-8 z-10">
+        <div className="flex flex-col w-fit max-w-full text-center">
+          <div className="flex items-center justify-center mb-1">
+            <h2 className="font-bold font-heading text-xl text-white leading-tight drop-shadow-md whitespace-nowrap">
+              You'll love this group!
+            </h2>
+          </div>
 
-        <p className="text-xl font-bold text-white/90 mb-10 drop-shadow-md">
-          Because you liked gardening photos
-        </p>
+          <p className="text-xs text-white/90 mb-6 drop-shadow-sm font-medium">
+            Because you liked gardening photos
+          </p>
 
-        <div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onJoin();
-            }}
-            className="bg-white text-[#1E5840] px-12 py-5 rounded-full text-xl font-black uppercase tracking-widest shadow-[0_10px_20px_rgba(0,0,0,0.2)] active:scale-95 transition-all hover:bg-gray-50 hover:shadow-[0_5px_10px_rgba(0,0,0,0.2)]"
-          >
-            JOIN
-          </button>
+          <div className="w-full">
+            <GuardianButton
+              onClick={(e) => {
+                e.stopPropagation();
+                onJoin();
+              }}
+              className="h-16 w-full !rounded-2xl !bg-white !text-[#1E5840] !shadow-lg active:scale-95 transition-all text-lg font-black uppercase tracking-widest"
+            >
+              JOIN
+            </GuardianButton>
+          </div>
         </div>
       </div>
     </div>

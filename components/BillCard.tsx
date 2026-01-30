@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { ShieldCheck, Zap, HeartPulse, RefreshCw, FileText, ChevronDown, ChevronUp, History, Clock, AlertCircle, Sparkles, Users, Send, Info, TrendingUp, Check, ArrowUpRight, HelpCircle } from 'lucide-react';
+import { ShieldCheck, Zap, HeartPulse, RefreshCw, FileText, Receipt, ChevronDown, ChevronUp, History, Clock, AlertCircle, Sparkles, Users, Send, Info, TrendingUp, Check, ArrowUpRight, HelpCircle } from 'lucide-react';
 import { Bill, PaymentRecord } from '../types';
 import { MOCK_CONTACTS } from '../constants';
+import tts from '../util/TTSindex';
 
 interface BillCardProps {
     bill: Bill;
@@ -45,6 +46,14 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                     border: 'border-sky-200',
                     text: 'text-sky-800'
                 };
+            case 'tax':
+                return {
+                    icon: <Receipt size={20} className="text-violet-600" aria-hidden="true" />,
+                    label: 'Tax',
+                    bg: 'bg-violet-100',
+                    border: 'border-violet-200',
+                    text: 'text-violet-800'
+                };
             default:
                 return {
                     icon: <FileText size={20} className="text-gray-600" aria-hidden="true" />,
@@ -77,10 +86,11 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
         }
     };
 
-    const handleApprove = () => {
-        if (onUpdate) {
-            onUpdate({ status: 'paid' });
-        }
+    const handleApprove = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onUpdate?.({ status: 'paid' });
+        if (tts.isSupported()) tts.speak('All set. Bill marked paid.');
     };
 
     const getStatusIcon = (status: PaymentRecord['status']) => {
@@ -115,6 +125,7 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                                 <option value="utility">Utility</option>
                                 <option value="medical">Medical</option>
                                 <option value="subscription">Subs</option>
+                                <option value="tax">Tax</option>
                                 <option value="other">Other</option>
                             </select>
                             <ChevronDown size={12} className={text} aria-hidden="true" />
@@ -140,9 +151,27 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                     ${bill.amount.toFixed(2)}
                 </p>
             </div>
-            <p className="text-text-sub text-sm font-medium mb-6 flex items-center gap-2">
+            <p className="text-text-sub text-sm font-medium mb-2 flex items-center gap-2">
                 <Clock size={14} /> Due {bill.dueDate}
             </p>
+
+            {/* 税务账单专属：税年 / 表单项 */}
+            {bill.category === 'tax' && (bill.taxYear || bill.formType) ? (
+                <div className="flex flex-wrap gap-2 mb-6">
+                    {bill.taxYear && (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-violet-50 text-violet-700 border border-violet-100">
+                            Tax Year {bill.taxYear}
+                        </span>
+                    )}
+                    {bill.formType && (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-violet-50 text-violet-700 border border-violet-100">
+                            Form {bill.formType}
+                        </span>
+                    )}
+                </div>
+            ) : (
+                <div className="mb-6" />
+            )}
 
             {/* AI Insight Section */}
             {bill.aiAnalysis && bill.status !== 'paid' && (
@@ -207,19 +236,26 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                 </section>
             )}
 
-            {/* Actions */}
-            {!assistanceRequested ? (
+            {/* Actions：确认已付 → 打钩反馈 → 移入 Completed */}
+            {bill.status === 'paid' ? (
+                <div className="mb-6 py-3 px-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-center gap-2 animate-in zoom-in-95 duration-300">
+                    <Check size={20} className="text-emerald-600" strokeWidth={3} aria-hidden="true" />
+                    <span className="text-emerald-800 font-bold text-sm">Payment approved</span>
+                </div>
+            ) : !assistanceRequested ? (
                 <div className="grid grid-cols-2 gap-3 mb-6">
                     <button
+                        type="button"
                         onClick={handleApprove}
                         className="bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-sm hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transform"
-                        aria-label={`Approve payment of $${bill.amount}`}
+                        aria-label={`Confirm paid for $${bill.amount}`}
                     >
-                        <Check size={18} strokeWidth={3} /> Approve
+                        <Check size={18} strokeWidth={3} /> Confirm paid
                     </button>
 
                     {primaryCaregiver ? (
                         <button
+                            type="button"
                             onClick={() => handleHelpRequest(primaryCaregiver.id)}
                             className="bg-gray-900 text-white font-bold py-3.5 rounded-xl text-sm hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-lg shadow-gray-200 active:scale-95 transform"
                             aria-label={`Ask ${primaryCaregiver.name} for help`}
@@ -231,6 +267,7 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                         </button>
                     ) : (
                         <button
+                            type="button"
                             onClick={() => setShowHelpSelector(!showHelpSelector)}
                             aria-expanded={showHelpSelector}
                             aria-controls={`help-selector-${bill.id}`}
@@ -270,6 +307,7 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
             {/* History Section */}
             <div className="border-t border-gray-100 pt-4">
                 <button
+                    type="button"
                     onClick={() => setShowHistory(!showHistory)}
                     aria-expanded={showHistory}
                     aria-controls={`history-list-${bill.id}`}

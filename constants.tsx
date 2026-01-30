@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Contact, Task, Bill, SecurityEvent, CommerceItem, RideSession } from './types';
+import { Contact, Task, Bill, SecurityEvent, CommerceItem, RideSession, Medication } from './types';
 
 // Icons tailored to the "Clean Green" aesthetic
 
@@ -58,6 +58,16 @@ export const Icons = {
   ChevronDown: (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <polyline points="6 9 12 15 18 9" />
+    </svg>
+  ),
+  ChevronRight: (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  ),
+  MoreHorizontal: (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" />
     </svg>
   ),
   Check: (props: React.SVGProps<SVGSVGElement>) => (
@@ -301,6 +311,13 @@ export const Icons = {
       <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   ),
+  Car: (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18.7 5c-.3-.8-1-1.3-1.9-1.3h-3.8c-.9 0-1.6.5-1.9 1.3l-1.5 4.6c-.2.1-.4.2-.6.2H4c-1.1 0-2 .9-2 2v3c0 .6.4 1 1 1h2" />
+      <circle cx="7" cy="17" r="2" />
+      <circle cx="17" cy="17" r="2" />
+    </svg>
+  ),
 };
 
 export const Logos = {
@@ -411,6 +428,22 @@ export const MOCK_BILLS: Bill[] = [
     history: [
       { id: 'p3', date: 'Sep 01', amount: 115.00, status: 'paid' }
     ]
+  },
+  {
+    id: 'b3',
+    title: 'State Income Tax',
+    amount: 420.00,
+    dueDate: 'Apr 15',
+    status: 'unpaid',
+    category: 'tax',
+    taxYear: '2024',
+    formType: '1040',
+    aiAnalysis: 'Estimated balance due based on your reported income. Consider quarterly estimated payments next year to avoid a large lump sum.',
+    assistanceStatus: 'none',
+    history: [
+      { id: 'p4', date: 'Apr 15, 2023', amount: 380.00, status: 'paid' },
+      { id: 'p5', date: 'Apr 15, 2022', amount: 395.00, status: 'paid' }
+    ]
   }
 ];
 
@@ -473,3 +506,88 @@ export const MOCK_RIDE: RideSession | null = {
   eta: '4 min',
   mapImage: 'https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=600&q=80'
 };
+
+// Get current time + 2 minutes (for testing reminders)
+const getTimePlus2Minutes = (): string => {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + 2);
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+};
+
+export const MOCK_MEDICATIONS: Medication[] = (() => {
+  const testTime = getTimePlus2Minutes(); // Current time + 2 minutes for testing reminders
+  const today = new Date().toISOString().split('T')[0];
+  const now = new Date().toISOString();
+
+  // Calculate expiry dates for testing
+  const getDateString = (daysOffset: number): string => {
+    const date = new Date();
+    date.setDate(date.getDate() + daysOffset);
+    return date.toISOString().split('T')[0];
+  };
+
+  return [
+    {
+      id: 'm1',
+      name: 'Aspirin',
+      dosage: '100mg',
+      frequency: 'Once daily',
+      times: ['08:00'],
+      instructions: 'Take with water after meals',
+      startDate: today,
+      expiryDate: getDateString(-3), // 已过期 3 天 — 用于测试药物过期 UI
+      source: 'prescription',
+      createdAt: now,
+      status: 'active'
+    },
+    {
+      id: 'm2',
+      name: 'Enalapril (Blood Pressure)',
+      dosage: '10mg',
+      frequency: 'Twice daily',
+      times: ['08:00', '20:00'],
+      instructions: 'Take 30 minutes before meals',
+      startDate: today,
+      expiryDate: getDateString(5), // Expires in 5 days (expiring soon)
+      source: 'prescription',
+      createdAt: now,
+      status: 'active'
+    },
+    {
+      id: 'm3',
+      name: 'Vitamin D',
+      dosage: '1 capsule',
+      frequency: 'Once daily',
+      times: [testTime], // Current time + 2 minutes — 用于验证用药提醒逻辑
+      instructions: 'Take with meals',
+      startDate: today,
+      expiryDate: getDateString(30), // 未过期，便于测试提醒
+      source: 'discharge_summary',
+      createdAt: now,
+      status: 'active'
+    },
+    {
+      id: 'm4',
+      name: 'Calcium',
+      dosage: '500mg',
+      frequency: 'Three times daily',
+      times: ['08:00', '14:00', '20:00'],
+      instructions: 'Take after meals',
+      startDate: today,
+      expiryDate: getDateString(60), // Expires in 60 days
+      source: 'prescription',
+      createdAt: now,
+      status: 'active'
+    }
+  ];
+})();
+export const MOCK_ACTIVITIES = [
+  { id: '1', type: 'scam', title: 'Scam Call Blocked', subtitle: 'Guardian AI • 2:30 PM', detail: 'Blocked 555-0123 (Known Robocall).', time: '2:30 PM', actionLabel: 'View Block List' },
+  { id: '2', type: 'health', title: 'Medication Reminder', subtitle: 'Take Lisinopril • Due Now', detail: 'Take 10mg with food.', time: 'Now', actionLabel: 'Mark Taken' },
+  { id: '3', type: 'order', title: 'Pharmacy Order', subtitle: 'Procurer AI • Arriving Tomorrow', detail: 'Vitamin D shipped via UPS.', time: 'Yesterday', actionLabel: 'Track Package' },
+  { id: '4', type: 'health', title: 'Hydration Check', subtitle: 'Daily Goal • 10:00 AM', detail: 'Drink a glass of water.', time: '10:00 AM', actionLabel: 'Log Water' },
+  { id: '5', type: 'scam', title: 'Suspicious Text', subtitle: 'Guardian AI • Yesterday', detail: 'Flagged "IRS Refund" link.', time: 'Yesterday', actionLabel: 'View Details' },
+  { id: '6', type: 'order', title: 'Grocery Delivery', subtitle: 'Whole Foods • Delivered', detail: 'Left at front door.', time: '2 days ago', actionLabel: 'Rate Driver' }
+];

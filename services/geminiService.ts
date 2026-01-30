@@ -13,7 +13,7 @@ const getClient = (): GoogleGenAI => {
 
 // --- TYPE DEFINITIONS ---
 
-export type AnalysisType = 'DOCUMENT' | 'PRODUCT' | 'SCAM' | 'GENERAL' | 'APPLIANCE' | 'FOOD' | 'TOOL' | 'QR_CODE' | 'UNKNOWN';
+export type AnalysisType = 'DOCUMENT' | 'PRODUCT' | 'SCAM' | 'GENERAL' | 'APPLIANCE' | 'FOOD' | 'TOOL' | 'QR_CODE' | 'PRESCRIPTION' | 'DISCHARGE_SUMMARY' | 'UNKNOWN';
 export type RiskLevel = 'SAFE' | 'CAUTION' | 'DANGER';
 
 export interface ScanResult {
@@ -49,6 +49,15 @@ export interface ScanResult {
     };
     // For QR
     qrData?: string;
+    // For Prescription/Discharge Summary
+    medications?: {
+        name: string;
+        dosage: string;
+        frequency: string;
+        times: string[];
+        instructions?: string;
+        duration?: string;
+    }[];
 }
 
 export interface TaskSuggestion {
@@ -154,8 +163,10 @@ export const analyzeVisualContext = async (base64Image: string): Promise<ScanRes
         
         // 1. Classification
         const classificationPrompt = `
-            Classify image for seniors: DOCUMENT, PRODUCT, SCAM, APPLIANCE, FOOD, TOOL, QR_CODE, GENERAL.
+            Classify image for seniors: PRESCRIPTION, DISCHARGE_SUMMARY, DOCUMENT, PRODUCT, SCAM, APPLIANCE, FOOD, TOOL, QR_CODE, GENERAL.
             Return ONLY category name.
+            - PRESCRIPTION: prescription forms, medication lists from pharmacy
+            - DISCHARGE_SUMMARY: hospital discharge papers with medications
         `;
 
         const classifier = await ai.models.generateContent({
@@ -172,6 +183,9 @@ export const analyzeVisualContext = async (base64Image: string): Promise<ScanRes
         console.log("Detected Category:", category);
 
         // 2. Route to Agent
+        if (category.includes('PRESCRIPTION') || category.includes('DISCHARGE')) {
+            return await runPrescriptionReader(base64Image);
+        }
         if (category.includes('DOCUMENT')) return await runBureaucracyFighter(base64Image);
         if (category.includes('PRODUCT')) return await runLogisticsManager(base64Image);
         if (category.includes('SCAM')) return await runInvisibleGuardian(base64Image);
@@ -293,4 +307,120 @@ const runInvisibleGuardian = async (image: string): Promise<ScanResult> => {
         details: data.details,
         actionAdvice: data.actionAdvice
     };
+};
+
+// 💊 Prescription/Discharge Summary Reader
+const runPrescriptionReader = async (image: string): Promise<ScanResult> => {
+    const ai = getClient();
+    
+    const prompt = `
+        Analyze this prescription or discharge summary image. Extract all medication information.
+        
+        For each medication, extract:
+        - name: medication name (e.g., "Lisinopril", "Aspirin")
+        - dosage: dose amount (e.g., "10mg", "1 tablet", "5ml")
+        - frequency: how often (e.g., "每日3次", "twice daily", "每8小时一次")
+        - times: specific times in 24-hour format array (e.g., ["08:00", "14:00", "20:00"])
+        - instructions: special instructions (e.g., "饭后服用", "with food", "随水服用")
+        - duration: how long to take (e.g., "7 days", "until finished")
+        
+        Return JSON format:
+        {
+            "title": "处方单" or "出院小结",
+            "summary": "Brief description",
+            "medications": [
+                {
+                    "name": "string",
+                    "dosage": "string",
+                    "frequency": "string",
+                    "times": ["HH:MM", ...],
+                    "instructions": "string (optional)",
+                    "duration": "string (optional)"
+                }
+            ]
+        }
+        
+        If times are not explicitly stated, infer from frequency:
+        - "每日3次" or "three times daily" -> ["08:00", "14:00", "20:00"]
+        - "每日2次" or "twice daily" -> ["08:00", "20:00"]
+        - "每日1次" or "once daily" -> ["08:00"]
+        - "每8小时一次" or "every 8 hours" -> ["08:00", "16:00", "00:00"]
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: {
+                parts: [
+                    { inlineData: { mimeType: 'image/jpeg', data: image } },
+                    { text: prompt }
+                ]
+            },
+            config: { 
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        title: { type: Type.STRING },
+                        summary: { type: Type.STRING },
+                        medications: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    name: { type: Type.STRING },
+                                    dosage: { type: Type.STRING },
+                                    frequency: { type: Type.STRING },
+                                    times: {
+                                        type: Type.ARRAY,
+                                        items: { type: Type.STRING }
+                                    },
+                                    instructions: { type: Type.STRING, nullable: true },
+                                    duration: { type: Type.STRING, nullable: true }
+                                },
+                                required: ['name', 'dosage', 'frequency', 'times']
+                            }
+                        }
+                    },
+                    required: ['title', 'summary', 'medications']
+                }
+            }
+        });
+
+        const data = JSON.parse(response.text || '{}');
+        
+        // Determine if it's prescription or discharge summary
+        const isDischarge = data.title?.includes('出院') || data.title?.includes('discharge') || 
+                           data.summary?.includes('出院') || data.summary?.includes('discharge');
+        
+        return {
+            type: isDischarge ? 'DISCHARGE_SUMMARY' : 'PRESCRIPTION',
+            title: data.title || '处方单',
+            summary: data.summary || `已识别到 ${data.medications?.length || 0} 种药物`,
+            medications: data.medications || []
+        };
+    } catch (error) {
+        console.error("Prescription parsing error:", error);
+        return {
+            type: 'PRESCRIPTION',
+            title: '处方单识别',
+            summary: '无法解析处方单，请确保图片清晰且包含完整的用药信息。',
+            medications: []
+        };
+    }
+};
+
+// --- Family Member Care Advice ---
+export const getCareAdvice = async (memberName: string, weather: string, temp: number): Promise<string> => {
+    try {
+        const ai = getClient();
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: `My family member ${memberName} is currently in ${weather} conditions with a temperature of ${temp}°C. Give me a short, warm, and practical piece of advice (max 2 sentences) on how I can care for them remotely.`,
+        });
+        return response.text || "Sending warm thoughts your way.";
+    } catch (error) {
+        console.error("Gemini advice error:", error);
+        return "Take care and stay safe!";
+    }
 };
