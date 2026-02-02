@@ -4,6 +4,12 @@ import { Icons } from '../constants';
 import AuraSlider from '../components/AuraSlider';
 import AuraToggle from '../components/AuraToggle'; // Component 2
 import SectionTitle from '../components/SectionTitle'; // Component 2 (Title 1)
+import { auth } from '../services/firebase';
+import { signOut } from 'firebase/auth';
+import { AppMode } from '../types';
+import { useAuthStore } from '../stores/useAuthStore';
+import { getPathForMode } from '@/routes';
+import { useNavigate } from 'react-router-dom';
 
 interface ProfileViewProps {
   onBack: () => void;
@@ -14,6 +20,9 @@ interface ProfileViewProps {
 type SubView = 'MAIN' | 'VOICE' | 'VISION' | 'PERSONAL_INFO';
 
 const ProfileView: React.FC<ProfileViewProps> = ({ onBack, onOpenGuide, onSubscriptionClick }) => {
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
+
   const [currentView, setCurrentView] = useState<SubView>('MAIN');
   const [showCacheConfirm, setShowCacheConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -77,6 +86,21 @@ const ProfileView: React.FC<ProfileViewProps> = ({ onBack, onOpenGuide, onSubscr
   const handleSaveProfile = () => {
     // In a real app, this would save to backend/local storage
     setCurrentView('MAIN');
+  };
+
+  const handleLogout = async () => {
+    try {
+      // Sign out from Firebase
+      await signOut(auth);
+
+      // Update global state (Store handles localStorage clearing)
+      logout();
+
+      // Navigate to login page
+      navigate(getPathForMode(AppMode.LOGIN));
+    } catch (error) {
+      console.error('Failed to logout:', error);
+    }
   };
 
   // --- SUB-VIEWS ---
@@ -358,26 +382,26 @@ const ProfileView: React.FC<ProfileViewProps> = ({ onBack, onOpenGuide, onSubscr
       {/* Main Scrollable Content */}
       <div className="flex-1 overflow-y-auto px-6 py-8 pb-32">
 
-      {/* Upgrade Card - ADDED */}
-      <div className="mb-8">
-        <div 
-           onClick={onSubscriptionClick}
-           className="bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] rounded-3xl p-6 shadow-lg shadow-indigo-200 cursor-pointer active:scale-95 transition-transform relative overflow-hidden group"
-        >
+        {/* Upgrade Card - ADDED */}
+        <div className="mb-8">
+          <div
+            onClick={onSubscriptionClick}
+            className="bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] rounded-3xl p-6 shadow-lg shadow-indigo-200 cursor-pointer active:scale-95 transition-transform relative overflow-hidden group"
+          >
             <div className="relative z-10 flex items-center justify-between">
-                <div>
-                   <h3 className="text-white text-2xl font-bold font-heading mb-1">Upgrade to Plus</h3>
-                   <p className="text-indigo-100 text-sm font-medium">Unlock unlimited voice & memories</p>
-                </div>
-                <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm group-hover:bg-white/30 transition-colors">
-                    <Icons.Sparkles className="w-6 h-6 text-yellow-300" />
-                </div>
+              <div>
+                <h3 className="text-white text-2xl font-bold font-heading mb-1">Upgrade to Plus</h3>
+                <p className="text-indigo-100 text-sm font-medium">Unlock unlimited voice & memories</p>
+              </div>
+              <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm group-hover:bg-white/30 transition-colors">
+                <Icons.Sparkles className="w-6 h-6 text-yellow-300" />
+              </div>
             </div>
-             {/* Decorative circles */}
-             <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+            {/* Decorative circles */}
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+          </div>
         </div>
-      </div>
 
 
         {/* App Preferences */}
@@ -525,7 +549,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({ onBack, onOpenGuide, onSubscr
 
         <div className="text-center mt-8">
           <p className="text-xs text-gray-400 mb-2">Version 1.0.0</p>
-          <button className="text-[#EF4444] font-bold text-sm">Log Out</button>
+          <button
+            onClick={handleLogout}
+            className="text-[#EF4444] font-bold text-sm">Log Out</button>
         </div>
 
       </div> {/* End Scrollable Content */}
