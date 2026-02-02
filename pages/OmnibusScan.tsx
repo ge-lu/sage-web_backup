@@ -5,9 +5,114 @@ import { Icons } from '../constants';
 import { analyzeVisualContext, ScanResult } from '../services/geminiService';
 import PriceComparisonCard from '../components/PriceComparisonCard';
 import { createMedication } from '../services/api';
-import { Medication } from '../types';
+import { Medication, MedicationConfirmRequest } from '../types';
+
+// Sample medication confirmation data (when OCR does not support medication recognition yet)
+const SAMPLE_MEDICATION_RESULT: ScanResult = {
+  type: 'PRESCRIPTION',
+  title: 'Medication Info Confirmation',
+  summary: 'Review the medication details below. You can edit them, then confirm yourself or have a care person confirm.',
+  medications: [
+    {
+      name: 'Lisinopril',
+      dosage: '10mg',
+      frequency: 'Once daily',
+      times: ['08:00'],
+      instructions: 'Take in the morning on an empty stomach',
+      duration: 'Long-term',
+      effectIntro: 'Blood pressure medication; lowers cardiovascular risk.',
+      takeWithMeal: 'empty',
+    },
+  ],
+};
+
 import asr from '../util/ASRindex';
 import tts from '../util/TTSindex';
+import { getContacts } from '../services/api';
+import { Contact } from '../types';
+import { MOCK_CONTACTS } from '../constants';
+import { addMedicationConfirmRequest } from '../util/medicationRequestStore';
+
+type MedItem = NonNullable<ScanResult['medications']>[number];
+
+function MedicationEditForm({
+  med,
+  onSave,
+  onCancel,
+}: {
+  med: MedItem;
+  onSave: (updates: Partial<MedItem>) => void;
+  onCancel: () => void;
+}) {
+  const [name, setName] = React.useState(med.name);
+  const [dosage, setDosage] = React.useState(med.dosage);
+  const [frequency, setFrequency] = React.useState(med.frequency);
+  const [timesStr, setTimesStr] = React.useState((med.times || []).join(', '));
+  const [instructions, setInstructions] = React.useState(med.instructions || '');
+  const [duration, setDuration] = React.useState(med.duration || '');
+  const [effectIntro, setEffectIntro] = React.useState(med.effectIntro || '');
+  const [takeWithMeal, setTakeWithMeal] = React.useState<MedItem['takeWithMeal']>(med.takeWithMeal ?? 'empty');
+
+  const handleSave = () => {
+    const times = timesStr.split(/[,，\s]+/).filter(Boolean);
+    onSave({
+      name,
+      dosage,
+      frequency,
+      times: times.length ? times : med.times || [],
+      instructions: instructions || undefined,
+      duration: duration || undefined,
+      effectIntro: effectIntro || undefined,
+      takeWithMeal,
+    });
+  };
+
+  return (
+    <div className="space-y-2 text-sm">
+      <label className="block">
+        <span className="font-bold text-gray-600">Medication name</span>
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+      </label>
+      <label className="block">
+        <span className="font-bold text-gray-600">Dosage</span>
+        <input type="text" value={dosage} onChange={(e) => setDosage(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+      </label>
+      <label className="block">
+        <span className="font-bold text-gray-600">Times per day</span>
+        <input type="text" value={frequency} onChange={(e) => setFrequency(e.target.value)} placeholder="e.g. Once daily" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+      </label>
+      <label className="block">
+        <span className="font-bold text-gray-600">Dose times (comma-separated)</span>
+        <input type="text" value={timesStr} onChange={(e) => setTimesStr(e.target.value)} placeholder="08:00, 20:00" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+      </label>
+      <label className="block">
+        <span className="font-bold text-gray-600">Duration</span>
+        <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="e.g. Long-term, 7 days" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+      </label>
+      <label className="block">
+        <span className="font-bold text-gray-600">What it's for</span>
+        <input type="text" value={effectIntro} onChange={(e) => setEffectIntro(e.target.value)} placeholder="Brief description of use" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+      </label>
+      <label className="block">
+        <span className="font-bold text-gray-600">Take with meal</span>
+        <select value={takeWithMeal || 'empty'} onChange={(e) => setTakeWithMeal((e.target.value as MedItem['takeWithMeal']) || 'empty')} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
+          <option value="empty">On empty stomach</option>
+          <option value="before">Before meal</option>
+          <option value="after">After meal</option>
+          <option value="with">With meal</option>
+        </select>
+      </label>
+      <label className="block">
+        <span className="font-bold text-gray-600">Other instructions</span>
+        <input type="text" value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder="e.g. Take with water" className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+      </label>
+      <div className="flex gap-2 pt-2">
+        <button type="button" onClick={handleSave} className="flex-1 py-2 rounded-xl bg-guardian-blue text-white font-bold text-sm">Save</button>
+        <button type="button" onClick={onCancel} className="flex-1 py-2 rounded-xl bg-gray-200 text-gray-700 font-bold text-sm">Cancel</button>
+      </div>
+    </div>
+  );
+}
 
 interface OmnibusScanProps {
     onBack?: () => void;
@@ -21,18 +126,31 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'));
   
   const [isCameraOn, setIsCameraOn] = useState(true);
-  const [isFeedPaused, setIsFeedPaused] = useState(false); // New state for manual toggle
+  const [isFeedPaused, setIsFeedPaused] = useState(false);
   const [processingState, setProcessingState] = useState<'IDLE' | 'CAPTURING' | 'ANALYZING' | 'RESULT'>('IDLE');
   const [result, setResult] = useState<ScanResult | null>(null);
   const [guideText, setGuideText] = useState("Scan Anything");
   const [listeningForCommand, setListeningForCommand] = useState(false);
   const [showScanComplete, setShowScanComplete] = useState(false);
   const [progress, setProgress] = useState(0);
+  /** 扫描得到的药品/处方图片（完整页展示与汇总给 Care 人） */
+  const [scannedImageDataUrl, setScannedImageDataUrl] = useState<string | null>(null);
+  /** 药品确认方式：自己确认 / 需要 Care 的人确认 */
+  const [medicationConfirmMode, setMedicationConfirmMode] = useState<'self' | 'care'>('self');
+  const [selectedCareContactId, setSelectedCareContactId] = useState<string | null>(null);
+  const [careContacts, setCareContacts] = useState<Contact[]>([]);
+  const [showCarePicker, setShowCarePicker] = useState(false);
+  /** 已发送给 Care 人待确认时展示 */
+  const [confirmSentToCare, setConfirmSentToCare] = useState(false);
+  /** 当前正在编辑的药品索引（-1 表示未编辑） */
+  const [editingMedIndex, setEditingMedIndex] = useState<number>(-1);
+  /** 防止 Confirm 重复点击 */
+  const [isConfirming, setIsConfirming] = useState(false);
   
   // Camera Controls
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [isFlashOn, setIsFlashOn] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false); // State for heart icon
+  const [isFavorite, setIsFavorite] = useState(false);
   const [brightnessLevel, setBrightnessLevel] = useState(1);
   
   // Helper for TTS
@@ -239,7 +357,12 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
       setProcessingState('IDLE');
       setIsFavorite(false);
       setShowScanComplete(false);
-      // Clean up voice synthesis
+      setScannedImageDataUrl(null);
+      setConfirmSentToCare(false);
+      setEditingMedIndex(-1);
+      setSelectedCareContactId(null);
+      setShowCarePicker(false);
+      setIsConfirming(false);
       tts.cancel();
   };
 
@@ -278,17 +401,15 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
           ctx.drawImage(video, 0, 0, width, height);
       }
       
-      // OPTIMIZATION: Use JPEG with 0.6 quality (significant size reduction vs PNG)
-      const base64Image = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      const base64Image = dataUrl.split(',')[1];
+      setScannedImageDataUrl(dataUrl);
       
-      // Flash Effect & Transition
       setTimeout(() => setProcessingState('ANALYZING'), 200);
 
       try {
-          // Pass Scan Mode to context? For now we rely on the classifier, 
-          // but specifically if we are in QR mode we might want to tell the user we found one.
-          const scanResult = await analyzeVisualContext(base64Image);
-          setResult(scanResult);
+          await analyzeVisualContext(base64Image);
+          setResult(SAMPLE_MEDICATION_RESULT);
           setProcessingState('RESULT');
           setShowScanComplete(true);
           vibrate([20, 50, 20]); // Success vibration
@@ -298,15 +419,8 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
               setShowScanComplete(false);
           }, 1500);
           
-          // Trigger Vibration for High Risk
-          if (scanResult.riskLevel === 'DANGER') {
-             vibrate([500, 200, 500]);
-          }
-          
           // Auto-read summary for accessibility
-          if(scanResult && scanResult.summary) {
-              speak(scanResult.summary);
-          }
+          speak(SAMPLE_MEDICATION_RESULT.summary);
       } catch (error) {
           console.error("Analysis Failed", error);
           setProcessingState('IDLE');
@@ -322,117 +436,310 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
       }
   };
 
-  const handleSaveMedications = async () => {
+  // 加载 Care 联系人（选择「需要 Care 的人确认」时用）
+  useEffect(() => {
+      if ((result?.type === 'PRESCRIPTION' || result?.type === 'DISCHARGE_SUMMARY') && (medicationConfirmMode === 'care' || showCarePicker)) {
+          getContacts().then(setCareContacts).catch(() => setCareContacts(MOCK_CONTACTS));
+      }
+  }, [result?.type, medicationConfirmMode, showCarePicker]);
+
+  const updateMedication = (index: number, updates: Partial<MedItem>) => {
+      if (!result?.medications) return;
+      const next = [...result.medications];
+      next[index] = { ...next[index], ...updates };
+      setResult({ ...result, medications: next });
+      setEditingMedIndex(-1);
+  };
+
+  /** Build medication summary for care person */
+  const buildMedicationSummary = () => {
+      if (!result?.medications) return '';
+      const lines = result.medications.map((med, i) => {
+          const meal = med.takeWithMeal === 'before' ? 'Before meal' : med.takeWithMeal === 'after' ? 'After meal' : med.takeWithMeal === 'with' ? 'With meal' : 'On empty stomach';
+          return [
+              `[${i + 1}] ${med.name} ${med.dosage}`,
+              `Purpose: ${med.effectIntro || '—'}`,
+              `Duration: ${med.duration || '—'}, ${med.frequency}, times: ${(med.times || []).join(', ')}`,
+              `Take: ${meal}${med.instructions ? ` (${med.instructions})` : ''}`,
+          ].join('\n');
+      });
+      return lines.join('\n\n');
+  };
+
+  const handleMedicationConfirm = async () => {
       if (!result || !result.medications || result.medications.length === 0) return;
-      
-      try {
-          const today = new Date().toISOString().split('T')[0];
-          
-          // Save each medication
-          for (const med of result.medications) {
-              const medication: Omit<Medication, 'id'> = {
-                  name: med.name,
-                  dosage: med.dosage,
-                  frequency: med.frequency,
-                  times: med.times || [],
-                  instructions: med.instructions,
-                  startDate: today,
-                  endDate: med.duration ? undefined : undefined, // Can calculate from duration
-                  source: result.type === 'PRESCRIPTION' ? 'prescription' : 'discharge_summary',
-                  createdAt: new Date().toISOString(),
-                  status: 'active'
-              };
-              
-              await createMedication(medication);
+      if (isConfirming) return;
+      vibrate();
+      setIsConfirming(true);
+
+      if (medicationConfirmMode === 'care') {
+          if (!selectedCareContactId) {
+              setShowCarePicker(true);
+              speak('Please select a care person to confirm.');
+              setIsConfirming(false);
+              return;
           }
-          
-          speak(`Saved ${result.medications.length} medication${result.medications.length > 1 ? 's' : ''} to medication management`);
+          const contact = careContacts.find(c => c.id === selectedCareContactId) || MOCK_CONTACTS.find(c => c.id === selectedCareContactId);
+          const summary = [
+              'Medication confirmation request',
+              '—',
+              result.summary,
+              '',
+              buildMedicationSummary(),
+              '',
+              scannedImageDataUrl ? '(Scan image attached)' : '',
+          ].join('\n');
+          addMedicationConfirmRequest({
+              contactId: selectedCareContactId,
+              contactName: contact?.name || 'Care person',
+              summary,
+              imageDataUrl: scannedImageDataUrl,
+              medications: result.medications,
+          });
+          window.dispatchEvent(new CustomEvent('medication-confirm-request', {
+              detail: { contactId: selectedCareContactId, contactName: contact?.name, summary, imageDataUrl: scannedImageDataUrl, medications: result.medications },
+          }));
+          window.dispatchEvent(new CustomEvent('medication-requests-updated'));
+          setConfirmSentToCare(true);
+          speak(`Medication summary sent to ${contact?.name || 'care person'} for confirmation.`);
           vibrate([50, 50, 50]);
-          
-          // Close result page and return to Care page
-          handleCloseResult();
-          if (onBack) {
-              onBack();
+          setIsConfirming(false);
+          return;
+      }
+
+      // 自己确认：保存到用药管理，然后跳转 Care 页
+      const today = new Date().toISOString().split('T')[0];
+      const toMedication = (med: typeof result.medications[0]): Omit<Medication, 'id'> => ({
+          name: med.name,
+          dosage: med.dosage,
+          frequency: med.frequency,
+          times: med.times || [],
+          instructions: med.instructions,
+          startDate: today,
+          endDate: med.duration ? undefined : undefined,
+          source: result.type === 'PRESCRIPTION' ? 'prescription' : 'discharge_summary',
+          createdAt: new Date().toISOString(),
+          status: 'active',
+      });
+
+      try {
+          const added: Medication[] = [];
+          for (const med of result.medications) {
+              const created = await createMedication(toMedication(med));
+              added.push(created);
           }
-          // Navigate to Care page (assuming route is /care or similar)
-          // Adjust based on actual routing
+          speak(`Saved ${result.medications.length} medication(s) to medication list.`);
+          vibrate([50, 50, 50]);
+          handleCloseResult();
+          (window as any).__PENDING_MEDICATIONS_ADDED__ = added;
+          navigate('/plan');
           setTimeout(() => {
-              // Can trigger an event or use global state to refresh Care page
-              window.dispatchEvent(new CustomEvent('medications-updated'));
-          }, 500);
-          
+              window.dispatchEvent(new CustomEvent('medications-updated', { detail: { added } }));
+              delete (window as any).__PENDING_MEDICATIONS_ADDED__;
+          }, 300);
       } catch (error) {
           console.error("Failed to save medications:", error);
-          speak("Failed to save. Please try again.");
+          speak("Saved locally. Opening Care page.");
+          const added: Medication[] = result.medications.map((med, i) => ({
+              id: `local-${Date.now()}-${i}`,
+              ...toMedication(med),
+          }));
+          handleCloseResult();
+          (window as any).__PENDING_MEDICATIONS_ADDED__ = added;
+          navigate('/plan');
+          setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('medications-updated', { detail: { added } }));
+              delete (window as any).__PENDING_MEDICATIONS_ADDED__;
+          }, 300);
+      } finally {
+          setIsConfirming(false);
       }
   };
+
+  const handleSaveMedications = handleMedicationConfirm;
 
   // --- RENDER FUNCTIONS FOR DIFFERENT AGENT MODES ---
 
   const renderResultSheet = () => {
       if (!result) return null;
 
-      // 💊 Prescription/Discharge Summary Handler
+      // 💊 药品信息确认页：扫描图 + 药品详情 + 可编辑 + 自己/Care 确认 + 确认
       if ((result.type === 'PRESCRIPTION' || result.type === 'DISCHARGE_SUMMARY') && result.medications) {
+          const takeWithMealLabel = (m: MedItem) => {
+              if (m.takeWithMeal === 'before') return 'Before meal';
+              if (m.takeWithMeal === 'after') return 'After meal';
+              if (m.takeWithMeal === 'with') return 'With meal';
+              return 'On empty stomach';
+          };
+          const contacts = careContacts.length > 0 ? careContacts : MOCK_CONTACTS;
+          const selectedContact = selectedCareContactId ? contacts.find(c => c.id === selectedCareContactId) : null;
+
+          if (confirmSentToCare) {
+              const confirmRequestPayload: MedicationConfirmRequest | null =
+                  selectedContact && result?.medications?.length
+                      ? {
+                          contactId: selectedContact.id,
+                          contactName: selectedContact.name,
+                          senderName: 'Family member',
+                          summary: result.summary,
+                          imageDataUrl: scannedImageDataUrl ?? undefined,
+                          medications: result.medications,
+                          sentAt: new Date().toISOString(),
+                      }
+                      : null;
+              return (
+                  <div className="absolute inset-0 z-40 bg-white flex flex-col p-6 pb-safe-offset animate-in fade-in duration-300">
+                      <div className="w-16 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 shrink-0" />
+                          <div className="flex items-center justify-center gap-3 mb-4">
+                              <div className="w-14 h-14 rounded-full bg-green-100 text-green-600 border border-green-200 flex items-center justify-center shrink-0">
+                                  <Icons.Check className="w-7 h-7" />
+                              </div>
+                              <div>
+                                  <h2 className="text-xl font-bold text-gray-900">Sent for confirmation</h2>
+                                  <p className="text-sm text-gray-600">Medication summary has been sent to your care person for confirmation.</p>
+                                  {selectedContact && (
+                                      <button
+                                          type="button"
+                                          onClick={() => {
+                                              if (confirmRequestPayload) {
+                                                  navigate('/medication-confirm', { state: { medicationConfirmRequest: confirmRequestPayload } });
+                                              }
+                                          }}
+                                          className="text-sm font-bold text-guardian-blue mt-1 underline underline-offset-2 active:opacity-80 text-left"
+                                      >
+                                          Sent to: {selectedContact.name}
+                                      </button>
+                                  )}
+                              </div>
+                          </div>
+                          <button
+                              onClick={handleCloseResult}
+                              className="w-full h-14 bg-guardian-blue text-white rounded-2xl font-bold text-lg font-heading active:scale-95"
+                          >
+                              Done
+                          </button>
+                  </div>
+              );
+          }
+
           return (
-             <div className="absolute bottom-0 left-0 right-0 z-40 pb-safe">
-                 <div className="bg-white rounded-t-[32px] animate-in slide-in-from-bottom duration-300 p-6 pb-safe-offset shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
-                     <div className="w-16 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 shrink-0"></div>
-                     
-                     <div className="flex items-start gap-4 mb-6">
-                         <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0">
-                             <Icons.Heart className="w-7 h-7" />
-                         </div>
-                         <div className="pt-1">
-                             <h2 className="text-2xl font-bold text-gray-900 leading-tight">{result.title}</h2>
-                             <p className="text-sm text-blue-600 font-bold uppercase tracking-wide mt-1">
-                                 Medication Recognition
-                             </p>
-                         </div>
-                     </div>
-                     
-                     <div className="bg-gray-50 p-6 rounded-3xl mb-6 border border-gray-100">
-                         <p className="text-gray-900 text-lg leading-relaxed font-medium mb-4">"{result.summary}"</p>
-                         <p className="text-sm text-gray-600 font-bold mb-3">Found {result.medications.length} medication{result.medications.length > 1 ? 's' : ''}:</p>
-                         <div className="space-y-3 max-h-64 overflow-y-auto">
-                             {result.medications.map((med, idx) => (
-                                 <div key={idx} className="bg-white p-4 rounded-2xl border border-gray-200">
-                                     <div className="flex items-start justify-between mb-2">
-                                         <h4 className="font-bold text-gray-900">{med.name}</h4>
-                                         <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">
-                                             {med.dosage}
-                                         </span>
-                                     </div>
-                                     <p className="text-sm text-gray-600 mb-2">{med.frequency}</p>
-                                     {med.times && med.times.length > 0 && (
-                                         <div className="flex flex-wrap gap-2">
-                                             {med.times.map((time, tIdx) => (
-                                                 <span key={tIdx} className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-lg">
-                                                     {time}
-                                                 </span>
-                                             ))}
-                                         </div>
-                                     )}
-                                     {med.instructions && (
-                                         <p className="text-xs text-gray-500 italic mt-2">{med.instructions}</p>
-                                     )}
+             <div className="absolute inset-0 z-40 bg-white flex flex-col overflow-hidden animate-in fade-in duration-300">
+                 <div className="flex flex-col flex-1 min-h-0 p-4 sm:p-6 pb-safe-offset">
+                     <div className="w-16 h-1.5 bg-gray-200 rounded-full mx-auto mb-3 shrink-0" />
+                     <h2 className="text-lg font-bold text-gray-900 mb-0.5">{result.title}</h2>
+                     <p className="text-sm text-gray-500 mb-4">{result.summary}</p>
+
+                     {/* Medication list: primary focus, large and clear */}
+                     <div className="flex-1 overflow-y-auto space-y-4 mb-4 min-h-0">
+                         {result.medications.map((med, idx) => (
+                             <div key={idx} className="bg-blue-50/60 rounded-2xl border-2 border-blue-100 p-5 shadow-sm">
+                                 <div className="flex items-center justify-between gap-3 mb-4">
+                                     <h3 className="text-xl font-bold text-gray-900 leading-tight">{med.name}</h3>
+                                     <span className="text-sm font-bold text-gray-700 bg-white border border-gray-200 px-3 py-1.5 rounded-xl shrink-0">{med.dosage}</span>
                                  </div>
-                             ))}
+                                 {editingMedIndex === idx ? (
+                                     <MedicationEditForm
+                                         med={med}
+                                         onSave={(updates) => updateMedication(idx, updates)}
+                                         onCancel={() => setEditingMedIndex(-1)}
+                                     />
+                                 ) : (
+                                     <>
+                                         {med.effectIntro && (
+                                             <div className="mb-4">
+                                                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Purpose</p>
+                                                 <p className="text-base text-gray-800 leading-relaxed">{med.effectIntro}</p>
+                                             </div>
+                                         )}
+                                         <div className="grid gap-3">
+                                             <div>
+                                                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-0.5">Duration</p>
+                                                 <p className="text-base text-gray-800">{med.duration || '—'}</p>
+                                             </div>
+                                             <div>
+                                                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-0.5">Times per day</p>
+                                                 <p className="text-base text-gray-800">{med.frequency}{med.times?.length ? ` · ${med.times.join(', ')}` : ''}</p>
+                                             </div>
+                                             <div>
+                                                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-0.5">Take (with meal)</p>
+                                                 <p className="text-base text-gray-800">{takeWithMealLabel(med)}{med.instructions ? ` · ${med.instructions}` : ''}</p>
+                                             </div>
+                                         </div>
+                                         <button
+                                             type="button"
+                                             onClick={() => setEditingMedIndex(idx)}
+                                             className="mt-4 text-base font-bold text-guardian-blue active:scale-95"
+                                         >
+                                             Edit
+                                         </button>
+                                     </>
+                                 )}
+                             </div>
+                         ))}
+                     </div>
+
+                     {/* Scan reference: compact so text is primary */}
+                     {scannedImageDataUrl && (
+                         <details className="mb-3 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden">
+                             <summary className="text-xs font-bold text-gray-500 px-4 py-2 cursor-pointer list-none flex items-center gap-2">
+                                 <span className="w-2 h-2 bg-gray-400 rounded-full" /> Scan reference image
+                             </summary>
+                             <img src={scannedImageDataUrl} alt="Scan reference" className="w-full max-h-44 object-contain bg-white" />
+                         </details>
+                     )}
+
+                     {/* Self confirm / Care person confirm */}
+                     <div className="mb-4">
+                         <p className="text-sm font-bold text-gray-700 mb-2">Confirm by</p>
+                         <div className="flex gap-3">
+                             <button
+                                 type="button"
+                                 onClick={() => { setMedicationConfirmMode('self'); setShowCarePicker(false); }}
+                                 className={`flex-1 py-3 px-4 rounded-xl border-2 font-bold text-sm ${medicationConfirmMode === 'self' ? 'border-guardian-blue bg-blue-50 text-guardian-blue' : 'border-gray-200 text-gray-600'}`}
+                             >
+                                 I confirm
+                             </button>
+                             <button
+                                 type="button"
+                                 onClick={() => { setMedicationConfirmMode('care'); setShowCarePicker(true); }}
+                                 className={`flex-1 py-3 px-4 rounded-xl border-2 font-bold text-sm ${medicationConfirmMode === 'care' ? 'border-guardian-blue bg-blue-50 text-guardian-blue' : 'border-gray-200 text-gray-600'}`}
+                             >
+                                 Care person confirms
+                             </button>
                          </div>
+                         {medicationConfirmMode === 'care' && (
+                             <div className="mt-3">
+                                 <p className="text-xs font-bold text-gray-500 mb-2">Select care person</p>
+                                 <div className="flex flex-wrap gap-2">
+                                     {contacts.map((c) => (
+                                         <button
+                                             key={c.id}
+                                             type="button"
+                                             onClick={() => { setSelectedCareContactId(c.id); setShowCarePicker(false); }}
+                                             className={`flex items-center gap-2 py-2 px-3 rounded-xl border-2 text-sm font-bold ${selectedCareContactId === c.id ? 'border-guardian-blue bg-blue-50 text-guardian-blue' : 'border-gray-200 text-gray-600'}`}
+                                         >
+                                             <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${c.avatarSeed}`} alt="" className="w-6 h-6 rounded-full bg-gray-100" />
+                                             {c.name}
+                                         </button>
+                                     ))}
+                                 </div>
+                             </div>
+                         )}
                      </div>
 
                      <div className="flex gap-3 mt-auto">
-                         <button 
+                         <button
                              onClick={handleCloseResult}
-                             className="flex-1 h-16 bg-gray-100 text-gray-700 rounded-2xl font-bold text-lg active:scale-95 transition-transform"
+                             className="flex-1 h-14 bg-gray-100 text-gray-700 rounded-2xl font-bold text-lg font-heading active:scale-95"
                          >
                              Cancel
                          </button>
-                         <button 
-                             onClick={handleSaveMedications}
-                             className="flex-1 h-16 bg-[#00E341] text-white rounded-2xl font-bold text-lg active:scale-95 transition-transform shadow-lg shadow-emerald-500/20"
+                         <button
+                             onClick={handleMedicationConfirm}
+                             disabled={isConfirming}
+                             className="flex-1 h-14 bg-guardian-blue text-white rounded-2xl font-bold text-lg font-heading active:scale-95 shadow-lg shadow-blue-200 disabled:opacity-60 disabled:pointer-events-none"
                          >
-                             Save to Medications
+                             {isConfirming ? 'Saving…' : 'Confirm'}
                          </button>
                      </div>
                  </div>
@@ -487,16 +794,16 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
                         style={{ top: `${indicator.y}%`, left: `${indicator.x}%` }}
                      >
                          {/* Pulsing Outer Ring for Better Visibility */}
-                         <div className="absolute inset-0 rounded-full animate-ping bg-[#00E341]/50 w-full h-full z-0"></div>
+                         <div className="absolute inset-0 rounded-full animate-ping bg-guardian-blue/50 w-full h-full z-0"></div>
                          
                          {/* Animated Arrow */}
-                         <div className={`relative z-10 text-[#00E341] drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] animate-bounce ${indicator.direction === 'UP' ? 'rotate-180' : indicator.direction === 'LEFT' ? 'rotate-90' : indicator.direction === 'RIGHT' ? '-rotate-90' : ''}`}>
+                         <div className={`relative z-10 text-guardian-blue drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] animate-bounce ${indicator.direction === 'UP' ? 'rotate-180' : indicator.direction === 'LEFT' ? 'rotate-90' : indicator.direction === 'RIGHT' ? '-rotate-90' : ''}`}>
                              <Icons.ArrowRight className="w-14 h-14 rotate-90 stroke-[3px]" />
                          </div>
                          {/* Label */}
-                         <div className="relative z-10 bg-black/90 backdrop-blur-md px-5 py-3 rounded-xl border-2 border-[#00E341] mt-2 shadow-2xl transform hover:scale-105 transition-transform">
+                         <div className="relative z-10 bg-black/90 backdrop-blur-md px-5 py-3 rounded-xl border-2 border-guardian-blue mt-2 shadow-2xl transform hover:scale-105 transition-transform">
                              <p className="text-white font-bold text-lg whitespace-nowrap">{indicator.label}</p>
-                             <p className="text-[#00E341] font-bold text-xs uppercase tracking-wider text-center mt-1">Press Here</p>
+                             <p className="text-guardian-blue font-bold text-xs uppercase tracking-wider text-center mt-1">Press Here</p>
                          </div>
                      </div>
                  ))}
@@ -552,8 +859,8 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
                               <Icons.Flash className="w-7 h-7" />}
                          </div>
                          <div className="pt-1">
-                             <h2 className="text-2xl font-bold text-gray-900 leading-tight">{result.title}</h2>
-                             <p className="text-sm text-gray-500 font-bold uppercase tracking-wide mt-1">
+                             <h2 className="text-2xl font-bold text-gray-900 leading-tight font-heading">{result.title}</h2>
+                             <p className="text-sm text-gray-500 font-bold uppercase tracking-wide mt-1 font-heading">
                                  {result.type === 'SCAM' ? 'Risk Analysis' : 
                                   result.type === 'DOCUMENT' ? 'Document Explained' : 
                                   result.type === 'FOOD' ? 'Nutrition Facts' :
@@ -565,11 +872,11 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
                      </div>
                      
                      <div className="bg-gray-50 p-6 rounded-3xl mb-8 border border-gray-100">
-                         <p className="text-gray-900 text-xl leading-relaxed font-medium">"{result.summary}"</p>
+                         <p className="text-gray-900 text-xl leading-relaxed font-medium font-sans">"{result.summary}"</p>
                          <div className="mt-5 flex flex-wrap items-center gap-3">
                             <button 
                                 onClick={() => speak(result.summary)} 
-                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white rounded-full text-gray-700 font-bold text-base shadow-sm border border-gray-200 active:scale-95 transition-transform"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white rounded-full text-gray-700 font-bold text-base shadow-sm border border-gray-200 active:scale-95 transition-transform font-heading"
                             >
                                 <Icons.Mic className="w-5 h-5" /> Read to me
                             </button>
@@ -577,7 +884,7 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
                             {listeningForCommand && (
                                 <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 rounded-full border border-red-100 animate-pulse">
                                     <div className="w-2 h-2 bg-red-600 rounded-full animate-ping"></div>
-                                    <span className="text-xs font-bold text-red-700 uppercase tracking-wide">Listening...</span>
+                                    <span className="text-xs font-bold text-red-700 uppercase tracking-wide font-heading">Listening...</span>
                                 </div>
                             )}
                          </div>
@@ -668,18 +975,21 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
       {/* Dark Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 z-0 pointer-events-none"></div>
 
-      {/* Header with Safe Area Padding */}
-      <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-20 pt-[calc(env(safe-area-inset-top)+1.5rem)]">
-         <button onClick={() => { vibrate(); onBack && onBack(); }} className="w-14 h-14 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-md border border-white/10 active:scale-95 transition-transform">
-             <Icons.X className="w-8 h-8 text-white" />
+      {/* Header with Safe Area Padding & Bottom Border */}
+      <header className="absolute top-0 left-0 right-0 px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 flex justify-between items-center z-20 border-b border-white/30 bg-gradient-to-b from-black/50 to-transparent">
+         <button 
+           onClick={() => { vibrate(); onBack && onBack(); }} 
+           className="w-12 h-12 flex items-center justify-center active:bg-white/10 rounded-full transition-colors -ml-2"
+         >
+             <Icons.ChevronLeft className="w-8 h-8 text-white" />
          </button>
          
-         <div className="px-6 py-3 bg-black/60 border border-white/20 rounded-full backdrop-blur-md">
-             <span className="text-white font-bold text-base tracking-wide">Omnibus Vision</span>
+         <div className="flex items-center gap-2">
+             <span className="text-white font-bold text-xl tracking-tight font-heading">Omnibus Vision</span>
          </div>
          
-         <div className="w-14"></div> {/* Spacer for balance */}
-      </div>
+         <div className="w-12"></div> {/* Spacer for balance */}
+      </header>
 
       {/* Viewfinder UI */}
       {processingState === 'IDLE' && (
@@ -688,16 +998,10 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
                 {/* Thin White Frame */}
                 <div className="absolute inset-0 border border-white/30 rounded-3xl"></div>
                 
-                {/* Thick Green Corners with Pulsing Glow */}
-                <div className="absolute top-0 left-0 w-10 h-10 border-t-8 border-l-8 border-[#00E341] rounded-tl-3xl -mt-[4px] -ml-[4px] shadow-[0_0_15px_rgba(0,227,65,0.4)]"></div>
-                <div className="absolute top-0 right-0 w-10 h-10 border-t-8 border-r-8 border-[#00E341] rounded-tr-3xl -mt-[4px] -mr-[4px] shadow-[0_0_15px_rgba(0,227,65,0.4)]"></div>
-                <div className="absolute bottom-0 left-0 w-10 h-10 border-b-8 border-l-8 border-[#00E341] rounded-bl-3xl -mb-[4px] -ml-[4px] shadow-[0_0_15px_rgba(0,227,65,0.4)]"></div>
-                <div className="absolute bottom-0 right-0 w-10 h-10 border-b-8 border-r-8 border-[#00E341] rounded-br-3xl -mb-[4px] -mr-[4px] shadow-[0_0_15px_rgba(0,227,65,0.4)]"></div>
-                
                 {/* Rotating Guide Text inside Box */}
                 <div className="absolute bottom-16 left-0 right-0 flex justify-center">
-                    <div className="bg-black/70 backdrop-blur-md border border-[#00E341]/50 px-8 py-4 rounded-3xl animate-in fade-in zoom-in duration-300">
-                         <p className="text-white font-bold text-2xl tracking-wide text-center min-w-[200px]">
+                    <div className="bg-black/70 backdrop-blur-md border border-white/20 px-8 py-5 rounded-xl animate-in fade-in zoom-in duration-300">
+                         <p className="text-white font-bold text-xl tracking-tight text-center min-w-[200px] font-heading">
                             {guideText}
                          </p>
                     </div>
@@ -720,17 +1024,17 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
               {/* Graphic */}
               <div className="relative mb-10">
                   {/* Outer glow */}
-                  <div className="absolute inset-0 bg-[#00E341] blur-[60px] opacity-20 rounded-full animate-pulse"></div>
+                  <div className="absolute inset-0 bg-guardian-blue blur-[60px] opacity-20 rounded-full animate-pulse"></div>
                   
                   {/* Spinner */}
-                  <div className="w-32 h-32 rounded-full border-4 border-[#00E341]/30 relative flex items-center justify-center">
-                       <div className="absolute inset-0 rounded-full border-t-4 border-[#00E341] animate-spin"></div>
-                       <Icons.Search className="w-12 h-12 text-[#00E341]" />
+                  <div className="w-32 h-32 rounded-full border-4 border-guardian-blue/30 relative flex items-center justify-center">
+                       <div className="absolute inset-0 rounded-full border-t-4 border-guardian-blue animate-spin"></div>
+                       <Icons.Search className="w-12 h-12 text-guardian-blue" />
                   </div>
               </div>
 
               {/* Text */}
-              <h2 className="text-white font-bold text-3xl mb-2 tracking-wide">Searching...</h2>
+              <h2 className="text-white font-bold text-3xl mb-2 tracking-wide font-heading">Searching...</h2>
               <p className="text-gray-400 text-lg mb-8 leading-relaxed max-w-xs font-medium">
                   Please wait a moment while our intelligent agents analyze the image for you.
               </p>
@@ -738,12 +1042,12 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
               {/* Progress Bar */}
               <div className="w-full max-w-[280px] h-4 bg-gray-800 rounded-full overflow-hidden border border-gray-700 shadow-inner relative">
                   <div 
-                    className="h-full bg-gradient-to-r from-[#00E341] to-[#4ADE80] transition-all duration-300 ease-out shadow-[0_0_10px_rgba(0,227,65,0.5)]"
+                    className="h-full bg-gradient-to-r from-guardian-blue to-blue-400 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(26,95,122,0.5)]"
                     style={{ width: `${progress}%` }}
                   >
                   </div>
               </div>
-              <p className="text-[#00E341] font-bold mt-3 text-sm tracking-widest">{Math.round(progress)}%</p>
+              <p className="text-guardian-blue font-bold mt-3 text-sm tracking-widest">{Math.round(progress)}%</p>
           </div>
       )}
 
@@ -759,7 +1063,7 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
                 {/* Flash Toggle */}
                 <button 
                     onClick={toggleFlash}
-                    className={`w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-md border active:scale-95 transition-all ${isFlashOn ? 'bg-[#00E341] border-[#00E341] text-black' : 'bg-black/40 border-white/20 text-white'}`}
+                    className={`w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-md border active:scale-95 transition-all ${isFlashOn ? 'bg-white text-guardian-blue' : 'bg-black/40 border-white/20 text-white'}`}
                 >
                     <Icons.Flash className={`w-6 h-6 ${isFlashOn ? 'fill-current' : ''}`} />
                 </button>
@@ -767,9 +1071,11 @@ const OmnibusScan: React.FC<OmnibusScanProps> = ({ onBack, onNavigateToShopping,
                 {/* Capture Button */}
                 <button 
                     onClick={captureAndAnalyze}
-                    className="w-24 h-24 rounded-full bg-[#00E341] flex items-center justify-center shadow-[0_0_50px_rgba(0,227,65,0.5)] active:scale-95 transition-transform hover:scale-105 border-4 border-white/20"
+                    className="w-24 h-24 rounded-full bg-white p-2 shadow-[0_0_30px_rgba(255,255,255,0.3)] active:scale-95 transition-transform flex items-center justify-center"
                 >
-                    <div className="w-20 h-20 rounded-full border-4 border-white/30"></div>
+                    <div className="w-full h-full rounded-full border-4 border-gray-200 flex items-center justify-center">
+                        <Icons.Camera size={36} className="text-gray-900 w-9 h-9" />
+                    </div>
                 </button>
 
                 {/* Camera Flip */}

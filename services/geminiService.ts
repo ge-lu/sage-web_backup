@@ -6,7 +6,11 @@ let client: GoogleGenAI | null = null;
 
 const getClient = (): GoogleGenAI => {
   if (!client) {
-    client = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+    if (!apiKey || apiKey.trim() === '') {
+      throw new Error('CRITICAL: API_KEY environment variable is not set or is empty. Please configure the API key in your .env file.');
+    }
+    client = new GoogleGenAI({ apiKey });
   }
   return client;
 };
@@ -57,6 +61,10 @@ export interface ScanResult {
         times: string[];
         instructions?: string;
         duration?: string;
+        /** 药品作用介绍 */
+        effectIntro?: string;
+        /** 饭前/饭后/随餐/空腹 */
+        takeWithMeal?: 'before' | 'after' | 'with' | 'empty';
     }[];
 }
 

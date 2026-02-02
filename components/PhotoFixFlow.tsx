@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Camera, Sparkles, X, Loader2, Save, Share2, Facebook, MessageCircle, Wand2, ArrowRight, ArrowDown, MessageSquare, ArrowLeft, Twitter, Music, Send, Check, Clock } from 'lucide-react';
+import { Camera, Sparkles, X, Save, Share2, MessageCircle, Wand2, ArrowLeft, Twitter, Send, Check, Clock, Instagram, MoreHorizontal, Users, Image as ImageIcon } from 'lucide-react';
+import { uploadImage } from '../services/storage';
+import { deleteRestoration, PhotoRestoration, restorePhoto } from '@/services/phoneApi';
 
-type FlowStep = 'scanning' | 'uploading' | 'submitted' | 'result' | 'sharing' | 'sending' | 'success';
+type FlowStep = 'scanning' | 'uploading' | 'submitted' | 'result' | 'sharing' | 'select-contacts' | 'sending' | 'success';
 
 const RESTORATION_MESSAGES = [
   "Uploading photo...",
@@ -10,11 +12,29 @@ const RESTORATION_MESSAGES = [
   "Queueing for AI...",
 ];
 
+const MOCK_CONTACTS = [
+  { name: 'Alex', img: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&auto=format&fit=crop&q=60' },
+  { name: 'Sarah', img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60' },
+  { name: 'Jordan', img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60' },
+  { name: 'Mike', img: 'https://images.unsplash.com/photo-1542596594-649edbc13630?w=100&auto=format&fit=crop&q=60' },
+  { name: 'Family', img: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=100&auto=format&fit=crop&q=60', group: true },
+  { name: 'Work', img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=100&auto=format&fit=crop&q=60', group: true },
+  { name: 'Design', img: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=100&auto=format&fit=crop&q=60', group: true },
+  { name: 'Grandma', img: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=60' },
+  { name: 'Book Club', img: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=100&auto=format&fit=crop&q=60', group: true },
+  { name: 'David', img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=60' },
+  { name: 'Emma', img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60' },
+  { name: 'High School', img: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=100&auto=format&fit=crop&q=60', group: true },
+  { name: 'Chris', img: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=60' },
+  { name: 'Lisa', img: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=100&auto=format&fit=crop&q=60' },
+  { name: 'Tom', img: 'https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=100&auto=format&fit=crop&q=60' },
+];
+
 interface PhotoFixFlowProps {
   onClose: () => void;
-  onSubmitCapture: (image: string) => void;
+  onSubmitCapture: (restoredImage: PhotoRestoration) => void;
   mode: 'capture' | 'view';
-  restoredImage?: string | null;
+  restoredImage?: PhotoRestoration;
   onReset?: () => void;
 }
 
@@ -23,14 +43,44 @@ const PhotoFixFlow: React.FC<PhotoFixFlowProps> = ({ onClose, onSubmitCapture, m
   const [sliderPos, setSliderPos] = useState(50);
   const [msgIndex, setMsgIndex] = useState(0);
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(restoredImage || null);
+  const [capturedImage, setCapturedImage] = useState<PhotoRestoration>(restoredImage || null);
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
   const [shareDestination, setShareDestination] = useState<string>('');
   const [actionType, setActionType] = useState<'share' | 'save'>('share');
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleGalleryClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setStep('uploading');
+      try {
+        const url = await uploadImage(file);
+        console.log("Upload successful", url);
+        const _restoredImage = await restorePhoto(url);
+        setCapturedImage(_restoredImage);
+        
+        // Determine orientation
+        const img = new Image();
+        img.onload = () => {
+          setOrientation(img.width > img.height ? 'landscape' : 'portrait');
+          setStep('submitted');
+        };
+        img.src = url;
+      } catch (error) {
+        console.error("Upload failed", error);
+        setStep('scanning');
+      }
+    }
+  };
 
   // Initialize camera when in scanning mode
   useEffect(() => {
@@ -64,7 +114,7 @@ const PhotoFixFlow: React.FC<PhotoFixFlowProps> = ({ onClose, onSubmitCapture, m
     }
   };
 
-  const handleCapture = () => {
+  const handleCapture = async () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -74,25 +124,47 @@ const PhotoFixFlow: React.FC<PhotoFixFlowProps> = ({ onClose, onSubmitCapture, m
       if (ctx) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const dataUrl = canvas.toDataURL('image/jpeg');
-        setCapturedImage(dataUrl);
         setOrientation(canvas.width > canvas.height ? 'landscape' : 'portrait');
         setStep('uploading');
+        try {
+          const url = await uploadImage(dataUrl);
+          // 调用修复老照片接口
+          const _restoredImage = await restorePhoto(url);
+          setCapturedImage(_restoredImage);
+          setStep('submitted');
+        } catch (error) {
+          console.error("Upload failed", error);
+          setStep('scanning');
+        }
       }
     } else {
       // Fallback if camera failed - default to portrait
-      setCapturedImage("https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1200&auto=format&fit=crop");
+      setCapturedImage(null);
       setOrientation('portrait');
-      setStep('uploading');
+      setStep('scanning');
     }
   };
 
-  const handleShare = (dest: string) => {
+  const toggleRecipient = (name: string) => {
+    if (navigator.vibrate) navigator.vibrate(10);
+    setSelectedRecipients(prev => 
+      prev.includes(name) 
+        ? prev.filter(n => n !== name)
+        : [...prev, name]
+    );
+  };
+
+  const handleMultiSend = () => {
+    if (selectedRecipients.length === 0) return;
     if (navigator.vibrate) navigator.vibrate(50);
     setActionType('share');
-    setShareDestination(dest);
+    setShareDestination(selectedRecipients.length > 1 
+      ? `${selectedRecipients.length} Recipients` 
+      : selectedRecipients[0]);
     setStep('sending');
     setTimeout(() => {
       setStep('success');
+      setSelectedRecipients([]);
     }, 2000);
   };
 
@@ -116,13 +188,16 @@ const PhotoFixFlow: React.FC<PhotoFixFlowProps> = ({ onClose, onSubmitCapture, m
         setMsgIndex(prev => (prev + 1) % RESTORATION_MESSAGES.length);
       }, 1000);
 
-      const finishTimer = setTimeout(() => {
-        setStep('submitted');
-      }, 3000);
-
-      return () => { clearInterval(msgTimer); clearTimeout(finishTimer); };
+      return () => { clearInterval(msgTimer); };
     }
   }, [step]);
+
+  const onDelete = async () => {
+    if (capturedImage?.id) {
+       await deleteRestoration(capturedImage.id);
+    }
+    onClose();
+  };
 
   const handleSliderMove = (e: React.MouseEvent | React.TouchEvent) => {
     if (!hasInteracted) setHasInteracted(true);
@@ -146,6 +221,13 @@ const PhotoFixFlow: React.FC<PhotoFixFlowProps> = ({ onClose, onSubmitCapture, m
 
       {/* Hidden canvas for capture */}
       <canvas ref={canvasRef} className="hidden" />
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        accept="image/*" 
+        className="hidden" 
+      />
 
       {/* 1. SCANNING VIEW */}
       {step === 'scanning' && (
@@ -183,14 +265,25 @@ const PhotoFixFlow: React.FC<PhotoFixFlowProps> = ({ onClose, onSubmitCapture, m
           </div>
 
           <div className="h-48 flex flex-col items-center justify-center bg-transparent pb-[env(safe-area-inset-bottom)]">
-            <button
-              onClick={handleCapture}
-              className="w-24 h-24 rounded-full bg-white p-2 shadow-[0_0_30px_rgba(255,255,255,0.3)] active:scale-90 transition-transform flex items-center justify-center"
-            >
-              <div className="w-full h-full rounded-full border-4 border-gray-200 flex items-center justify-center">
-                <Camera size={36} className="text-gray-900" />
-              </div>
-            </button>
+            <div className="flex items-center gap-8 px-8">
+              <button 
+                onClick={handleGalleryClick}
+                className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md flex items-center justify-center text-gray-500 transition-all shadow-lg border border-gray-200 active:scale-95"
+              >
+                <ImageIcon size={28} />
+              </button>
+
+              <button
+                onClick={handleCapture}
+                className="w-24 h-24 rounded-full bg-white p-2 shadow-[0_0_30px_rgba(255,255,255,0.3)] active:scale-90 transition-transform flex items-center justify-center"
+              >
+                <div className="w-full h-full rounded-full border-4 border-gray-200 flex items-center justify-center">
+                  <Camera size={36} className="text-gray-900" />
+                </div>
+              </button>
+              
+              <div className="w-16 h-16" /> {/* Spacer */}
+            </div>
             <p className="mt-4 text-gray-500 font-bold font-heading uppercase text-sm tracking-[0.3em]">Capture & Fix Memory</p>
           </div>
         </div>
@@ -264,7 +357,7 @@ const PhotoFixFlow: React.FC<PhotoFixFlowProps> = ({ onClose, onSubmitCapture, m
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{
-                backgroundImage: `url(${capturedImage || "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1200&auto=format&fit=crop"})`,
+                backgroundImage: `url(${capturedImage?.originalUrl || "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1200&auto=format&fit=crop"})`,
                 clipPath: orientation === 'landscape'
                   ? `inset(0 0 ${100 - sliderPos}% 0)` // Clips bottom, reveals top
                   : `inset(0 ${100 - sliderPos}% 0 0)` // Clips right, reveals left
@@ -281,7 +374,7 @@ const PhotoFixFlow: React.FC<PhotoFixFlowProps> = ({ onClose, onSubmitCapture, m
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{
-                backgroundImage: `url(${capturedImage || "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1200&auto=format&fit=crop"})`,
+                backgroundImage: `url(${capturedImage?.fixedUrl || "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1200&auto=format&fit=crop"})`,
                 filter: 'sepia(0.8) contrast(0.9) brightness(1.1) blur(1px) saturate(0.4)',
                 clipPath: orientation === 'landscape'
                   ? `inset(${sliderPos}% 0 0 0)` // Clips top, reveals bottom
@@ -332,112 +425,209 @@ const PhotoFixFlow: React.FC<PhotoFixFlowProps> = ({ onClose, onSubmitCapture, m
             </button>
           </div>
 
-          <button onClick={onClose} className="mt-4 text-gray-400 font-bold font-heading uppercase tracking-widest text-sm">Close</button>
+          <button onClick={onDelete} className="mt-4 text-gray-400 font-bold font-heading uppercase tracking-widest text-sm">delete</button>
         </div>
       )}
 
       {/* 4. SHARING VIEW */}
       {step === 'sharing' && (
-        <div className="absolute inset-0 bg-[#F5F7F9] flex flex-col overflow-hidden animate-in fade-in duration-300">
-          <div className="sticky top-0 z-50 bg-[#F5F7F9] px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-6 border-b border-gray-200 flex items-center justify-center relative">
-            <h2 className="text-2xl font-bold font-heading text-gray-900 tracking-tight leading-none">
-              Share The Joy
+        <div className="absolute inset-0 bg-white flex flex-col overflow-hidden animate-in fade-in duration-300 font-sans">
+          {/* Header */}
+          <div className="sticky top-0 z-50 bg-white px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-2 flex items-center justify-between">
+            <h2 className="text-2xl font-bold font-heading text-gray-900 tracking-tight">
+              Share with Friends
             </h2>
             <button
               onClick={() => setStep('result')}
-              className="absolute right-6 w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-500 active:bg-gray-50 border border-gray-200 shadow-sm"
+              className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
             >
-            <X size={24} strokeWidth={2.5} />
-          </button>
+              <X size={18} strokeWidth={2.5} />
+            </button>
           </div>
 
-          <div className="px-6 pt-4 pb-6">
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 flex items-center gap-4">
-              <div className="w-40 h-24 rounded-lg overflow-hidden bg-gray-50 shrink-0 shadow-sm flex relative border border-gray-100">
+          <div className="flex-1 overflow-y-auto no-scrollbar px-6 pb-6">
+            
+            {/* 1. Preview Card (Existing) */}
+            <div className="bg-white rounded-xl shadow-[0_2px_15px_rgba(0,0,0,0.05)] border border-gray-100 p-3 mb-8 flex items-center gap-4">
+               <div className="w-24 h-16 rounded-lg overflow-hidden bg-gray-50 shrink-0 shadow-sm flex relative border border-gray-100">
                 <div className="flex-1 relative overflow-hidden">
                   <img
-                    src={capturedImage || "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1200&auto=format&fit=crop"}
+                    src={capturedImage?.originalUrl || "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1200&auto=format&fit=crop"}
                     className="w-full h-full object-cover grayscale opacity-80"
                     style={{ filter: 'sepia(0.8) contrast(0.8) blur(0.5px)' }}
                   />
-                  <div className="absolute bottom-1 left-1 bg-black/40 px-2 py-0.5 rounded-md text-xs text-white font-bold font-heading uppercase tracking-tighter">Old</div>
+                  <div className="absolute bottom-0.5 left-0.5 bg-gray-500/80 px-1.5 py-0.5 rounded text-[10px] text-white font-bold font-heading uppercase tracking-tighter">Old</div>
                 </div>
-                <div className="w-0.5 h-full bg-white z-10" />
+                <div className="w-[1px] h-full bg-white z-10" />
                 <div className="flex-1 relative overflow-hidden">
                   <img
-                    src={capturedImage || "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1200&auto=format&fit=crop"}
+                    src={capturedImage?.fixedUrl || "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1200&auto=format&fit=crop"}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute bottom-1 right-1 bg-guardian-blue px-2 py-0.5 rounded-md text-xs text-white font-bold font-heading uppercase tracking-tighter shadow-sm">New</div>
+                  <div className="absolute bottom-0.5 right-0.5 bg-guardian-blue px-1.5 py-0.5 rounded text-[10px] text-white font-bold font-heading uppercase tracking-tighter shadow-sm">New</div>
                 </div>
               </div>
 
-              <div className="flex-1 flex flex-col justify-center overflow-hidden">
-                <span className="text-gray-400 font-bold font-heading uppercase tracking-[0.2em] text-sm mb-1 leading-none">PREVIEW</span>
-                <p className="text-[1.25rem] font-bold font-heading text-guardian-blue italic leading-tight line-clamp-2 tracking-tight">
+              <div className="flex-1 flex flex-col justify-center">
+                <span className="text-gray-400 font-bold font-heading uppercase tracking-[0.2em] text-[10px] mb-1">PREVIEW</span>
+                <p className="text-lg font-bold font-heading text-guardian-blue italic leading-tight line-clamp-2">
                   "My memory is alive again! ❤️"
                 </p>
               </div>
             </div>
-          </div>
 
-          <div className="text-center mb-4">
-            <p className="text-gray-400 font-bold font-heading uppercase tracking-[0.25em] text-sm">CHOOSE WHERE TO SEND:</p>
-          </div>
-
-          <div className="flex-1 px-6 pb-10 space-y-4 overflow-y-auto no-scrollbar">
-            <button
-              onClick={() => handleShare('IMESSAGE')}
-              className="w-full h-16 bg-[#F5F9FF] text-guardian-blue border border-blue-100 rounded-2xl flex items-center justify-center gap-3 px-6 shadow-sm active:scale-98 transition-all group"
-            >
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shrink-0 border border-blue-50 shadow-sm">
-                <MessageSquare size={16} className="text-[#34C759]" fill="#34C759" />
+            {/* 2. Friends Grid */}
+            <div className="mb-8">
+              <div className="grid grid-cols-4 gap-y-6 gap-x-2">
+                {[
+                  ...MOCK_CONTACTS.slice(0, 7),
+                  { name: 'MORE', icon: MoreHorizontal, more: true, img: '' },
+                ].map((friend: any, i) => {
+                  const isSelected = selectedRecipients.includes(friend.name);
+                  return (
+                    <button 
+                      key={i} 
+                      onClick={() => friend.more ? setStep('select-contacts') : toggleRecipient(friend.name)}
+                      className="flex flex-col items-center gap-2 group relative"
+                    >
+                      <div className={`w-14 h-14 rounded-full overflow-hidden relative shadow-sm group-active:scale-95 transition-all border 
+                        ${isSelected ? 'border-guardian-blue ring-2 ring-guardian-blue ring-offset-2' : 'border-gray-100'}`}
+                      >
+                        {friend.more ? (
+                          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                            <MoreHorizontal className="text-gray-400" />
+                          </div>
+                        ) : (
+                          <>
+                            <img src={friend.img} alt={friend.name} className={`w-full h-full object-cover transition-all ${isSelected ? 'brightness-75' : ''}`} />
+                            {isSelected && (
+                              <div className="absolute inset-0 flex items-center justify-center animate-in zoom-in duration-200">
+                                <Check size={24} className="text-white drop-shadow-md" strokeWidth={3} />
+                              </div>
+                            )}
+                            {friend.group && !isSelected && (
+                              <div className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-0.5 border-2 border-white">
+                                <Users size={8} className="text-white" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <span className={`text-sm font-medium ${friend.more ? 'text-gray-400 font-bold uppercase text-xs' : isSelected ? 'text-guardian-blue font-bold' : 'text-gray-600'}`}>
+                        {friend.name}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-              <span className="text-lg font-bold font-heading uppercase tracking-wide">IMESSAGE</span>
+            </div>
+
+            {/* 3. Send to Platform */}
+            <div className="mb-8">
+              <h3 className="text-lg font-bold text-gray-900 mb-6">Send to Platform</h3>
+              <div className="flex justify-between px-2">
+                 {[
+                   { name: 'WECHAT', icon: MessageCircle, color: '#07C160' }, // WeChat Green
+                   { name: 'INSTAGRAM', icon: Instagram, color: '#E1306C' }, // Instagram Pink
+                   { name: 'X', icon: Twitter, color: '#000000' }, // X Black
+                   { name: 'WHATSAPP', icon: Send, color: '#25D366' }, // Whatsapp Green
+                 ].map((platform, i) => {
+                   const isSelected = selectedRecipients.includes(platform.name);
+                   return (
+                     <button 
+                       key={i}
+                       onClick={() => toggleRecipient(platform.name)}
+                       className="flex flex-col items-center gap-2 group relative"
+                     >
+                       <div className={`w-12 h-12 rounded-full flex items-center justify-center border shadow-sm group-active:scale-95 transition-all
+                         ${isSelected ? 'border-guardian-blue ring-2 ring-guardian-blue ring-offset-2 bg-white' : 'border-gray-100'}`}
+                       >
+                          {isSelected ? (
+                            <div className="animate-in zoom-in duration-200">
+                              <Check size={20} className="text-guardian-blue" strokeWidth={3} />
+                            </div>
+                          ) : (
+                            <platform.icon size={24} color={platform.color} />
+                          )}
+                       </div>
+                       <span className={`text-[10px] font-bold uppercase tracking-wide ${isSelected ? 'text-guardian-blue' : 'text-gray-500'}`}>
+                         {platform.name}
+                       </span>
+                     </button>
+                   );
+                 })}
+              </div>
+            </div>
+            
+            {/* 4. Action Button (Cancel or Send) */}
+             <button
+              onClick={() => selectedRecipients.length > 0 ? handleMultiSend() : setStep('result')}
+              className={`w-full h-14 rounded-2xl text-lg font-bold font-heading uppercase tracking-widest active:scale-98 transition-all shadow-sm
+                ${selectedRecipients.length > 0 
+                  ? 'bg-guardian-blue text-white shadow-blue-200' 
+                  : 'bg-gray-100 text-gray-500'}`}
+            >
+              {selectedRecipients.length > 0 ? `SEND (${selectedRecipients.length})` : 'CANCEL'}
             </button>
 
-            <button
-              onClick={() => handleShare('Facebook')}
-              className="w-full h-16 bg-[#F5F9FF] text-guardian-blue border border-blue-100 rounded-2xl flex items-center justify-center gap-3 px-6 shadow-sm active:scale-98 transition-all group"
-            >
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shrink-0 border border-blue-50 shadow-sm">
-                <Facebook size={16} className="text-[#1877F2]" fill="#1877F2" />
-              </div>
-              <span className="text-lg font-bold font-heading uppercase tracking-wide">Facebook</span>
-            </button>
-
-            <button
-              onClick={() => handleShare('WhatsApp')}
-              className="w-full h-16 bg-[#F5F9FF] text-guardian-blue border border-blue-100 rounded-2xl flex items-center justify-center gap-3 px-6 shadow-sm active:scale-98 transition-all group"
-            >
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shrink-0 border border-blue-50 shadow-sm">
-                <MessageCircle size={16} className="text-[#075E54]" fill="#075E54" />
-              </div>
-              <span className="text-lg font-bold font-heading uppercase tracking-wide">WhatsApp</span>
-            </button>
-
-            <button
-              onClick={() => handleShare('Twitter')}
-              className="w-full h-16 bg-[#F5F9FF] text-guardian-blue border border-blue-100 rounded-2xl flex items-center justify-center gap-3 px-6 shadow-sm active:scale-98 transition-all group"
-            >
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shrink-0 border border-blue-50 shadow-sm">
-                <Twitter size={16} className="text-[#1DA1F2]" fill="#1DA1F2" />
-              </div>
-              <span className="text-lg font-bold font-heading uppercase tracking-wide">Twitter</span>
-            </button>
-
-            <button
-              onClick={() => handleShare('TikTok')}
-              className="w-full h-16 bg-[#F5F9FF] text-guardian-blue border border-blue-100 rounded-2xl flex items-center justify-center gap-3 px-6 shadow-sm active:scale-98 transition-all group"
-            >
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shrink-0 border border-blue-50 shadow-sm">
-                <Music size={16} className="text-black" fill="black" />
-              </div>
-              <span className="text-lg font-bold font-heading uppercase tracking-wide">TikTok</span>
-            </button>
           </div>
         </div>
       )}
+
+       {/* 4a. SELECT CONTACTS VIEW */}
+       {step === 'select-contacts' && (
+         <div className="absolute inset-0 bg-white flex flex-col overflow-hidden animate-in slide-in-from-right duration-300 font-sans z-[600]">
+           <div className="sticky top-0 z-50 bg-white px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 border-b border-gray-100 flex items-center gap-4">
+             <button
+               onClick={() => setStep('sharing')}
+               className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center text-gray-900 active:bg-gray-100 transition-colors"
+             >
+               <ArrowLeft size={24} />
+             </button>
+             <h2 className="text-xl font-bold font-heading text-gray-900 tracking-tight">Select Recipients</h2>
+           </div>
+
+           <div className="flex-1 overflow-y-auto px-6 py-4">
+             <div className="space-y-4">
+                {MOCK_CONTACTS.map((friend, i) => {
+                  const isSelected = selectedRecipients.includes(friend.name);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => toggleRecipient(friend.name)}
+                      className="w-full flex items-center gap-4 p-3 bg-white rounded-2xl active:bg-gray-50 transition-colors border border-transparent active:border-gray-100"
+                    >
+                      <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-gray-100 relative">
+                        <img src={friend.img} className="w-full h-full object-cover" />
+                        {friend.group && (
+                           <div className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-0.5 border-2 border-white">
+                             <Users size={8} className="text-white" />
+                           </div>
+                        )}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <h3 className={`text-base font-bold font-heading ${isSelected ? 'text-guardian-blue' : 'text-gray-900'}`}>{friend.name}</h3>
+                      </div>
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors
+                        ${isSelected ? 'bg-guardian-blue border-guardian-blue' : 'border-gray-300'}`}>
+                        {isSelected && <Check size={14} className="text-white" strokeWidth={3} />}
+                      </div>
+                    </button>
+                  );
+                })}
+             </div>
+           </div>
+
+           <div className="p-6 border-t border-gray-100 bg-white pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+             <button
+              onClick={() => setStep('sharing')}
+              className="w-full h-14 bg-guardian-blue text-white rounded-2xl text-lg font-bold font-heading uppercase tracking-widest active:scale-98 transition-transform shadow-blue-200 shadow-sm"
+            >
+              Done {selectedRecipients.length > 0 && `(${selectedRecipients.length})`}
+            </button>
+           </div>
+         </div>
+       )}
 
       {/* 5. SENDING VIEW */}
       {step === 'sending' && (

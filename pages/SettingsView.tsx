@@ -1,12 +1,40 @@
 
 import React from 'react';
 import { Icons } from '../constants';
+import { auth } from '../services/firebase';
+import { signOut } from 'firebase/auth';
+import { AppMode } from '../types';
+import { useAuthStore } from '../stores/useAuthStore';
 
 interface SettingsViewProps {
   onBack: () => void;
+  onNavigate: (mode: AppMode) => void;
+  onLogout?: () => void;
 }
 
-const SettingsView: React.FC<SettingsViewProps> = ({ onBack }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ onBack, onNavigate, onLogout }) => {
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleLogout = async () => {
+    try {
+      // Sign out from Firebase
+      await signOut(auth);
+      
+      // Update global state (Store handles localStorage clearing)
+      logout();
+      
+      // Call parent logout handler if provided
+      if (onLogout) {
+        onLogout();
+      }
+      
+      // Navigate to login page
+      onNavigate(AppMode.LOGIN);
+    } catch (error) {
+      console.error('Failed to logout:', error);
+    }
+  };
+
   return (
     <div className="w-full h-full bg-[#F5F7F9] px-6 pt-12 pb-32">
 
@@ -81,7 +109,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onBack }) => {
           <Icons.Mic className="w-7 h-7" /> Call Aura Support
         </button>
 
-        <button className="w-full text-center text-[#EF4444] font-bold text-base py-4 hover:bg-red-50 rounded-xl transition-colors">
+        <button 
+          onClick={handleLogout}
+          className="w-full text-center text-[#EF4444] font-bold text-base py-4 hover:bg-red-50 rounded-xl transition-colors"
+        >
           Log Out
         </button>
 

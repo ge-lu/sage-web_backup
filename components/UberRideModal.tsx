@@ -22,14 +22,22 @@ const UberRideModal: React.FC<UberRideModalProps> = ({ onClose }) => {
       <div className="w-full max-w-md bg-white rounded-t-[2rem] sm:rounded-[2rem] overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300">
 
         {/* Header */}
-        <div className="bg-black text-white p-6 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-black">
-              <span className="font-bold text-xs">Uber</span>
+        <div className="bg-white p-6 border-b border-gray-100 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center text-white shadow-sm">
+              <span className="font-bold text-xs tracking-tighter">Uber</span>
             </div>
-            <span className="font-bold text-lg">Health & Life Assistant</span>
+            <div>
+              <h3 className="font-bold text-xl text-gray-900 font-heading leading-none">Uber</h3>
+              <p className="text-xs font-bold text-gray-500 font-heading uppercase tracking-wide">Health Ride</p>
+            </div>
           </div>
-          <button onClick={onClose}><Icons.X className="w-6 h-6" /></button>
+          <button 
+            onClick={onClose}
+            className="bg-white px-3 py-2.5 rounded-xl border border-gray-200 cursor-pointer active:bg-gray-50 transition-all shadow-sm flex items-center justify-center"
+          >
+            <Icons.X className="w-5 h-5 text-gray-500" />
+          </button>
         </div>
 
         <div className="p-6">
@@ -49,7 +57,7 @@ const UberRideModal: React.FC<UberRideModalProps> = ({ onClose }) => {
               </p>
               <button
                 onClick={() => setStep('CONFIRM')}
-                className="w-full h-14 bg-black text-white rounded-full font-bold text-lg"
+                className="w-full h-14 bg-guardian-blue text-white rounded-2xl font-bold text-lg font-heading shadow-lg active:scale-95 transition-transform"
               >
                 Check Prices
               </button>
@@ -58,27 +66,27 @@ const UberRideModal: React.FC<UberRideModalProps> = ({ onClose }) => {
 
           {step === 'CONFIRM' && (
             <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Confirm Ride</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 font-heading">Confirm Ride</h2>
 
               <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-6">
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Estimated Cost</p>
-                  <p className="text-3xl font-bold text-gray-900">{price}</p>
+                  <p className="text-sm text-gray-500 mb-1 font-heading">Estimated Cost</p>
+                  <p className="text-3xl font-bold text-gray-900 font-heading">{price}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500 mb-1">Pickup In</p>
-                  <p className="text-3xl font-bold text-[#10B981]">{eta}</p>
+                  <p className="text-sm text-gray-500 mb-1 font-heading">Pickup In</p>
+                  <p className="text-3xl font-bold text-guardian-blue font-heading">{eta}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 mb-8 bg-blue-50 p-3 rounded-lg text-blue-800 text-sm">
+              <div className="flex items-center gap-3 mb-8 bg-blue-50 p-3 rounded-xl text-blue-800 text-sm border border-blue-100">
                 <Icons.Info className="w-5 h-5 shrink-0" />
                 Payment linked to Family Account (Ends in 4242)
               </div>
 
               <button
                 onClick={() => setStep('TRACKING')}
-                className="w-full h-14 bg-[#00E341] text-black rounded-full font-bold text-lg shadow-lg mb-3"
+                className="w-full h-14 bg-guardian-blue text-white rounded-2xl font-bold text-lg font-heading shadow-lg mb-3 active:scale-95 transition-transform"
               >
                 Confirm Ride
               </button>

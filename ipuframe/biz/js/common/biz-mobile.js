@@ -442,6 +442,59 @@ const BizMobile = function (execute, storageCallback) {
             storageCallback('stopTts', callback);
             execute('stopTts', [], error);
         },
+        /**
+         * 添加提醒
+         * @param {*} callback 
+         * @param {*} remindTitle 提醒标题
+         * @param {*} remindContent 提醒内容
+         * @param {*} time 提醒时间 提醒的时间 (HH:mm)
+         * @param {*} repeat 重复频率：0:不重复；1:每天重复；2:每周重复；3:每月重复
+         * @param {*} ringtone 响铃方式：0:铃声；1:振动；2:静音
+         */
+        addRemind: function (callback, remindTitle, remindContent, time, repeat, ringtone) {
+          storageCallback("addRemind", callback);
+          execute("addRemind", [remindTitle, remindContent, time, repeat, ringtone]);
+        },
+        /**
+         * 更新提醒
+         * @param {*} callback 
+         * @param {*} remindId 提醒任务id
+         * @param {*} remindTitle 提醒标题
+         * @param {*} remindContent 提醒内容
+         * @param {*} time 提醒时间 提醒的时间 (HH:mm)
+         * @param {*} repeat 重复频率：0:不重复；1:每天重复；2:每周重复；3:每月重复
+         * @param {*} ringtone 响铃方式：0:铃声；1:振动；2:静音
+         */
+        updateRemind: function (callback, remindId, remindTitle, remindContent, time, repeat, ringtone) {
+          storageCallback("updateRemind", callback);
+          execute("updateRemind", [remindId, remindTitle, remindContent, time, repeat, ringtone]);
+        },
+        /**
+         * 删除提醒
+         * @param {*} callback 
+         * @param {*} remindId 提醒任务id
+         */
+        deleteRemind: function (callback, remindId) {
+          storageCallback("deleteRemind", callback);
+          execute("deleteRemind", [remindId]);
+        },
+        /**
+         * 查询所有提醒
+         * @param {*} callback 
+         */
+        queryAllReminds: function (callback) {
+          storageCallback("queryAllReminds", callback);
+          execute("queryAllReminds", []);
+        },
+        /**
+         * 取消所有提醒
+         * @param {*} callback 
+         * @param {*} error 
+         */
+        cancelAllReminds: function (callback, error) {
+          storageCallback("cancelAllReminds", callback);
+          execute("cancelAllReminds", [], error);
+        }
     };
 };
 

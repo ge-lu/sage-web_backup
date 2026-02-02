@@ -29,162 +29,134 @@ const ShareModal: React.FC<ShareModalProps> = ({ post, message, onClose }) => {
   const isPhotoFix = message?.includes("memory is alive") || post.title.toLowerCase().includes("fix");
 
   return (
-    <div className="fixed inset-0 z-[500] bg-[#FDFBF7] flex flex-col font-['Plus_Jakarta_Sans'] select-none overflow-y-auto animate-in fade-in duration-300">
-
+    <div className="fixed inset-0 z-[500] bg-[#F5F7F9] flex flex-col font-sans select-none overflow-hidden animate-in fade-in duration-300">
       {step === 'select' && (
-        <div className="flex flex-col min-h-full relative">
-          {/* Top-Right Close Button - Compact */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 bg-gray-100/80 backdrop-blur rounded-full flex items-center justify-center text-gray-400 active:bg-gray-200 z-[600] shadow-sm transition-colors"
-          >
-            <X size={24} strokeWidth={3} />
-          </button>
+        <>
+          <div className="sticky top-0 z-50 bg-[#F5F7F9] px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-6 border-b border-gray-200 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={onClose}
+                className="w-12 h-12 rounded-full flex items-center justify-center hover:bg-gray-200 active:scale-90 transition-transform -ml-2"
+              >
+                <X size={28} className="text-gray-900" strokeWidth={3} />
+              </button>
+              <h2 className="text-gray-900 font-heading text-2xl font-bold tracking-tight whitespace-nowrap">SHARE THE JOY</h2>
+            </div>
+            <div className="w-12" />
+          </div>
 
-          {/* Section 1: Top 30% - Horizontal Preview Layout */}
-          <div className="h-[32%] flex flex-col justify-center pb-2 pt-8">
-            {/* Header */}
-            <div className="pb-4 text-center">
-              <h2 className="text-[2.25rem] font-black text-[#000000] uppercase tracking-tighter leading-none">
-                SHARE THE JOY
-              </h2>
+          <div className="flex-1 overflow-y-auto no-scrollbar px-6 pt-6 pb-10 space-y-4">
+            {/* Horizontal Preview Card */}
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 flex items-center gap-4">
+              <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
+                <img
+                  src={post.imageUrl}
+                  className="w-full h-full object-cover"
+                  alt="Preview"
+                />
+              </div>
+
+              <div className="flex-1 flex flex-col justify-center overflow-hidden">
+                <span className="text-gray-500 font-bold font-heading uppercase tracking-wider text-xs mb-1">PREVIEW</span>
+                <p className="text-lg font-bold font-heading text-guardian-blue italic leading-snug line-clamp-2">
+                  "{message || post.title}"
+                </p>
+              </div>
             </div>
 
-            {/* Horizontal Preview Card with Optional Comparison */}
-            <div className="px-6">
-              <div className="bg-white rounded-[2.5rem] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-100 flex items-center gap-5">
+            {/* Destination Buttons */}
+            <div>
+              <p className="text-center text-gray-400 font-bold font-heading uppercase tracking-widest text-xs mb-4">CHOOSE WHERE TO SEND:</p>
+              <div className="space-y-3">
 
-                {isPhotoFix ? (
-                  /* Comparison View for Fixed Photos */
-                  <div className="w-40 h-24 rounded-[1.5rem] overflow-hidden bg-gray-50 shrink-0 shadow-md flex relative border-2 border-gray-50">
-                    <div className="flex-1 relative overflow-hidden">
-                      <img src={post.imageUrl} className="w-full h-full object-cover grayscale" style={{ filter: 'sepia(0.8) contrast(0.8)' }} />
-                      <div className="absolute bottom-1 left-1 bg-black/40 px-2 py-0.5 rounded-md text-[6px] text-white font-black uppercase tracking-tighter">Old</div>
-                    </div>
-                    <div className="w-0.5 h-full bg-white z-10" />
-                    <div className="flex-1 relative overflow-hidden">
-                      <img src={post.imageUrl} className="w-full h-full object-cover" />
-                      <div className="absolute bottom-1 right-1 bg-[#13EC13] px-2 py-0.5 rounded-md text-[6px] text-white font-black uppercase tracking-tighter shadow-sm">New</div>
-                    </div>
+                {/* 1. iMessage */}
+                <button
+                  onClick={() => handleShare('iMessage')}
+                  className="w-full py-4 bg-[#F5F9FF] rounded-xl flex items-center px-6 gap-4 border border-blue-100 shadow-sm active:scale-[0.98] transition-all hover:bg-blue-50"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#34C759] flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                    <MessageSquare size={18} fill="white" className="text-white" />
                   </div>
-                ) : (
-                  /* Normal View */
-                  <div className="w-24 h-24 rounded-[1.75rem] overflow-hidden bg-gray-50 shrink-0 shadow-md">
-                    <img
-                      src={post.imageUrl}
-                      className="w-full h-full object-cover"
-                      alt="Preview"
-                    />
-                  </div>
-                )}
+                  <span className="text-sm font-bold font-heading uppercase text-guardian-blue tracking-wide">iMessage</span>
+                </button>
 
-                <div className="flex-1 flex flex-col justify-center overflow-hidden">
-                  <span className="text-[#9CA3AF] font-black uppercase tracking-[0.2em] text-[10px] mb-1 leading-none">PREVIEW</span>
-                  <p className="text-[1.25rem] font-black text-[#003366] italic leading-tight line-clamp-2 tracking-tight">
-                    "{message || post.title}"
-                  </p>
-                </div>
+                {/* 2. Facebook */}
+                <button
+                  onClick={() => handleShare('Facebook')}
+                  className="w-full py-4 bg-[#F5F9FF] rounded-xl flex items-center px-6 gap-4 border border-blue-100 shadow-sm active:scale-[0.98] transition-all hover:bg-blue-50"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                    <Facebook size={18} fill="white" className="text-white" />
+                  </div>
+                  <span className="text-sm font-bold font-heading uppercase text-guardian-blue tracking-wide">Facebook</span>
+                </button>
+
+                {/* 3. WhatsApp */}
+                <button
+                  onClick={() => handleShare('WhatsApp')}
+                  className="w-full py-4 bg-[#F5F9FF] rounded-xl flex items-center px-6 gap-4 border border-blue-100 shadow-sm active:scale-[0.98] transition-all hover:bg-blue-50"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                    <MessageCircle size={18} fill="white" className="text-white" />
+                  </div>
+                  <span className="text-sm font-bold font-heading uppercase text-guardian-blue tracking-wide">WhatsApp</span>
+                </button>
+
+                {/* 4. Twitter */}
+                <button
+                  onClick={() => handleShare('Twitter')}
+                  className="w-full py-4 bg-[#F5F9FF] rounded-xl flex items-center px-6 gap-4 border border-blue-100 shadow-sm active:scale-[0.98] transition-all hover:bg-blue-50"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#1DA1F2] flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                    <Twitter size={18} fill="white" className="text-white" />
+                  </div>
+                  <span className="text-sm font-bold font-heading uppercase text-guardian-blue tracking-wide">Twitter</span>
+                </button>
+
+                {/* 5. TikTok */}
+                <button
+                  onClick={() => handleShare('TikTok')}
+                  className="w-full py-4 bg-[#F5F9FF] rounded-xl flex items-center px-6 gap-4 border border-blue-100 shadow-sm active:scale-[0.98] transition-all hover:bg-blue-50"
+                >
+                  <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shrink-0 shadow-sm border border-white/20">
+                    <Music size={18} fill="white" className="text-white" />
+                  </div>
+                  <span className="text-sm font-bold font-heading uppercase text-guardian-blue tracking-wide">TikTok</span>
+                </button>
               </div>
             </div>
           </div>
-
-          {/* Section 2: Bottom - Sharing Buttons (Centered Layout & No White Background) */}
-          <div className="flex-1 flex flex-col pt-6 pb-8">
-            {/* Send To Label */}
-            <div className="text-center mb-4">
-              <p className="text-[#CCCCCC] font-black uppercase tracking-[0.25em] text-[10px]">CHOOSE WHERE TO SEND:</p>
-            </div>
-
-            {/* Large Tactile Buttons - Centered Text & Icon */}
-            <div className="px-5 space-y-3.5 flex flex-col items-stretch pb-12">
-              {/* 1. iMessage (Green) */}
-              <button
-                onClick={() => handleShare('iMessage')}
-                className="w-full min-h-[76px] bg-[#25D366] text-white rounded-[2rem] flex items-center justify-center gap-5 px-6 shadow-[0_6px_0_#128c7e] active:translate-y-1 active:shadow-none transition-all group"
-              >
-                <div className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center shrink-0 group-active:scale-90 transition-transform">
-                  <MessageSquare size={28} fill="white" className="text-white" />
-                </div>
-                <span className="text-3xl font-black uppercase tracking-tight">iMessage</span>
-              </button>
-
-              {/* 2. Facebook (Blue) */}
-              <button
-                onClick={() => handleShare('Facebook')}
-                className="w-full min-h-[76px] bg-[#1877F2] text-white rounded-[2rem] flex items-center justify-center gap-5 px-6 shadow-[0_6px_0_#0d52a8] active:translate-y-1 active:shadow-none transition-all group"
-              >
-                <div className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center shrink-0 group-active:scale-90 transition-transform">
-                  <Facebook size={28} fill="white" className="text-white" />
-                </div>
-                <span className="text-3xl font-black uppercase tracking-tight">Facebook</span>
-              </button>
-
-              {/* 3. WhatsApp (Dark Green) */}
-              <button
-                onClick={() => handleShare('WhatsApp')}
-                className="w-full min-h-[76px] bg-[#075E54] text-white rounded-[2rem] flex items-center justify-center gap-5 px-6 shadow-[0_6px_0_#043e37] active:translate-y-1 active:shadow-none transition-all group"
-              >
-                <div className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center shrink-0 group-active:scale-90 transition-transform">
-                  <MessageCircle size={28} fill="white" className="text-white" />
-                </div>
-                <span className="text-3xl font-black uppercase tracking-tight">WhatsApp</span>
-              </button>
-
-              {/* 4. Twitter (Sky Blue) */}
-              <button
-                onClick={() => handleShare('Twitter')}
-                className="w-full min-h-[76px] bg-[#1DA1F2] text-white rounded-[2rem] flex items-center justify-center gap-5 px-6 shadow-[0_6px_0_#0c85d0] active:translate-y-1 active:shadow-none transition-all group"
-              >
-                <div className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center shrink-0 group-active:scale-90 transition-transform">
-                  <Twitter size={28} fill="white" className="text-white" />
-                </div>
-                <span className="text-3xl font-black uppercase tracking-tight">Twitter</span>
-              </button>
-
-              {/* 5. TikTok (Black) */}
-              <button
-                onClick={() => handleShare('TikTok')}
-                className="w-full min-h-[76px] bg-[#000000] text-white rounded-[2rem] flex items-center justify-center gap-5 px-6 shadow-[0_6px_0_#333333] active:translate-y-1 active:shadow-none transition-all group"
-              >
-                <div className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center shrink-0 group-active:scale-90 transition-transform">
-                  <Music size={28} fill="white" className="text-white" />
-                </div>
-                <span className="text-3xl font-black uppercase tracking-tight">TikTok</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        </>
       )}
 
       {step === 'sending' && (
-        <div className="flex-1 flex flex-col items-center justify-center p-10 bg-[#003366] animate-in fade-in duration-500">
-          <div className="w-44 h-44 bg-white/10 rounded-full flex items-center justify-center relative mb-12">
-            <div className="absolute inset-0 border-[6px] border-blue-400/30 border-t-white rounded-full animate-spin" />
+        <div className="flex-1 bg-guardian-blue flex flex-col items-center justify-center p-10">
+          <div className="w-40 h-40 bg-white/10 rounded-full flex items-center justify-center mb-12 relative">
+            <div className="absolute inset-0 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
             <Send size={64} className="text-white animate-bounce" />
           </div>
-          <h2 className="text-4xl font-black text-white text-center leading-tight tracking-tight uppercase">
-            Sharing your<br />joy...
-          </h2>
+          <h2 className="text-4xl font-black font-heading text-white text-center">Sending to {destination}...</h2>
         </div>
       )}
 
       {step === 'success' && (
-        <div className="flex-1 flex flex-col items-center justify-center p-10 bg-[#13EC13] text-center animate-in zoom-in-95 duration-500">
-          <div className="w-48 h-48 bg-white rounded-full flex items-center justify-center mb-10 shadow-2xl scale-110">
-            <Check size={88} strokeWidth={4} className="text-[#13EC13]" />
+        <div className="absolute inset-0 bg-[#F5F7F9] flex flex-col items-center justify-center p-6 z-[800] text-center animate-in zoom-in-95 duration-500">
+          <div className="w-48 h-48 bg-white rounded-full flex items-center justify-center mb-8 shadow-sm border border-gray-100 animate-in zoom-in duration-500">
+            <Check size={96} strokeWidth={5} className="text-guardian-blue" />
           </div>
-          <h2 className="text-6xl font-black text-white mb-4 uppercase tracking-tighter">SENT!</h2>
-          <p className="text-2xl text-white font-bold mb-16 px-6 leading-tight">Your family will love this! ❤️</p>
+          <h2 className="text-4xl font-bold font-heading text-guardian-blue mb-4 uppercase tracking-tight">Good News!</h2>
+          <p className="text-xl text-gray-500 font-medium mb-12 px-6 leading-relaxed max-w-md">
+            Your family will love this! ❤️
+          </p>
 
           <button
             onClick={onClose}
-            className="w-full h-20 bg-white text-[#13EC13] rounded-[2rem] text-3xl font-black shadow-[0_10px_0_#0fbc0f] active:translate-y-2 active:shadow-none transition-all uppercase tracking-tight"
+            className="w-full max-w-sm h-16 bg-guardian-blue text-white rounded-2xl text-xl font-bold font-heading shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2 uppercase tracking-wide"
           >
-            Finish
+             Finish
           </button>
         </div>
       )}
-
     </div>
   );
 };

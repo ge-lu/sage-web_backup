@@ -15,11 +15,14 @@ const AllActivityView: React.FC<AllActivityViewProps> = ({ onBack }) => {
   return (
     <div className="w-full h-full bg-[#F5F7F9] flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-6 rounded-b-[40px] shadow-soft flex items-center gap-4">
-        <button onClick={onBack} className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 active:scale-95 transition-transform">
-          <Icons.ChevronLeft className="w-6 h-6 text-gray-900" />
+      <header className="sticky top-0 z-50 bg-[#F5F7F9] px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-6 border-b border-gray-200 flex items-center gap-4">
+        <button 
+            onClick={onBack} 
+            className="bg-white p-2.5 rounded-xl border border-gray-200 cursor-pointer active:bg-gray-50 transition-all shadow-sm flex items-center justify-center group"
+        >
+          <Icons.ChevronLeft className="w-6 h-6 text-gray-900 group-active:scale-95 transition-transform" />
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">All Activity</h1>
+        <h1 className="text-2xl font-bold text-gray-900 font-heading">All Activity</h1>
       </header>
 
       {/* List Content */}

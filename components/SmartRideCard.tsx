@@ -101,7 +101,7 @@ export const SmartRideCard: React.FC = () => {
     switch (stage) {
       case RideStage.RECOMMENDATION:
         return (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 transition-all hover:shadow-md">
             <div className="flex items-center gap-4 mb-4">
               <div className="relative">
                 <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
@@ -112,7 +112,7 @@ export const SmartRideCard: React.FC = () => {
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900">Need a ride tomorrow? </h3>
+                <h3 className="text-lg font-bold font-heading text-gray-900">Need a ride tomorrow? </h3>
               </div>
             </div>
             <p className="text-base text-gray-800 leading-relaxed mb-4">
@@ -121,13 +121,13 @@ export const SmartRideCard: React.FC = () => {
             <div className="flex gap-3">
               <button 
                 onClick={(e) => { e.stopPropagation(); setStage(RideStage.IDLE); }}
-                className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl text-sm font-bold active:scale-95 border-2 border-gray-300"
+                className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl text-sm font-bold font-heading active:scale-95 border-2 border-gray-300"
               >
                 No, Thanks
               </button>
               <button 
                 onClick={(e) => { e.stopPropagation(); setStage(RideStage.WAITING); }}
-                className="flex-1 bg-blue-600 text-white py-3 rounded-xl text-sm font-bold shadow-lg active:scale-95"
+                className="flex-1 bg-blue-600 text-white py-3 rounded-xl text-sm font-bold font-heading shadow-lg active:scale-95"
               >
                 Yes, Book
               </button>
@@ -137,107 +137,109 @@ export const SmartRideCard: React.FC = () => {
 
       case RideStage.WAITING:
         return (
-          <div className="bg-[#121926] rounded-2xl shadow-xl overflow-hidden text-white relative border border-white/5 p-6">
-            <div className="bg-blue-600/20 text-blue-300 px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase flex items-center gap-2 border border-blue-500/30 w-fit mb-5">
-              <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 p-6 relative">
+            <div className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase flex items-center gap-2 border border-blue-100 w-fit mb-5">
+              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
               Searching...
             </div>
 
             <div className="flex justify-between items-center mb-6">
               <div className="relative">
-                <div className="absolute inset-0 w-20 h-20 bg-blue-500/30 rounded-full blur-sm"></div>
-                <div className="w-20 h-20 rounded-full border-4 border-[#121926] shadow-lg bg-white flex items-center justify-center relative z-10">
+                <div className="absolute inset-0 w-20 h-20 bg-blue-50 rounded-full animate-ping"></div>
+                <div className="w-20 h-20 rounded-full border border-blue-100 shadow-sm bg-white flex items-center justify-center relative z-10">
                   <Icons.Sparkles className="w-10 h-10 text-blue-600" />
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-4xl font-black mb-1 text-cyan-400 tracking-tighter">3-5 min</div>
-                <div className="text-slate-500 font-extrabold uppercase tracking-widest text-[11px] opacity-80">Expected wait</div>
+                <div className="text-4xl font-black mb-1 text-blue-600 font-heading tracking-tighter">3-5 min</div>
+                <div className="text-gray-400 font-extrabold uppercase tracking-widest text-[11px]">Expected wait</div>
               </div>
             </div>
 
             <div className="mb-6">
-              <h3 key={waitingMsgIndex} className="text-2xl font-black mb-3 animate-in fade-in duration-1000">
+              <h3 key={waitingMsgIndex} className="text-2xl font-black font-heading mb-3 animate-in fade-in duration-1000 text-gray-900">
                 {WAITING_MESSAGES[waitingMsgIndex]}
               </h3>
-              <div className="flex items-center gap-2 text-slate-400 font-bold text-base">
-                <MapPin className="w-5 h-5 text-cyan-400" />
+              <div className="flex items-center gap-2 text-gray-500 font-bold text-base">
+                <MapPin className="w-5 h-5 text-blue-500" />
                 <span>Scanning Main St Area</span>
               </div>
             </div>
 
             <button
               onClick={(e) => { e.stopPropagation(); setShowCancelConfirm(true); }}
-              className="w-full py-4 bg-slate-800 text-slate-300 rounded-xl text-base font-black active:scale-95 transition-colors hover:text-white"
+              className="w-full py-4 bg-gray-50 text-gray-500 rounded-xl text-base font-bold font-heading active:scale-95 transition-colors hover:bg-gray-100 hover:text-gray-700 uppercase tracking-wide border border-gray-100"
             >
-              Cancel
+              Cancel Search
             </button>
           </div>
         );
 
       case RideStage.PICKUP:
         return (
-          <div className="bg-[#121926] rounded-2xl overflow-hidden text-white shadow-xl">
+          <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm">
             <div className="h-32 overflow-hidden relative">
-              <img src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover brightness-[0.6] grayscale" alt="Map" />
-              <div className="absolute top-2 left-2">
-                <div className="bg-[#2a3343]/80 backdrop-blur-md text-white px-3 py-1 rounded-full flex items-center gap-2 border border-white/20">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <span className="text-[9px] font-black tracking-widest uppercase">ACTIVE RIDE</span>
+              <img src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover opacity-80" alt="Map" />
+              <div className="absolute inset-0 bg-gradient-to-t from-white/90 to-transparent"></div>
+              <div className="absolute top-3 left-3">
+                <div className="bg-white/90 backdrop-blur-md text-blue-800 px-3 py-1 rounded-full flex items-center gap-2 border border-blue-100 shadow-sm">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-[10px] font-black tracking-widest uppercase">Driver Arriving</span>
                 </div>
               </div>
             </div>
-            <div className="p-6">
+            <div className="p-6 pt-0 relative -mt-4">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-20 h-20 rounded-2xl border-2 border-white shadow-lg overflow-hidden bg-white">
+                <div className="w-20 h-20 rounded-2xl border-4 border-white shadow-md overflow-hidden bg-white">
                   <img src={MOCK_DRIVER.photo} alt={MOCK_DRIVER.name} className="w-full h-full object-cover" />
                 </div>
-                <div className="flex-1">
-                  <div className="text-4xl font-black mb-1">4 min</div>
-                  <div className="text-slate-400 text-sm font-bold uppercase tracking-widest">Est. Arrival</div>
+                <div className="flex-1 pt-4">
+                  <div className="text-3xl font-black text-blue-600 font-heading mb-0.5">4 min</div>
+                  <div className="text-gray-400 text-xs font-bold uppercase tracking-widest">Est. Arrival</div>
                 </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); handleCall(); }}
-                  className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-xl active:scale-90"
+                  className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shadow-sm border border-blue-100 active:scale-90 mt-4"
                 >
-                  <Icons.Phone className="w-7 h-7 text-white" />
+                  <Icons.Phone className="w-5 h-5" />
                 </button>
               </div>
-              <h3 className="text-2xl font-black mb-1">{MOCK_DRIVER.name}</h3>
-              <p className="text-slate-400 text-base">{MOCK_DRIVER.carModel} • {MOCK_DRIVER.plateNumber}</p>
+              <h3 className="text-2xl font-black font-heading mb-1 text-gray-900">{MOCK_DRIVER.name}</h3>
+              <p className="text-gray-500 text-sm font-medium">{MOCK_DRIVER.carModel} • {MOCK_DRIVER.plateNumber}</p>
             </div>
           </div>
         );
 
       case RideStage.IN_TRIP:
         return (
-          <div className="bg-[#121926] rounded-2xl overflow-hidden text-white shadow-xl">
+          <div className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm">
             <div className="h-32 overflow-hidden relative">
-              <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover brightness-[0.5] grayscale" alt="Map" />
-              <div className="absolute top-2 left-2">
-                <div className="bg-emerald-500/90 backdrop-blur-md text-white px-3 py-1 rounded-full flex items-center gap-2 border border-emerald-400/30">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                  <span className="text-[9px] font-black tracking-widest uppercase">● ON TRIP</span>
+              <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800&auto=format&fit=crop" className="w-full h-full object-cover opacity-80" alt="Map" />
+              <div className="absolute inset-0 bg-gradient-to-t from-white/90 to-transparent"></div>
+              <div className="absolute top-3 left-3">
+                <div className="bg-white/90 backdrop-blur-md text-emerald-800 px-3 py-1 rounded-full flex items-center gap-2 border border-emerald-100 shadow-sm">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span className="text-[10px] font-black tracking-widest uppercase">On Trip</span>
                 </div>
               </div>
             </div>
-            <div className="p-6">
+            <div className="p-6 pt-0 relative -mt-4">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-20 h-20 rounded-2xl border-2 border-white shadow-lg overflow-hidden bg-white">
+                <div className="w-20 h-20 rounded-2xl border-4 border-white shadow-md overflow-hidden bg-white">
                   <img src={MOCK_DRIVER.photo} alt={MOCK_DRIVER.name} className="w-full h-full object-cover" />
                 </div>
-                <div className="flex-1">
-                  <div className="text-4xl font-black mb-1">8 min</div>
-                  <div className="text-slate-400 text-sm font-bold uppercase tracking-widest">2.5 miles to go</div>
+                <div className="flex-1 pt-4">
+                  <div className="text-3xl font-black text-gray-900 font-heading mb-0.5">8 min</div>
+                  <div className="text-gray-400 text-xs font-bold uppercase tracking-widest">2.5 miles left</div>
                 </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); handleCall(); }}
-                  className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-xl active:scale-90"
+                  className="w-12 h-12 bg-gray-50 text-gray-600 rounded-full flex items-center justify-center shadow-sm border border-gray-200 active:scale-90 mt-4"
                 >
-                  <Icons.Phone className="w-7 h-7 text-white" />
+                  <Icons.Phone className="w-5 h-5" />
                 </button>
               </div>
-              <h3 className="text-xl font-black mb-2">To General Hospital</h3>
+              <h3 className="text-xl font-bold font-heading mb-1 text-gray-900">To General Hospital</h3>
             </div>
           </div>
         );

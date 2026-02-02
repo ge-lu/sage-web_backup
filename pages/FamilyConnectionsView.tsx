@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Mic, Share2, Plus, Heart, Sparkles, Gift, Newspaper, BookOpen, Send, Star, LayoutGrid, ChevronRight, Image as ImageIcon, Loader2, Check } from 'lucide-react';
+import { Camera, Mic, Share2, Plus, Heart, Sparkles, Gift, Newspaper, BookOpen, Send, Star, LayoutGrid, ChevronRight, Image as ImageIcon, Loader2, Check, Mail } from 'lucide-react';
 import Stories from '../components/Stories';
 import FeedCard from '../components/FeedCard';
 import JourneyBanner from '../components/JourneyBanner';
@@ -10,12 +10,13 @@ import CreateGroupWizard from '../components/CreateGroupWizard';
 import PostFlow from '../components/PostFlow';
 import JourneyFlow from '../components/JourneyFlow';
 import ShareModal from '../components/ShareModal';
-import PostDetail from '../components/PostDetail';
+import PostDetail, { MOCK_COMMENTS, Comment } from '../components/PostDetail';
 import ClubDetail from '../components/ClubDetail';
 import ClubSuggestionCard from '../components/ClubSuggestionCard';
 import GuardianButton from '../components/GuardianButton';
 import SectionTitle from '../components/SectionTitle';
 import UpdateCard from '../components/UpdateCard';
+import MessageList, { Message } from '../components/MessageList';
 import { Post, Room, FamilyMemberUpdate } from '../types';
 
 const INITIAL_ROOMS: Room[] = [
@@ -41,7 +42,7 @@ const INITIAL_POSTS: Post[] = [
   {
     id: 'p1',
     title: 'Grandchildren at the park',
-    author: 'Sarah',
+    author: 'Me',
     time: 'today',
     imageUrl: 'https://images.unsplash.com/photo-1510563800743-aed236490d08?q=80&w=1000&auto=format&fit=crop',
     likes: 12
@@ -51,7 +52,7 @@ const INITIAL_POSTS: Post[] = [
     title: 'My World War II - This is me.',
     author: 'John',
     time: 'today',
-    imageUrl: 'https://images.unsplash.com/photo-1544211911-2f01ad4d2ee7?q=80&w=1000&auto=format&fit=crop',
+    imageUrl: '/ww2_soldier.png',
     likes: 45
   },
   {
@@ -115,10 +116,57 @@ const FamilyConnectionsView: React.FC<FamilyConnectionsViewProps> = ({ onPhotoFi
   const [isJourneyOpen, setIsJourneyOpen] = useState(false);
   const [sharingPost, setSharingPost] = useState<{ post: Post; message: string } | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | undefined>(undefined);
   const [selectedClub, setSelectedClub] = useState<Room | null>(null);
   const [isNewClub, setIsNewClub] = useState(false);
   const [view, setView] = useState<ViewState>('feed');
+
+  // Generate consistent messages based on unread count
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const defaultMessages = MOCK_COMMENTS.map((comment, i) => ({
+      id: `msg-${i}`,
+      sender: comment.author,
+      content: comment.text,
+      time: comment.time,
+      avatar: comment.avatar,
+      read: false,
+      type: 'message' as const
+    }));
+    
+    // Add a mock like notification for Post
+    const likePostNotification: Message = {
+      id: 'like-post-1',
+      sender: 'Nancy',
+      content: 'Liked your photo "Grandchildren at the park"',
+      time: '5 mins ago',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Nancy',
+      read: false,
+      type: 'like'
+    };
+
+    // Add a mock like notification for Comment
+    const likeCommentNotification: Message = {
+      id: 'like-comment-c0', // Target 'Me' comment
+      sender: 'Leo',
+      content: 'Liked your comment "ni Hong Kong"',
+      time: '15 mins ago',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Leo',
+      read: false,
+      type: 'like'
+    };
+
+    return [likePostNotification, likeCommentNotification, ...defaultMessages];
+  });
+
+  const unreadCount = messages.filter(m => !m.read).length;
+  const displayCount = unreadCount > 99 ? '99+' : unreadCount;
+
   const [showSuggestion, setShowSuggestion] = useState(true);
+  const [showSecondUpdateCard, setShowSecondUpdateCard] = useState(false);
+  const [secondCardLiked, setSecondCardLiked] = useState(false);
+  const [showThankYouCard, setShowThankYouCard] = useState(false);
+  const [showMessageCard, setShowMessageCard] = useState(false);
+  const [sentMessage, setSentMessage] = useState<string>('');
 
   // Tactile feedback helper
   const vibrate = () => {
@@ -132,7 +180,7 @@ const FamilyConnectionsView: React.FC<FamilyConnectionsViewProps> = ({ onPhotoFi
     setRestoredImage(imageUrl);
     setFixStatus('processing');
     setIsPhotoFixOpen(false); // Close the modal so user can do other things
-    
+
     // Trigger global paywall check if provided
     if (onPhotoFixUsed) {
       onPhotoFixUsed();
@@ -279,8 +327,24 @@ const FamilyConnectionsView: React.FC<FamilyConnectionsViewProps> = ({ onPhotoFi
       {selectedPost && (
         <PostDetail
           post={selectedPost}
-          onClose={() => setSelectedPost(null)}
+          onClose={() => {
+            setSelectedPost(null);
+            setSelectedMessageId(undefined);
+          }}
           onShare={(msg) => setSharingPost({ post: selectedPost, message: msg })}
+          initialScrollId={selectedMessageId}
+          onNewComment={(comment) => {
+            // 将新评论添加到消息列表
+            const newMessage: Message = {
+              id: `msg-${Date.now()}`,
+              sender: comment.author,
+              content: comment.text,
+              time: comment.time,
+              avatar: comment.avatar,
+              read: false
+            };
+            setMessages(prev => [newMessage, ...prev]);
+          }}
         />
       )}
 
@@ -308,7 +372,45 @@ const FamilyConnectionsView: React.FC<FamilyConnectionsViewProps> = ({ onPhotoFi
 
       {view === 'create-group' && <CreateGroupWizard onCancel={() => setView('rooms')} onFinish={handleCreateGroup} />}
 
-      {/* Header */}
+      {view === 'messages' && (
+        <MessageList
+          onBack={() => setView('feed')}
+          messages={messages}
+          onMessageClick={(msg) => {
+            // Mark as read
+            if (!msg.read) {
+              setMessages(prev => prev.map(m =>
+                m.id === msg.id ? { ...m, read: true } : m
+              ));
+              // Optional: Decrement global unread count
+              // setUnreadCount(prev => Math.max(0, prev - 1));
+            }
+
+            // Match the message to the corresponding comment ID or Post
+            if (msg.id.startsWith('like-post-')) {
+               // Open the target post directly (top)
+               const targetPost = posts.find(p => p.id === 'p1') || posts[0];
+               setSelectedPost(targetPost);
+               setSelectedMessageId(undefined); // No scroll
+            } else if (msg.id.startsWith('like-comment-')) {
+               // Extract comment ID and scroll to it
+               const commentId = msg.id.replace('like-comment-', '');
+               const targetPost = posts.find(p => p.id === 'p1') || posts[0];
+               setSelectedPost(targetPost);
+               setSelectedMessageId(commentId);
+            } else {
+               const index = parseInt(msg.id.split('-')[1]);
+               // Assuming MOCK_COMMENTS is available in this scope
+               const commentId = MOCK_COMMENTS[index % MOCK_COMMENTS.length].id;
+  
+               const targetPost = posts.find(p => p.id === 'p1') || posts[0];
+               setSelectedPost(targetPost);
+               setSelectedMessageId(commentId);
+             }
+          }}
+        />
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#F5F7F9] px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-6 border-b border-gray-200 flex items-center justify-between">
         <h1 className="text-gray-900 font-heading text-2xl font-bold tracking-tight">With</h1>
@@ -345,8 +447,29 @@ const FamilyConnectionsView: React.FC<FamilyConnectionsViewProps> = ({ onPhotoFi
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto no-scrollbar pb-[calc(6rem+env(safe-area-inset-bottom))] bg-[#F5F7F9]">
 
+        {/* New Message Notification Card */}
+        <div className="px-6 pt-6">
+          <div
+            onClick={() => setView('messages')}
+            className="bg-white rounded-xl p-5 border border-gray-200 flex items-center justify-between active:bg-gray-50 cursor-pointer transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-[#F5F9FF] flex items-center justify-center text-guardian-blue">
+                <Mail className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold font-heading text-gray-900">New Messages</h3>
+                <p className="text-xs text-gray-500">
+                  {unreadCount > 0 ? `${unreadCount} unread messages` : 'No new messages'}
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-300" />
+          </div>
+        </div>
+
         {/* Photo Fix Banner */}
-        <div className="px-6 pt-8">
+        <div className="px-6 pt-4">
           <div onClick={handleOpenPhotoFix}>
             <PhotoFixBanner status={fixStatus} />
           </div>
@@ -372,9 +495,21 @@ const FamilyConnectionsView: React.FC<FamilyConnectionsViewProps> = ({ onPhotoFi
         {/* Feed */}
         <section className="mt-8 px-4 space-y-6">
           <SectionTitle className="ml-0">What's New</SectionTitle>
-          {/* Family Member Update Card - First Card */}
-          <UpdateCard 
-            update={LUCY_UPDATE} 
+
+          {/* 1. Newly Created Posts (appear first) */}
+          {posts.filter(p => !p.id.startsWith('p')).map((post) => (
+            <FeedCard
+              key={post.id}
+              post={post}
+              isNews={false}
+              onClick={() => setSelectedPost(post)}
+              onShare={(msg) => setSharingPost({ post, message: msg })}
+            />
+          ))}
+
+          {/* 2. Family Member Update Card (Pinned/Feature) */}
+          <UpdateCard
+            update={LUCY_UPDATE}
             onShare={(msg) => {
               // Create a temporary Post object for sharing
               const tempPost: Post = {
@@ -387,25 +522,114 @@ const FamilyConnectionsView: React.FC<FamilyConnectionsViewProps> = ({ onPhotoFi
               };
               setSharingPost({ post: tempPost, message: msg });
             }}
-          />
-          {/* Family Member Update Card - Second Card */}
-          <UpdateCard 
-            update={SUSAN_UPDATE} 
-            customTitle="Susan is thinking of you and your lovely weather!"
-            onShare={(msg) => {
-              // Create a temporary Post object for sharing
-              const tempPost: Post = {
-                id: 'update-' + SUSAN_UPDATE.id,
-                title: "Susan is thinking of you and your lovely weather!",
-                author: SUSAN_UPDATE.name,
-                time: 'today',
-                imageUrl: SUSAN_UPDATE.imageUrl,
-                likes: 0
-              };
-              setSharingPost({ post: tempPost, message: msg });
+            onLike={(liked) => {
+              if (liked) {
+                setShowSecondUpdateCard(true);
+              }
+            }}
+            showLikedLabel={secondCardLiked}
+            likedByName={secondCardLiked ? LUCY_UPDATE.name : undefined}
+            onMessageSent={(message) => {
+              setSentMessage(message);
+              setShowMessageCard(true);
             }}
           />
-          {posts.map((post, index) => (
+          {/* Family Member Update Card - Second Card (from Message) */}
+          {showMessageCard && (
+            <UpdateCard
+              update={SUSAN_UPDATE}
+              customTitle={sentMessage}
+              showSendBy={true}
+              messageButtonText="Got it!"
+              onMessageButtonClick={() => {
+                setShowMessageCard(false);
+                setShowThankYouCard(true);
+              }}
+              onShare={(msg) => {
+                // Create a temporary Post object for sharing
+                const tempPost: Post = {
+                  id: 'update-' + SUSAN_UPDATE.id,
+                  title: "Susan is thinking of you and your lovely weather!",
+                  author: SUSAN_UPDATE.name,
+                  time: 'today',
+                  imageUrl: SUSAN_UPDATE.imageUrl,
+                  likes: 0
+                };
+                setSharingPost({ post: tempPost, message: msg });
+              }}
+            />
+          )}
+          {/* Family Member Update Card - Second Card (from Like) */}
+          {showSecondUpdateCard && (
+            <UpdateCard
+              update={SUSAN_UPDATE}
+              customTitle="Susan is thinking of you and your lovely weather!"
+              messageButtonText="Got it!"
+              onMessageButtonClick={() => {
+                setShowSecondUpdateCard(false);
+                setShowThankYouCard(true);
+              }}
+              onShare={(msg) => {
+                // Create a temporary Post object for sharing
+                const tempPost: Post = {
+                  id: 'update-' + SUSAN_UPDATE.id,
+                  title: "Susan is thinking of you and your lovely weather!",
+                  author: SUSAN_UPDATE.name,
+                  time: 'today',
+                  imageUrl: SUSAN_UPDATE.imageUrl,
+                  likes: 0
+                };
+                setSharingPost({ post: tempPost, message: msg });
+              }}
+              onLike={(liked) => {
+                if (liked) {
+                  setSecondCardLiked(true);
+                  setShowThankYouCard(true);
+                }
+              }}
+            />
+          )}
+          {/* Thank You Card - Shows after second card is liked */}
+          {showThankYouCard && (
+            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200">
+              <div className="p-8 space-y-6">
+                {/* Heart Icon and Avatar */}
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative">
+                    <Heart size={48} fill="#ff4d4d" className="text-[#ff4d4d]" strokeWidth={1.5} />
+                  </div>
+                  <div className="w-20 h-20 rounded-full border-4 border-gray-100 overflow-hidden bg-gray-50">
+                    <img
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${LUCY_UPDATE.name}`}
+                      alt={LUCY_UPDATE.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div className="text-center space-y-2">
+                  <h3 className="font-bold font-heading text-xl text-gray-900">
+                    {LUCY_UPDATE.name} felt your care!
+                  </h3>
+                  <p className="text-base text-gray-500 mt-4">
+                    "She sent a heart back to you"
+                  </p>
+                </div>
+
+                {/* Confirm Button */}
+                <GuardianButton
+                  onClick={() => setShowThankYouCard(false)}
+                  className="w-full justify-center"
+                >
+                  <span className="text-lg font-black uppercase tracking-wide">That's great!</span>
+                </GuardianButton>
+              </div>
+            </div>
+          )}
+
+          {/* 3. Existing Feed Posts */}
+          {posts.filter(p => p.id.startsWith('p')).map((post, index) => (
             <React.Fragment key={post.id}>
               <FeedCard
                 post={post}

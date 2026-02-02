@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, Share2, Loader2, Volume2, Square, MessageSquare, Check, X, Send, Heart } from 'lucide-react';
+import { Mic, Share2, Loader2, Volume2, Square, MessageSquare, Check, X, Send, Heart, RotateCcw } from 'lucide-react';
 import { FamilyMemberUpdate } from '../types';
 import GuardianButton from './GuardianButton';
 import { GoogleGenAI } from "@google/genai";
@@ -9,6 +9,14 @@ interface UpdateCardProps {
   onShare?: (message: string) => void;
   onClick?: () => void;
   customTitle?: string;
+  onLike?: (liked: boolean) => void;
+  showLikedLabel?: boolean;
+  likedByName?: string;
+  onMessageSent?: (message: string) => void;
+  displayMessage?: string;
+  showSendBy?: boolean;
+  messageButtonText?: string;
+  onMessageButtonClick?: () => void;
 }
 
 // Helper functions for Gemini TTS audio decoding
@@ -41,7 +49,7 @@ async function decodeAudioData(
   return buffer;
 }
 
-const UpdateCard: React.FC<UpdateCardProps> = ({ update, onShare, onClick, customTitle }) => {
+const UpdateCard: React.FC<UpdateCardProps> = ({ update, onShare, onClick, customTitle, onLike, showLikedLabel, likedByName, onMessageSent, displayMessage, showSendBy, messageButtonText, onMessageButtonClick }) => {
   const [aiReply, setAiReply] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [isReading, setIsReading] = useState(false);
@@ -209,6 +217,9 @@ const UpdateCard: React.FC<UpdateCardProps> = ({ update, onShare, onClick, custo
     setSent(true);
     setVoiceState('idle');
     triggerVibration([100, 50, 100]);
+    if (onMessageSent && aiReply) {
+      onMessageSent(aiReply);
+    }
     setTimeout(() => {
       setSent(false);
       setAiReply("");
@@ -226,7 +237,11 @@ const UpdateCard: React.FC<UpdateCardProps> = ({ update, onShare, onClick, custo
 
   const toggleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLiked(!liked);
+    const newLikedState = !liked;
+    setLiked(newLikedState);
+    if (onLike) {
+      onLike(newLikedState);
+    }
   };
 
   return (
@@ -244,6 +259,17 @@ const UpdateCard: React.FC<UpdateCardProps> = ({ update, onShare, onClick, custo
           />
           <div className="absolute top-6 left-6 bg-black/50 text-white px-4 py-1.5 rounded-full font-bold font-heading text-sm">
             Today
+          </div>
+
+          {/* Location and Temperature - Top Right */}
+          <div className="absolute top-6 right-6 flex flex-col items-end gap-3">
+            <div className="flex items-center gap-1 text-white font-medium font-heading text-sm drop-shadow-lg">
+              <span className="material-symbols-outlined !text-sm">location_on</span>
+              <span>{update.location}</span>
+            </div>
+            <div className="text-white font-bold font-heading text-5xl drop-shadow-lg">
+              {update.temperature}℃
+            </div>
           </div>
 
           {/* Like Button: Heart Shape with LIKE text */}
@@ -265,21 +291,43 @@ const UpdateCard: React.FC<UpdateCardProps> = ({ update, onShare, onClick, custo
           </button>
         </div>
 
+        {/* Display Message Below Image */}
+        {displayMessage && (
+          <div className="px-8 pt-6 pb-2 space-y-1">
+            <p className="text-base text-gray-900 font-medium break-words">
+              {displayMessage}
+            </p>
+            {showSendBy && (
+              <p className="text-xs text-gray-500 font-medium">
+                Send by
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Content Body */}
         <div className="p-8 space-y-6">
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h3 className="font-bold font-heading text-xl text-gray-900">
               {customTitle || `Lovely weather for ${displayName}!`}
             </h3>
-            <p className="text-xs text-gray-500">
-              Temp: {update.temperature}°C • London
-            </p>
+            {showSendBy && (
+              <p className="text-xs text-gray-500 font-medium">
+                Send by {displayName}
+              </p>
+            )}
+            {showLikedLabel && likedByName && (
+              <div className="inline-flex items-center gap-2 bg-[#FFD700] text-gray-900 px-4 py-2 rounded-full font-bold font-heading text-sm shadow-md">
+                <span className="text-lg">⭐</span>
+                <span>{likedByName} Liked This</span>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-4 pt-2">
             {/* Main Action Button */}
             <GuardianButton
-              onClick={update.actionType === 'voice' ? handleMessageClick : handleReadToMe}
+              onClick={onMessageButtonClick || (update.actionType === 'voice' ? handleMessageClick : handleReadToMe)}
               disabled={loading}
               className={`flex-1 h-20 !rounded-2xl shadow-md active:scale-95 transition-transform border-0
                 ${(voiceState === 'recording' || isReading)
@@ -297,7 +345,7 @@ const UpdateCard: React.FC<UpdateCardProps> = ({ update, onShare, onClick, custo
                 <>
                   <MessageSquare size={24} className="text-white" />
                   <span className="text-lg text-white">
-                    MESSAGE
+                    {messageButtonText || 'MESSAGE'}
                   </span>
                 </>
               )}
@@ -318,73 +366,69 @@ const UpdateCard: React.FC<UpdateCardProps> = ({ update, onShare, onClick, custo
       {/* Recording / Review Overlay Panel */}
       {(voiceState === 'recording' || voiceState === 'finished') && (
         <div className="fixed inset-0 z-[550] bg-black/60 backdrop-blur-md flex flex-col justify-end animate-in fade-in duration-300" onClick={(e) => e.stopPropagation()}>
-          <div className="bg-white rounded-t-[3.5rem] max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-500 shadow-[0_-20px_100px_rgba(0,0,0,0.5)]">
-            <div className="p-8 pt-4 pb-16 flex flex-col items-center gap-6">
-              {/* Decorative Grab Handle */}
-              <div className="w-12 h-1.5 bg-gray-300 rounded-full mb-2"></div>
-
-              {/* Modal Top Row */}
-              <div className="w-full flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${voiceState === 'recording' ? 'bg-neon animate-pulse' : 'bg-neon'}`}></div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-neon">Voice Recording</span>
-                </div>
-                <button 
-                  onClick={closeOverlay} 
-                  className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 active:scale-90 transition-transform shrink-0"
+          <div className="bg-white rounded-t-[2.5rem] max-h-[80vh] overflow-y-auto animate-in slide-in-from-bottom duration-500 shadow-2xl mb-[calc(6rem+env(safe-area-inset-bottom))]">
+            <div className="p-6 space-y-6 pb-6">
+              <div className="flex justify-between items-center">
+                <span className="text-xl font-bold font-heading text-gray-900">
+                  {voiceState === 'recording' ? "Recording Message..." : "Ready to Send?"}
+                </span>
+                <button
+                  onClick={closeOverlay}
+                  className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 active:scale-90 hover:bg-gray-200"
                 >
-                  <span className="material-symbols-outlined !text-xl">close</span>
+                  <X size={24} strokeWidth={3} />
                 </button>
               </div>
 
-              {/* Large Interactive Mic Button */}
-              <div className="relative py-4">
-                {voiceState === 'recording' && (
-                  <>
-                    <div className="absolute inset-0 rounded-full bg-neon/30 animate-ping"></div>
-                    <div className="absolute -inset-3 rounded-full bg-neon/20 animate-pulse"></div>
-                  </>
-                )}
-                <button 
-                  onClick={(e) => handleVoiceToggle(e)}
-                  className={`w-28 h-28 rounded-full flex items-center justify-center shadow-xl relative z-10 transition-all duration-300 ${voiceState === 'recording' ? 'bg-neon scale-110' : 'bg-gray-100 active:scale-95'}`}
-                >
-                  <span className={`material-symbols-outlined !text-5xl ${voiceState === 'recording' ? 'text-white filled' : 'text-gray-400'}`}>
-                    {voiceState === 'recording' ? 'mic' : 'mic_none'}
-                  </span>
-                </button>
-              </div>
-
-              {/* Transcription and Feedback Text */}
-              <div className="w-full text-center min-h-[120px] flex flex-col justify-center gap-2 px-4">
-                <p className={`text-[10px] font-bold uppercase tracking-[0.3em] ${voiceState === 'recording' ? 'text-neon' : 'text-gray-400'}`}>
-                  {voiceState === 'recording' ? 'Listening...' : aiReply ? 'Captured' : 'Tap to start'}
+              <div className={`p-6 rounded-xl border min-h-[140px] flex items-center justify-center text-center transition-all shadow-sm
+                ${voiceState === 'recording' ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}
+              >
+                <p className={`text-lg font-medium leading-relaxed ${voiceState === 'recording' ? 'text-guardian-blue' : aiReply ? 'text-gray-900' : 'text-gray-400'}`}>
+                  {aiReply || (voiceState === 'recording' ? "..." : `Say something to ${displayName}...`)}
                 </p>
-                <div className="max-h-32 overflow-y-auto w-full">
-                  <h3 className="text-2xl font-bold text-gray-900 leading-snug tracking-tight break-words px-2">
-                    {aiReply || (voiceState === 'recording' ? "Say something to " + displayName : "Ready to record")}
-                    {voiceState === 'recording' && <span className="inline-block w-1 h-6 bg-neon ml-1 animate-pulse align-middle"></span>}
-                  </h3>
-                </div>
               </div>
 
-              {/* Sheet Actions Footer */}
-              <div className="w-full flex gap-4 mt-2 mb-12">
-                <button 
+              <div className="flex flex-col items-center gap-4 pb-4">
+              <div className="flex flex-col items-center gap-3">
+                <button
+                  onClick={(e) => handleVoiceToggle(e)}
+                  className={`w-24 h-24 rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(26,95,122,0.3)] transition-all transform hover:scale-105 active:scale-95
+                      ${voiceState === 'recording'
+                      ? 'bg-[#E57C23] animate-pulse'
+                      : 'bg-gradient-to-tr from-[#1A5F7A] to-[#548CA8]'}`}
+                >
+                  {voiceState === 'recording' ? (
+                    <Square size={32} fill="white" className="text-white" />
+                  ) : (
+                    <Mic size={36} className="text-white" />
+                  )}
+                </button>
+                <span className={`text-sm font-bold font-heading uppercase tracking-widest ${voiceState === 'recording' ? 'text-[#E57C23]' : 'text-[#1A5F7A]'}`}>
+                  {voiceState === 'recording' ? 'TAP TO STOP' : 'TAP TO TRY AGAIN'}
+                </span>
+              </div>
+
+              <div className="w-full flex gap-4">
+                 <button
                   onClick={handleRetry}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 rounded-3xl py-4 text-gray-600 font-bold text-xs tracking-widest uppercase transition-all flex items-center justify-center gap-2 active:scale-95"
+                  className="flex-1 h-16 bg-gray-50 hover:bg-gray-100 rounded-2xl text-gray-600 font-bold font-heading text-lg flex items-center justify-center gap-2 active:scale-95 transition-transform"
                 >
-                  <span className="material-symbols-outlined !text-sm">replay</span>
-                  Retry
+                  <RotateCcw size={20} />
+                  RETRY
                 </button>
-                <button 
-                  disabled={!aiReply}
-                  onClick={handleSendReply}
-                  className="flex-[1.5] bg-neon hover:bg-green-600 active:bg-green-700 rounded-3xl py-4 text-white font-bold text-xs tracking-widest uppercase shadow-lg transition-all active:scale-95 disabled:opacity-30 flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined !text-sm filled">send</span>
-                  Send Message
-                </button>
+
+                {aiReply && voiceState !== 'recording' && (
+                  <GuardianButton
+                    onClick={handleSendReply}
+                    className="flex-[2] h-16 !bg-guardian-blue rounded-2xl shadow-lg active:translate-y-1 active:shadow-md border-0 gap-3"
+                  >
+                    <Send size={24} fill="white" />
+                    <span className="text-xl font-bold font-heading uppercase tracking-tight text-white">
+                      SEND
+                    </span>
+                  </GuardianButton>
+                )}
+                </div>
               </div>
             </div>
           </div>

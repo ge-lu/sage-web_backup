@@ -141,32 +141,32 @@ export const RobotView: React.FC<RobotViewProps> = ({ onBack }) => {
     const gasAlert = envData.gas !== 'Normal';
 
     return (
-        <div className="flex flex-col h-full bg-black text-white relative">
+        <div className="flex flex-col h-full bg-[#F5F7F9] text-gray-900 relative">
             {/* Header */}
-            <div className="p-6 pb-2 flex items-center gap-4">
+            <div className="sticky top-0 z-50 bg-[#F5F7F9] border-b border-gray-200 px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-6 flex items-center gap-3">
                 <button
                     onClick={onBack}
-                    className="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                    className="w-14 h-14 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors shadow-sm -ml-2 active:scale-95"
                     aria-label="Back to dashboard"
                 >
-                    <ChevronLeft size={24} />
+                    <ChevronLeft size={28} />
                 </button>
                 <div className="flex-1">
                     <div className="flex items-center gap-2">
-                        <h2 className="text-2xl font-bold truncate max-w-[150px]">{robotName}</h2>
+                        <h2 className="text-2xl font-bold truncate max-w-[150px] text-gray-900">{robotName}</h2>
                         <button
                             onClick={() => setShowSettings(true)}
-                            className="p-1.5 rounded-full hover:bg-zinc-800 text-zinc-500 hover:text-white transition-colors"
+                            className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
                         >
                             <Settings size={16} />
                         </button>
-                        <div className="flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800 ml-auto md:ml-2">
-                            <div className={`w-2 h-2 rounded-full ${connectionStatus === 'Connected' ? 'bg-neon' : 'bg-red-500'}`}></div>
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase">{connectionStatus}</span>
+                        <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full border border-gray-200 shadow-sm ml-auto md:ml-2">
+                            <div className={`w-2 h-2 rounded-full ${connectionStatus === 'Connected' ? 'bg-guardian-blue' : 'bg-red-500'}`}></div>
+                            <span className="text-xs font-bold font-heading text-gray-500 uppercase">{connectionStatus}</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className={`${privacyShieldActive ? 'text-orange-500' : 'text-neon'} text-xs font-bold uppercase`}>
+                        <span className="text-guardian-blue text-sm font-bold font-heading uppercase tracking-wide">
                             {privacyShieldActive ? 'Privacy Mode Active' : 'System Online'}
                         </span>
                     </div>
@@ -184,38 +184,38 @@ export const RobotView: React.FC<RobotViewProps> = ({ onBack }) => {
 
             {/* Settings Modal */}
             {showSettings && (
-                <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in">
-                    <div className="bg-zinc-900 w-full max-w-sm rounded-[32px] border border-zinc-800 p-6 shadow-2xl relative">
+                <div className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in">
+                    <div className="bg-white w-full max-w-sm rounded-[32px] border border-gray-200 p-6 shadow-2xl relative">
                         <button
                             onClick={() => setShowSettings(false)}
-                            className="absolute top-6 right-6 text-zinc-500 hover:text-white"
+                            className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-50 rounded-full p-1"
                         >
                             <X size={24} />
                         </button>
 
-                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                            <UserCog size={24} className="text-neon" /> Personalization
+                        <h3 className="text-xl font-bold font-heading mb-6 flex items-center gap-2 text-gray-900">
+                            <UserCog size={24} className="text-guardian-blue" /> Personalization
                         </h3>
 
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Robot Name</label>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Robot Name</label>
                                 <input
                                     type="text"
                                     value={robotName}
                                     onChange={(e) => setRobotName(e.target.value)}
-                                    className="w-full bg-black border border-zinc-700 rounded-xl p-3 text-white font-bold focus:border-neon outline-none transition-colors"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-900 font-bold focus:border-guardian-blue outline-none transition-colors focus:ring-2 focus:ring-guardian-blue/20"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Personality</label>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Personality</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {['Caring Companion', 'Strict Guardian'].map((p) => (
                                         <button
                                             key={p}
                                             onClick={() => setPersonality(p)}
-                                            className={`p-3 rounded-xl border text-sm font-bold transition-all ${personality === p ? 'bg-neon text-black border-neon' : 'bg-black text-zinc-400 border-zinc-800'}`}
+                                            className={`p-3 rounded-xl border text-sm font-bold transition-all ${personality === p ? 'bg-guardian-blue text-white border-guardian-blue' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}
                                         >
                                             {p}
                                         </button>
@@ -224,13 +224,13 @@ export const RobotView: React.FC<RobotViewProps> = ({ onBack }) => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Notification Sound</label>
-                                <div className="flex items-center gap-2 bg-black border border-zinc-700 rounded-xl p-2">
-                                    <Volume2 size={20} className="text-zinc-500 ml-2" />
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Notification Sound</label>
+                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-2 px-3">
+                                    <Volume2 size={20} className="text-gray-500" />
                                     <select
                                         value={soundTheme}
                                         onChange={(e) => setSoundTheme(e.target.value)}
-                                        className="bg-transparent text-white font-bold text-sm w-full p-2 outline-none"
+                                        className="bg-transparent text-gray-900 font-bold text-sm w-full p-2 outline-none"
                                     >
                                         <option>Soft Chime</option>
                                         <option>Alert Beep</option>
@@ -241,7 +241,7 @@ export const RobotView: React.FC<RobotViewProps> = ({ onBack }) => {
 
                             <button
                                 onClick={() => setShowSettings(false)}
-                                className="w-full bg-white text-black font-black text-lg py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                                className="w-full bg-guardian-blue text-white font-bold font-heading text-lg py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-lg shadow-blue-200"
                             >
                                 <Save size={20} /> Save Changes
                             </button>
@@ -256,15 +256,15 @@ export const RobotView: React.FC<RobotViewProps> = ({ onBack }) => {
                 {/* Video Feed Area */}
                 <div
                     onClick={() => videoState === 'blurred' && handleConnect()}
-                    className={`rounded-[32px] overflow-hidden aspect-video relative border transition-all duration-500 shadow-2xl group ${videoState === 'emergency' ? 'border-red-500 shadow-red-900/20' : 'border-zinc-800'} ${videoState === 'blurred' ? 'cursor-pointer hover:border-zinc-600' : ''}`}
+                    className={`rounded-[32px] overflow-hidden aspect-video relative border transition-all duration-500 shadow-xl group ${videoState === 'emergency' ? 'border-red-500 shadow-red-900/20' : 'border-gray-200 bg-white'} ${videoState === 'blurred' ? 'cursor-pointer hover:border-gray-300' : ''}`}
                 >
                     <div className={`absolute inset-0 bg-zinc-800 bg-[url('https://images.unsplash.com/photo-1516387938699-a93567ec168e?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center transition-all duration-700 ${videoState === 'blurred' || videoState === 'requesting' ? 'blur-2xl scale-110 opacity-50' : 'blur-0 opacity-100'}`}></div>
 
                     {privacyShieldActive && (
                         <div className="absolute inset-0 bg-zinc-950 z-50 flex flex-col items-center justify-center text-zinc-500">
                             <EyeOff size={48} className="mb-4" />
-                            <h3 className="text-xl font-bold text-zinc-300">Privacy Shield Closed</h3>
-                            <p className="text-sm">Cam & Mic Disabled</p>
+                            <h3 className="text-xl font-bold font-heading text-zinc-300">Privacy Shield Closed</h3>
+                            <p className="text-sm font-sans">Cam & Mic Disabled</p>
                         </div>
                     )}
 
@@ -281,12 +281,12 @@ export const RobotView: React.FC<RobotViewProps> = ({ onBack }) => {
                                     ) : videoState === 'live' ? (
                                         <>
                                             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                                            <span className="text-xs font-bold uppercase tracking-wider">Live Feed</span>
+                                            <span className="text-xs font-bold font-heading uppercase tracking-wider">Live Feed</span>
                                         </>
                                     ) : (
                                         <>
                                             <Lock size={12} className="text-zinc-400" />
-                                            <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">Encrypted</span>
+                                            <span className="text-xs font-bold font-heading uppercase tracking-wider text-zinc-300">Encrypted</span>
                                         </>
                                     )}
                                 </div>
@@ -301,7 +301,7 @@ export const RobotView: React.FC<RobotViewProps> = ({ onBack }) => {
                             {/* Central Area for Connect/Loading */}
                             <div className="flex-1 flex items-center justify-center pointer-events-none">
                                 {videoState === 'blurred' && (
-                                    <div className="bg-white text-black px-6 py-3 rounded-full font-bold flex items-center gap-3 hover:scale-105 transition-transform shadow-lg shadow-white/10 pointer-events-auto">
+                                    <div className="bg-white text-black px-6 py-3 rounded-full font-bold font-heading flex items-center gap-3 hover:scale-105 transition-transform shadow-lg shadow-white/10 pointer-events-auto">
                                         <Play size={20} fill="currentColor" /> Tap to Connect
                                     </div>
                                 )}
@@ -359,20 +359,20 @@ export const RobotView: React.FC<RobotViewProps> = ({ onBack }) => {
                 {/* Voice Command Bar */}
                 <button
                     onClick={handleVoiceCommand}
-                    className={`w-full p-4 rounded-[20px] flex items-center gap-4 transition-all border ${isListening ? 'bg-neon/10 border-neon text-neon' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800'}`}
+                    className={`w-full p-4 rounded-[20px] flex items-center gap-4 transition-all border shadow-sm ${isListening ? 'bg-neon/10 border-neon' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
                 >
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isListening ? 'bg-neon text-black animate-pulse' : 'bg-black text-white'}`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isListening ? 'bg-neon text-black animate-pulse' : 'bg-[#F5F9FF] text-guardian-blue'}`}>
                         <Mic size={24} />
                     </div>
                     <div className="text-left flex-1">
-                        <div className="font-bold text-lg text-white">{isListening ? 'Listening...' : 'Voice Command'}</div>
-                        <div className="text-zinc-500 text-sm">{isListening ? `Try "${robotName}, look left"` : 'Tap to speak'}</div>
+                        <div className={`font-bold font-heading text-lg ${isListening ? 'text-neon' : 'text-gray-900'}`}>{isListening ? 'Listening...' : 'Voice Command'}</div>
+                        <div className="text-gray-500 font-sans text-sm">{isListening ? `Try "${robotName}, look left"` : 'Tap to speak'}</div>
                     </div>
                 </button>
 
                 {/* --- HOME ENVIRONMENT --- */}
                 <div>
-                    <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-3 pl-2">Home Environment</h3>
+                    <h3 className="text-2xl font-bold font-heading text-gray-900 mb-4 ml-2">Home Environment</h3>
 
                     {/* AI Alert Banner */}
                     {(tempAlert || humidAlert || gasAlert) && (
@@ -389,82 +389,94 @@ export const RobotView: React.FC<RobotViewProps> = ({ onBack }) => {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className={`p-4 rounded-[24px] border flex flex-col gap-2 ${tempAlert || humidAlert ? 'bg-red-900/10 border-red-500/50' : 'bg-zinc-900 border-zinc-800'}`}>
-                            <div className="flex items-center gap-2 text-orange-400">
-                                <Thermometer size={18} />
-                                <span className={`font-bold text-sm ${tempAlert ? 'text-red-400' : ''}`}>{envData.temp}°F</span>
+                <div className="grid grid-cols-2 gap-4"> {/* Increased gap */}
+                    <div className={`p-4 rounded-xl border flex flex-col gap-3 shadow-sm ${tempAlert || humidAlert ? 'bg-white border-red-500 shadow-red-100' : 'bg-white border-gray-200'}`}>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#F5F9FF] flex items-center justify-center text-guardian-blue">
+                                <Thermometer size={20} />
                             </div>
-                            <div className="flex items-center gap-2 text-blue-400">
-                                <Droplets size={18} />
-                                <span className={`font-bold text-sm ${humidAlert ? 'text-red-400' : ''}`}>{envData.humidity}%</span>
-                            </div>
-                            <p className="text-[10px] text-zinc-500 font-bold uppercase mt-1">Comfort</p>
+                            <span className={`font-bold font-heading text-2xl ${tempAlert ? 'text-red-500' : 'text-gray-900'}`}>{envData.temp}°F</span>
                         </div>
-
-                        <div className="bg-zinc-900 p-4 rounded-[24px] border border-zinc-800 flex flex-col justify-between">
-                            <div className="flex items-center gap-2 text-green-500">
-                                <Wind size={20} />
-                                <span className="font-bold text-sm">{envData.airQuality}</span>
+                        <div className="flex items-center gap-3">
+                             <div className="w-10 h-10 rounded-full bg-[#F5F9FF] flex items-center justify-center text-guardian-blue">
+                                <Droplets size={20} />
                             </div>
-                            <p className="text-[10px] text-zinc-500 font-bold uppercase">Air Quality</p>
+                            <span className={`font-bold font-heading text-2xl ${humidAlert ? 'text-red-500' : 'text-gray-900'}`}>{envData.humidity}%</span>
                         </div>
-
-                        <div className="bg-zinc-900 p-4 rounded-[24px] border border-zinc-800 flex flex-col justify-between">
-                            <div className="flex items-center gap-2 text-yellow-500">
-                                {envData.light === 'Low' ? <Moon size={20} /> : <Sun size={20} />}
-                                <span className="font-bold text-sm">{envData.light}</span>
-                            </div>
-                            <p className="text-[10px] text-zinc-500 font-bold uppercase">Lighting</p>
-                        </div>
-
-                        {/* Gas Detection Card */}
-                        <div className={`p-4 rounded-[24px] border flex flex-col justify-between ${gasAlert ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>
-                            <div className="flex items-center gap-2">
-                                <Flame size={20} className={gasAlert ? 'text-red-500 animate-bounce' : 'text-zinc-500'} />
-                                <span className={`font-bold text-sm ${gasAlert ? 'text-white' : 'text-zinc-300'}`}>{envData.gas}</span>
-                            </div>
-                            <p className="text-[10px] font-bold uppercase">Gas Level</p>
-                        </div>
+                        <p className="text-xs text-gray-400 font-bold uppercase mt-1 tracking-wider">Comfort</p>
                     </div>
+
+                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#F5F9FF] flex items-center justify-center text-guardian-blue">
+                                <Wind size={20} />
+                            </div>
+                            <span className="font-bold font-heading text-2xl text-gray-900">{envData.airQuality}</span>
+                        </div>
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Air Quality</p>
+                    </div>
+
+                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+                         <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#F5F9FF] flex items-center justify-center text-guardian-blue">
+                                {envData.light === 'Low' ? <Moon size={20} /> : <Sun size={20} />}
+                            </div>
+                            <span className="font-bold font-heading text-2xl text-gray-900">{envData.light}</span>
+                        </div>
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Lighting</p>
+                    </div>
+
+                    {/* Gas Detection Card */}
+                    <div className={`p-4 rounded-xl border flex flex-col justify-between shadow-sm ${gasAlert ? 'bg-white border-red-500 shadow-red-100' : 'bg-white border-gray-200'}`}>
+                         <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${gasAlert ? 'bg-red-50 text-red-500 animate-pulse' : 'bg-gray-50 text-gray-400'}`}>
+                                <Flame size={20} />
+                            </div>
+                            <span className={`font-bold font-heading text-2xl ${gasAlert ? 'text-red-500' : 'text-gray-900'}`}>{envData.gas}</span>
+                        </div>
+                        <p className="text-xs font-bold uppercase text-gray-400 tracking-wider">Gas Level</p>
+                    </div>
+                </div>
                 </div>
 
                 {/* --- ELDERLY ACTIVITY & SECURITY --- */}
-                <div className="grid grid-cols-2 gap-3">
-                    <div className={`p-5 rounded-[24px] border transition-colors col-span-2 ${activityData.anomalies > 0 ? 'bg-zinc-900 border-orange-500/50' : 'bg-zinc-900 border-zinc-800'}`}>
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2 text-neon">
-                                <UserCheck size={20} />
-                                <h4 className="font-bold text-sm uppercase tracking-wide text-white">Elderly Activity</h4>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className={`p-5 rounded-xl border transition-colors col-span-2 shadow-sm ${activityData.anomalies > 0 ? 'bg-white border-guardian-blue shadow-blue-100' : 'bg-white border-gray-200'}`}>
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full bg-[#F5F9FF] flex items-center justify-center text-guardian-blue">
+                                    <UserCheck size={20} />
+                                </div>
+                                <h4 className="font-bold font-heading text-lg text-gray-900">Elderly Activity</h4>
                             </div>
                             {activityData.anomalies > 0 && (
-                                <span className="bg-orange-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full uppercase">Anomaly</span>
+                                <span className="bg-guardian-blue text-white text-xs font-black font-heading px-3 py-1 rounded-full uppercase tracking-wider">Anomaly</span>
                             )}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="grid grid-cols-2 gap-6 mb-4 px-1">
                             <div>
-                                <p className="text-[10px] text-zinc-500 uppercase font-bold">Last Seen</p>
-                                <p className="text-zinc-300 font-bold text-sm">{activityData.lastSeen}</p>
-                                <p className="text-xs text-zinc-500">{activityData.location}</p>
+                                <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Last Seen</p>
+                                <p className="text-gray-900 font-bold text-lg font-heading">{activityData.lastSeen}</p>
+                                <p className="text-sm text-gray-500 font-medium">{activityData.location}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] text-zinc-500 uppercase font-bold">Movement</p>
-                                <p className="text-zinc-300 font-bold text-sm">{activityData.movements} walks today</p>
+                                <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Movement</p>
+                                <p className="text-gray-900 font-bold text-lg font-heading">{activityData.movements} walks</p>
                             </div>
                         </div>
 
                         {/* Detailed Anomaly Logs */}
                         {activityData.anomalies > 0 && (
-                            <div className="bg-orange-500/10 rounded-xl p-3 border border-orange-500/20">
-                                <p className="text-[10px] text-orange-400 font-bold uppercase mb-2 flex items-center gap-1">
-                                    <AlertTriangle size={10} /> Detection Log
+                            <div className="bg-[#F5F9FF] rounded-xl p-4 border border-blue-100 mt-2">
+                                <p className="text-xs text-guardian-blue font-bold uppercase mb-3 flex items-center gap-2 tracking-wider">
+                                    <AlertTriangle size={14} /> Detection Log
                                 </p>
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     {activityData.anomalyLogs.map((log, i) => (
-                                        <div key={i} className="flex gap-2 items-start text-xs">
-                                            <span className="text-orange-300 font-mono whitespace-nowrap">{log.time}</span>
-                                            <span className="text-zinc-300">{log.desc}</span>
+                                        <div key={i} className="flex gap-3 items-start text-sm">
+                                            <span className="text-guardian-blue font-mono font-bold whitespace-nowrap bg-white px-2 py-0.5 rounded border border-blue-100">{log.time}</span>
+                                            <span className="text-gray-700 font-medium">{log.desc}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -477,29 +489,25 @@ export const RobotView: React.FC<RobotViewProps> = ({ onBack }) => {
                 <div>
                     <div className="flex items-center justify-between mb-3 px-2">
                         <div className="flex items-center gap-2">
-                            <ScrollText size={16} className="text-zinc-500" />
-                            <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Activity Log</h3>
+                            <h3 className="text-2xl font-bold font-heading text-gray-900 mb-2 ml-2">Activity Log</h3>
                         </div>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                         {activityLogs.map((log) => (
-                            <div key={log.id} className="bg-zinc-900 border border-zinc-800 p-4 rounded-[20px] flex gap-4 items-start">
-                                <div className={`mt-1 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${log.type === 'success' ? 'bg-green-500/10 text-green-500' :
-                                    log.type === 'warning' ? 'bg-orange-500/10 text-orange-500' :
-                                        'bg-blue-500/10 text-blue-500'
-                                    }`}>
-                                    {log.icon === 'check' && <ShieldCheck size={16} />}
-                                    {log.icon === 'activity' && <Activity size={16} />}
-                                    {log.icon === 'alert' && <AlertTriangle size={16} />}
-                                    {log.icon === 'shield' && <ShieldCheck size={16} />}
+                            <div key={log.id} className="bg-white border border-gray-200 p-5 rounded-xl flex gap-4 items-start shadow-sm hover:shadow-md transition-shadow">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${log.type === 'warning' ? 'bg-red-50 text-red-500' : 'bg-[#F5F9FF] text-guardian-blue'}`}>
+                                    {log.icon === 'check' && <ShieldCheck size={20} />}
+                                    {log.icon === 'activity' && <Activity size={20} />}
+                                    {log.icon === 'alert' && <AlertTriangle size={20} />}
+                                    {log.icon === 'shield' && <ShieldCheck size={20} />}
                                 </div>
-                                <div className="flex-1">
+                                <div className="flex-1 pt-0.5">
                                     <div className="flex justify-between items-start mb-1">
-                                        <h4 className="font-bold text-white text-sm">{log.title}</h4>
-                                        <span className="text-[10px] font-bold text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded-full">{log.time}</span>
+                                        <h4 className="font-bold font-heading text-gray-900 text-base">{log.title}</h4>
+                                        <span className="text-xs font-bold text-gray-500 bg-gray-50 border border-gray-100 px-2 py-1 rounded-lg">{log.time}</span>
                                     </div>
-                                    <p className="text-xs text-zinc-400 leading-relaxed">{log.desc}</p>
+                                    <p className="text-sm text-gray-500 leading-relaxed font-medium">{log.desc}</p>
                                 </div>
                             </div>
                         ))}
@@ -510,30 +518,29 @@ export const RobotView: React.FC<RobotViewProps> = ({ onBack }) => {
                 <div>
                     <div className="flex items-center justify-between mb-3 px-2 mt-2">
                         <div className="flex items-center gap-2">
-                            <AlertOctagon size={16} className="text-red-500" />
-                            <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Security Events</h3>
+                            <h3 className="text-2xl font-bold font-heading text-gray-900 mb-2 ml-2">Security Events</h3>
                         </div>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                         {securityLogs.map((log) => (
-                            <div key={log.id} className="bg-zinc-900 border border-zinc-800 p-4 rounded-[20px] flex gap-4 items-center">
-                                <div className="w-10 h-10 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center flex-shrink-0">
+                            <div key={log.id} className="bg-white border border-gray-200 p-5 rounded-xl flex gap-4 items-center shadow-sm hover:shadow-md transition-shadow">
+                                <div className="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center flex-shrink-0">
                                     <ShieldAlert size={20} />
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex justify-between items-center mb-1">
-                                        <h4 className="font-bold text-white text-sm">{log.type}</h4>
-                                        <span className="bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">{log.action}</span>
+                                        <h4 className="font-bold font-heading text-gray-900 text-base">{log.type}</h4>
+                                        <span className="bg-red-50 text-red-600 border border-red-100 text-xs font-black font-heading px-2 py-0.5 rounded-lg uppercase tracking-wide">{log.action}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <p className="text-xs text-zinc-400">{log.source}</p>
-                                        <p className="text-[10px] text-zinc-600 font-bold">{log.time}</p>
+                                        <p className="text-sm text-gray-500 font-medium">{log.source}</p>
+                                        <p className="text-xs text-gray-400 font-bold">{log.time}</p>
                                     </div>
                                 </div>
-                                <div className="text-center px-2 border-l border-zinc-800">
-                                    <div className="text-lg font-black text-red-500">{log.risk}</div>
-                                    <div className="text-[8px] font-bold text-zinc-500 uppercase">Risk</div>
+                                <div className="text-center px-3 border-l border-gray-100 ml-2">
+                                    <div className="text-xl font-black font-heading text-red-500">{log.risk}</div>
+                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Risk</div>
                                 </div>
                             </div>
                         ))}

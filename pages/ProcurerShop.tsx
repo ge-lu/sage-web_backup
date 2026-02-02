@@ -78,18 +78,21 @@ const ProcurerShop: React.FC<ProcurerShopProps> = ({ onBack }) => {
   ];
 
   return (
-    <div className="w-full h-full bg-[#F9FAFB] flex flex-col relative overflow-hidden">
+    <div className="w-full h-full bg-[#F5F7F9] flex flex-col relative overflow-hidden">
       
       {/* Top Navigation */}
-      <div className="flex items-center justify-between p-6 bg-white border-b border-gray-100 z-10 shadow-sm pt-safe-top">
-         <button onClick={onBack} className="w-14 h-14 rounded-full flex items-center justify-center hover:bg-gray-100 active:scale-95 transition-transform -ml-2">
-             <Icons.ChevronLeft className="w-8 h-8 text-gray-900" />
+      <header className="sticky top-0 z-50 bg-[#F5F7F9] px-6 pt-[calc(env(safe-area-inset-top)+1rem)] pb-6 border-b border-gray-200 flex items-center justify-between">
+         <button 
+            onClick={onBack} 
+            className="bg-white px-3 py-2.5 rounded-xl border border-gray-200 cursor-pointer active:bg-gray-50 transition-all shadow-sm flex items-center justify-center"
+         >
+             <Icons.ChevronLeft className="w-5 h-5 text-gray-900" />
          </button>
-         <span className="text-xl font-bold text-gray-900">Shopping Assistant</span>
-         <button className="w-14 h-14 rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-900 -mr-2">
-             <Icons.Settings className="w-7 h-7" />
+         <span className="text-2xl font-bold text-gray-900 font-heading tracking-tight">Shopping</span>
+         <button className="bg-white px-3 py-2.5 rounded-xl border border-gray-200 cursor-pointer active:bg-gray-50 transition-all shadow-sm flex items-center justify-center">
+             <Icons.Settings className="w-5 h-5 text-gray-900" />
          </button>
-      </div>
+      </header>
 
       {/* Scrollable Content - Added Extra Padding Bottom (pb-48) to clear floating footer */}
       <div className="flex-1 overflow-y-auto pb-48">
@@ -99,20 +102,20 @@ const ProcurerShop: React.FC<ProcurerShopProps> = ({ onBack }) => {
               <div className="w-56 h-56 bg-gray-50 rounded-3xl mb-6 p-6 flex items-center justify-center relative border border-gray-100">
                    {/* Placeholder for Product Image */}
                    <img src="https://images.unsplash.com/photo-1626806819282-2c1dc01a5e0c?auto=format&fit=crop&q=80&w=300" className="max-h-full object-contain mix-blend-multiply" alt="Tide" />
-                   <div className="absolute bottom-3 right-3 bg-black/80 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">Scanned</div>
+                   <div className="absolute bottom-3 right-3 bg-black/80 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm font-heading">Scanned</div>
               </div>
               
-              <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-2 font-heading">
                   Tide Original Liquid
               </h1>
-              <p className="text-gray-500 font-medium text-lg">
+              <p className="text-gray-500 font-medium text-lg font-sans">
                   100 oz • 汰渍 原味洗衣液
               </p>
           </div>
 
           {/* Guide Text */}
           <div className="px-6 mb-4">
-              <p className="text-gray-900 font-bold text-xl mb-4">Choose Purchase Option</p>
+              <p className="text-gray-900 font-bold text-xl mb-4 font-heading">Choose Purchase Option</p>
               
               {/* Cards List */}
               <div className="space-y-5">
@@ -140,7 +143,7 @@ const ProcurerShop: React.FC<ProcurerShopProps> = ({ onBack }) => {
       {/* Floating Footer - Lifted with pb-safe-offset */}
       <div className="absolute bottom-0 left-0 right-0 px-6 pb-safe-offset pt-8 bg-gradient-to-t from-white via-white to-transparent pointer-events-none">
           <div className="flex gap-4 pointer-events-auto">
-              <button className="flex-1 h-18 py-4 rounded-full bg-gray-900 text-white font-bold text-xl shadow-[0_8px_25px_rgba(0,0,0,0.3)] flex items-center justify-center gap-3 active:scale-95 transition-transform border border-gray-800">
+              <button className="flex-1 h-18 py-4 rounded-full bg-guardian-blue text-white font-bold text-xl shadow-[0_8px_25px_rgba(0,0,0,0.2)] flex items-center justify-center gap-3 active:scale-95 transition-transform font-heading">
                   <Icons.Mic className="w-7 h-7" /> Speak
               </button>
               <button 

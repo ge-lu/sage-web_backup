@@ -194,43 +194,46 @@ export const RideCard: React.FC<RideCardProps> = ({ ride: initialRide }) => {
   return (
     <div
       onClick={() => !isCancelled && setIsExpanded(true)}
-      className={`bg-text-main text-white rounded-[28px] overflow-hidden shadow-xl mb-6 cursor-pointer group transition-all duration-300 relative ${isCancelled ? 'opacity-50 grayscale' : 'hover:scale-[1.01]'}`}
+      className={`bg-white rounded-xl overflow-hidden shadow-sm mb-6 cursor-pointer group transition-all duration-300 relative border border-gray-200 ${isCancelled ? 'opacity-50 grayscale' : 'hover:scale-[1.01] hover:shadow-md'}`}
     >
-      {/* Dark theme specifically for the active ride card to make it pop */}
-      <div className="h-28 bg-zinc-800 relative">
+      {/* Map Header Area */}
+      <div className="h-28 bg-gray-50 relative border-b border-gray-100">
         {initialRide.mapImage && (
-          <img src={initialRide.mapImage} alt="Route Map" className="w-full h-full object-cover opacity-50 mix-blend-overlay" />
+          <img src={initialRide.mapImage} alt="Route Map" className="w-full h-full object-cover opacity-80" />
         )}
-        <div className="absolute top-4 left-4 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full flex items-center gap-2">
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+        <div className="absolute top-4 left-4">
           {!isCancelled ? (
-            <>
-              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-              <span className="text-xs font-bold uppercase tracking-wider text-white">Active Ride</span>
-            </>
+            <div className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-2 border border-gray-200 shadow-sm">
+               <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+               <span className="text-xs font-bold font-heading uppercase tracking-wider text-emerald-700">Active Ride</span>
+            </div>
           ) : (
-            <span className="text-xs font-bold uppercase tracking-wider text-red-300">Cancelled</span>
+            <div className="bg-red-50 px-3 py-1 rounded-full border border-red-100">
+               <span className="text-xs font-bold font-heading uppercase tracking-wider text-red-500">Cancelled</span>
+            </div>
           )}
         </div>
       </div>
 
-      <div className="p-6 pt-0 relative -mt-6">
+      <div className="p-5 pt-0 relative -mt-6">
         <div className="flex justify-between items-end mb-4">
-          <div className="w-16 h-16 bg-white rounded-2xl p-1 shadow-lg">
-            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${initialRide.driver}`} className="w-full h-full rounded-xl bg-gray-100" />
+          <div className="w-16 h-16 bg-white rounded-2xl p-1 shadow-sm border border-gray-100">
+            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${initialRide.driver}`} className="w-full h-full rounded-xl bg-gray-50" />
           </div>
           <div className="text-right mb-1">
-            <p className="text-2xl font-bold">{initialRide.eta}</p>
-            <p className="text-zinc-400 text-sm font-medium">Estimated Arrival</p>
+            <p className="text-3xl font-black font-heading text-blue-600">{initialRide.eta}</p>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Est. Arrival</p>
           </div>
         </div>
 
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="font-bold text-lg">{initialRide.driver}</h3>
-            <p className="text-zinc-400 text-sm">{initialRide.car} • {initialRide.plate}</p>
+            <h3 className="font-bold font-heading text-lg text-gray-900">{initialRide.driver}</h3>
+            <p className="text-gray-500 text-sm font-medium">{initialRide.car} • {initialRide.plate}</p>
           </div>
           {!isCancelled && (
-            <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+            <button className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors border border-blue-100">
               <Phone size={18} />
             </button>
           )}

@@ -193,8 +193,15 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
     setAiReply("");
   };
 
+  const [likeCount, setLikeCount] = useState(post.likes);
+
   const toggleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (liked) {
+      setLikeCount(prev => prev - 1);
+    } else {
+      setLikeCount(prev => prev + 1);
+    }
     setLiked(!liked);
     triggerVibration(50);
   };
@@ -215,7 +222,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
             Today
           </div>
 
-          {/* Updated Like Button: Heart Shape with LIKE text */}
+          {/* Updated Like Button: Heart Shape with Count */}
           <button
             onClick={toggleLike}
             className="absolute bottom-6 right-6 w-16 h-16 flex items-center justify-center active:scale-90 transition-transform"
@@ -227,8 +234,8 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
                 className={`transition-colors ${liked ? "text-[#ff4d4d]" : "text-white/80"}`}
                 strokeWidth={1.5}
               />
-              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold font-sans text-white tracking-widest pt-1">
-                LIKE
+              <span className={`absolute inset-0 flex items-center justify-center font-bold font-sans text-white pt-1 ${likeCount > 0 ? 'text-2xl' : 'text-xs tracking-widest'}`}>
+                {likeCount > 0 ? likeCount : 'LIKE'}
               </span>
             </div>
           </button>
@@ -292,46 +299,46 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
         </div>
       )}
 
-      {/* Recording / Review Overlay Panel */}
+      {/* Recording / Review Overlay Panel - Standardized */}
       {(voiceState === 'recording' || voiceState === 'finished') && (
         <div className="fixed inset-0 z-[550] bg-black/60 backdrop-blur-md flex flex-col justify-end animate-in fade-in duration-300" onClick={(e) => e.stopPropagation()}>
-          <div className="bg-white rounded-t-[3.5rem] p-10 space-y-10 animate-in slide-in-from-bottom duration-500 shadow-[0_-20px_100px_rgba(0,0,0,0.5)]">
+          <div className="bg-white rounded-t-[2.5rem] p-6 space-y-8 animate-in slide-in-from-bottom duration-500 shadow-2xl">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-black font-heading text-gray-400 uppercase tracking-widest">
-                {voiceState === 'recording' ? 'I AM LISTENING...' : 'READY TO SEND?'}
+              <span className="text-xl font-bold font-heading text-gray-900">
+                {voiceState === 'recording' ? "I'm Listening..." : "Ready to Send?"}
               </span>
               <button
                 onClick={closeOverlay}
-                className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 active:scale-90"
+                className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 active:scale-90 hover:bg-gray-200"
               >
-                <X size={32} strokeWidth={3} />
+                <X size={24} strokeWidth={3} />
               </button>
             </div>
 
-            <div className={`p-10 rounded-[3rem] border-[6px] min-h-[200px] flex items-center justify-center text-center transition-all
-              ${voiceState === 'recording' ? 'border-[#1152D4] bg-blue-50' : 'border-gray-200 bg-white shadow-inner'}`}
+            <div className={`p-6 rounded-xl border min-h-[160px] flex items-center justify-center text-center transition-all shadow-sm
+              ${voiceState === 'recording' ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}
             >
-              <p className={`text-3xl font-black font-heading italic leading-tight ${voiceState === 'recording' ? 'text-[#1152D4]' : aiReply ? 'text-[#003366]' : 'text-gray-300'}`}>
-                {aiReply || (voiceState === 'recording' ? "..." : "Tap the Mic below")}
+              <p className={`text-lg font-medium leading-relaxed ${voiceState === 'recording' ? 'text-guardian-blue' : aiReply ? 'text-gray-900' : 'text-gray-400'}`}>
+                {aiReply || (voiceState === 'recording' ? "..." : "Tap the Mic below to start recording")}
               </p>
             </div>
 
-            <div className="flex flex-col items-center gap-8 pb-8">
-              <div className="flex flex-col items-center gap-5">
+            <div className="flex flex-col items-center gap-8 pb-6">
+              <div className="flex flex-col items-center gap-4">
                 <button
                   onClick={(e) => handleVoiceToggle(e)}
-                  className={`w-40 h-40 rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-90 border-[12px] border-white
+                  className={`w-28 h-28 rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(26,95,122,0.3)] transition-all transform hover:scale-105 active:scale-95
                       ${voiceState === 'recording'
-                      ? 'bg-red-500 animate-pulse shadow-[0_0_80px_rgba(239,68,68,0.5)]'
-                      : 'bg-[#1152D4] shadow-[0_25px_50px_rgba(17,82,212,0.4)]'}`}
+                      ? 'bg-[#E57C23] animate-pulse'
+                      : 'bg-gradient-to-tr from-[#1A5F7A] to-[#548CA8]'}`}
                 >
                   {voiceState === 'recording' ? (
-                    <Square size={64} fill="white" className="text-white" />
+                    <Square size={40} fill="white" className="text-white" />
                   ) : (
-                    <Mic size={72} fill="white" className="text-white" />
+                    <Mic size={48} className="text-white" />
                   )}
                 </button>
-                <span className={`text-xl font-black font-heading uppercase tracking-[0.1em] ${voiceState === 'recording' ? 'text-red-500' : 'text-[#003366]'}`}>
+                <span className={`text-sm font-bold font-heading uppercase tracking-widest ${voiceState === 'recording' ? 'text-[#E57C23]' : 'text-[#1A5F7A]'}`}>
                   {voiceState === 'recording' ? 'TAP TO STOP' : 'TAP TO TRY AGAIN'}
                 </span>
               </div>
@@ -339,10 +346,10 @@ const FeedCard: React.FC<FeedCardProps> = ({ post, isNews, onShare, onClick }) =
               {aiReply && voiceState !== 'recording' && (
                 <GuardianButton
                   onClick={handleSendReply}
-                  className="h-36 !bg-[#059669] rounded-[3rem] shadow-[0_15px_0_#064e3b] active:translate-y-2 active:shadow-none border-4 border-white gap-6"
+                  className="w-full h-16 !bg-guardian-blue rounded-2xl shadow-lg active:translate-y-1 active:shadow-md border-0 gap-3"
                 >
-                  <Send size={48} fill="white" />
-                  <span className="text-3xl font-black uppercase tracking-tighter">
+                  <Send size={24} fill="white" />
+                  <span className="text-xl font-bold font-heading uppercase tracking-tight text-white">
                     SEND TO FAMILY
                   </span>
                 </GuardianButton>

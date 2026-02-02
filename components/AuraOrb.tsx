@@ -57,19 +57,19 @@ const AuraOrb: React.FC<AuraFaceProps> = ({ isListening, sentiment = 'neutral' }
       faceContentTransform = "translate(0, -2px)";
 
   } else if (isListening) {
-      // Listening: Attentive, Green, Head Tilt
-      containerClass = "bg-gradient-to-b from-[#064E3B] to-black shadow-[0_0_50px_rgba(0,227,65,0.5)]";
+      // Listening: Attentive, White Glow, Head Tilt
+      containerClass = "bg-gradient-to-b from-gray-700 to-black shadow-[0_0_50px_rgba(255,255,255,0.5)]";
       containerTransform = "rotate(-5deg)";
-      eyeClass = "bg-[#D1FAE5]";
+      eyeClass = "bg-white";
       eyeLeftStyle = "w-14 h-18 rounded-full -translate-y-2";
       eyeRightStyle = "w-14 h-18 rounded-full -translate-y-2";
-      mouthStyle = "w-8 h-6 border-b-[4px] border-[#00E341] rounded-[100%] mt-6"; 
+      mouthStyle = "w-8 h-6 border-b-[4px] border-white rounded-[100%] mt-6"; 
       mouthClass = "";
       faceContentTransform = "translate(0, 0)";
 
   } else if (sentiment === 'active') {
       // Speaking/Active: Smooth rhythmic pulse
-      containerClass = "bg-gradient-to-b from-gray-800 to-black shadow-[0_0_30px_rgba(0,227,65,0.3)] animate-[breathe_2s_ease-in-out_infinite]";
+      containerClass = "bg-gradient-to-b from-gray-800 to-black shadow-[0_0_30px_rgba(255,255,255,0.3)] animate-[breathe_2s_ease-in-out_infinite]";
       eyeClass = "bg-white";
       eyeLeftStyle = "w-12 h-10 rounded-full mt-2"; 
       eyeRightStyle = "w-12 h-10 rounded-full mt-2";
@@ -129,8 +129,8 @@ const AuraOrb: React.FC<AuraFaceProps> = ({ isListening, sentiment = 'neutral' }
           100% { transform: translate(0, 0); }
         }
         @keyframes breathe {
-          0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(0,227,65,0.2); }
-          50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(0,227,65,0.5); }
+          0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(255,255,255,0.2); }
+          50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(255,255,255,0.5); }
         }
       `}</style>
       

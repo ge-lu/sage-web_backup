@@ -403,13 +403,34 @@ export const MOCK_TASKS: Task[] = [
 
 export const MOCK_BILLS: Bill[] = [
   {
+    id: 'b0',
+    title: 'Electric Bill',
+    amount: 398,
+    dueDate: 'Jan 15',
+    status: 'unpaid',
+    category: 'utility',
+    period: '2025-01',
+    totalUsageKwh: 1680,
+    accountNo: '1234567890',
+    aiAnalysis: 'Usage is much higher than usual. Heater or AC may have been left on.',
+    assistanceStatus: 'none',
+    history: [
+      { id: 'p0a', date: 'Dec 15', amount: 97.20, status: 'paid' },
+      { id: 'p0b', date: 'Nov 15', amount: 102.00, status: 'paid' }
+    ]
+  },
+  {
     id: 'b1',
     title: 'AT&T Mobile',
     amount: 145.00,
     dueDate: 'Friday',
     status: 'unpaid',
-    category: 'utility',
-    aiAnalysis: 'This bill is $100 higher than your average monthly payment.',
+    category: 'phone',
+    planName: 'Unlimited',
+    minutesUsed: 420,
+    dataUsedGb: 12,
+    accountNo: '555-123-4567',
+    aiAnalysis: 'This bill is $100 higher than your average monthly payment. Possible causes: overage, new device, or plan change.',
     assistanceStatus: 'none',
     history: [
       { id: 'p1', date: 'Sep 15', amount: 45.00, status: 'paid' },
@@ -537,7 +558,7 @@ export const MOCK_MEDICATIONS: Medication[] = (() => {
       times: ['08:00'],
       instructions: 'Take with water after meals',
       startDate: today,
-      expiryDate: getDateString(-3), // 已过期 3 天 — 用于测试药物过期 UI
+      expiryDate: getDateString(-3), // Expired 3 days ago — for expiry UI test
       source: 'prescription',
       createdAt: now,
       status: 'active'
@@ -560,10 +581,10 @@ export const MOCK_MEDICATIONS: Medication[] = (() => {
       name: 'Vitamin D',
       dosage: '1 capsule',
       frequency: 'Once daily',
-      times: [testTime], // Current time + 2 minutes — 用于验证用药提醒逻辑
+      times: [testTime], // Current time + 2 minutes — for reminder logic test
       instructions: 'Take with meals',
       startDate: today,
-      expiryDate: getDateString(30), // 未过期，便于测试提醒
+      expiryDate: getDateString(30), // Not expired, for reminder test
       source: 'discharge_summary',
       createdAt: now,
       status: 'active'

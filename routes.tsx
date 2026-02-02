@@ -15,6 +15,7 @@ import ProfileView from './pages/ProfileView';
 import SettingsView from './pages/SettingsView';
 import ProcurerShop from './pages/ProcurerShop';
 import RideDetailPage from './pages/RideDetailPage';
+import CarePersonMedicationConfirm from './pages/CarePersonMedicationConfirm';
 
 // Components acting as pages/modals
 import ChatOverlay from './components/ChatOverlay';
@@ -76,6 +77,10 @@ export const routes: RouteObject[] = [
   {
     path: '/ride-detail',
     element: <RideDetailPage />,
+  },
+  {
+    path: '/medication-confirm',
+    element: <CarePersonMedicationConfirm />,
   },
 ];
 

@@ -66,14 +66,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onComplete, onUpdate, 
 
     return (
         <article
-            className={`rounded-[28px] p-6 shadow-card transition-all duration-300 relative overflow-hidden border border-white ${isCompleted ? 'bg-gray-100 opacity-60 grayscale' : 'bg-white'}`}
+            className={`rounded-xl p-5 shadow-sm transition-all duration-300 relative overflow-hidden border border-gray-200 hover:shadow-md ${isCompleted ? 'bg-gray-50 opacity-60 grayscale' : 'bg-white'}`}
             aria-labelledby={`task-title-${task.id}`}
             aria-describedby={`task-desc-${task.id}`}
         >
-            <div className="flex justify-between items-start mb-6">
+            <div className="flex justify-between items-start mb-5">
                 <div className="flex gap-4">
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${getIconBg()}`}>
-                        {getIcon()}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${getIconBg()}`}>
+                        {React.cloneElement(getIcon() as React.ReactElement, { size: 20 })}
                     </div>
                     <div>
                         <div className="flex items-center gap-2 mb-1">
@@ -88,7 +88,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onComplete, onUpdate, 
                                 </div>
                             )}
                         </div>
-                        <h3 id={`task-title-${task.id}`} className={`text-xl font-bold ${isCompleted ? 'text-gray-500' : 'text-text-main'}`}>
+                        <h3 id={`task-title-${task.id}`} className={`text-lg font-bold font-heading ${isCompleted ? 'text-gray-500' : 'text-gray-900'}`}>
                             {task.title}
                         </h3>
                         <p id={`task-desc-${task.id}`} className="text-text-sub text-sm font-medium">
@@ -175,9 +175,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onComplete, onUpdate, 
                     <button
                         onClick={onComplete}
                         aria-label={`Mark ${task.title} as completed`}
-                        className="flex-1 bg-neon text-white font-bold text-lg py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform hover:bg-emerald-600 shadow-lg shadow-emerald-500/20"
+                        className="flex-1 bg-neon text-white font-bold font-heading uppercase tracking-wide text-sm py-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform hover:bg-emerald-600 shadow-md shadow-emerald-500/20"
                     >
-                        <CheckCircle2 size={24} /> Take Now
+                        <CheckCircle2 size={18} /> Take Now
                     </button>
                     {task.reminderSettings.snoozeEnabled && !snoozed && (
                         <button
@@ -185,7 +185,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onComplete, onUpdate, 
                             className="flex-shrink-0 w-16 bg-gray-100 text-gray-500 rounded-2xl flex items-center justify-center active:scale-95 transition-transform hover:bg-gray-200"
                             aria-label={`Snooze ${task.title}`}
                         >
-                            <BellOff size={24} />
+                            <BellOff size={20} />
                         </button>
                     )}
                     {snoozed && (
@@ -195,8 +195,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onComplete, onUpdate, 
                     )}
                 </div>
             ) : (
-                <div role="status" className="w-full bg-gray-50 text-gray-400 font-bold text-lg py-3 rounded-2xl flex items-center justify-center gap-2 border border-gray-100">
-                    <CheckCircle2 size={24} /> Completed
+                <div role="status" className="w-full bg-gray-50 text-gray-400 font-bold font-heading text-sm uppercase tracking-wide py-3 rounded-xl flex items-center justify-center gap-2 border border-gray-100">
+                    <CheckCircle2 size={18} /> Completed
                 </div>
             )}
         </article>

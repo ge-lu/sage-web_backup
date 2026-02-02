@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import BottomNav from './components/BottomNav';
 import Onboarding from './components/Onboarding';
@@ -16,6 +16,7 @@ import ProfileView from './pages/ProfileView';
 import SettingsView from './pages/SettingsView';
 import ProcurerShop from './pages/ProcurerShop';
 import RideDetailPage from './pages/RideDetailPage';
+import CarePersonMedicationConfirm from './pages/CarePersonMedicationConfirm';
 import LoginView from './pages/LoginView';
 import SignUpView from './pages/SignUpView';
 import ForgotPasswordView from './pages/ForgotPasswordView';
@@ -25,100 +26,39 @@ import { checkPaywallTrigger } from './util/paywallUtils';
 
 import { AppMode, HistoryItem, TaskCard } from './types';
 import { getPathForMode } from './routes';
+import { useAuthStore } from './stores/useAuthStore';
+import { useDataStore } from './stores/useDataStore';
 // import VConsole from 'vconsole';
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-  }, []);
 
   // --- 1. GLOBAL APP STATE (The Source of Truth) ---
-  const [isAppLoading, setIsAppLoading] = useState(true);
+  // --- STORE STATE ---
+  const { isAuthenticated, isLoading: isAppLoading, loginReason, checkAuth, setLoginReason } = useAuthStore();
+  const { addHistoryItem } = useDataStore(); // Example usage for saving history if needed
 
-  // --- 2. USER & AUTH STATE ---
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showPaywall, setShowPaywall] = useState(false);
-  const [loginReason, setLoginReason] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
-  // --- 3. DATA STATE (Shared across views) ---
-  const [initialChatQuery, setInitialChatQuery] = useState("");
-  const [initialChatAction, setInitialChatAction] = useState<string | null>(null);
-  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([
-    { id: '1', title: 'Blocked suspicious call', subtitle: 'Potential spam risk', time: '10:15 AM', type: 'scam', status: 'blocked' },
-    { id: '2', title: 'Ordered Milk', subtitle: 'Whole milk, 1 gallon from Kroger', time: '9:00 AM', type: 'order', status: 'completed' },
-    { id: '3', title: 'Read prescription', subtitle: 'Identified "Lisinopril" 10mg', time: '8:30 AM', type: 'scan', status: 'completed' },
-    { id: '6', title: 'Utility Bill (Electric)', subtitle: 'Due on Oct 28th', time: 'Yesterday', type: 'scan' },
-  ]);
-
-  // Shared Task State (Lifted from PlanView)
-  const [tasks, setTasks] = useState<TaskCard[]>([
-    {
-      id: '1',
-      type: 'SMART_MEDS',
-      title: 'Morning Meds',
-      subtitle: 'Check the bottle',
-      detail: '1 Red Pill, 1 White Pill',
-      time: '8:00 AM',
-      completed: false,
-      image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=200'
-    },
-    {
-      id: '2',
-      type: 'BILL_SAFE',
-      title: 'Electric Bill',
-      subtitle: 'Verified Safe',
-      detail: '$45.20 due Oct 28',
-      completed: false,
-      verifiedBy: 'John'
-    },
-    {
-      id: '3',
-      type: 'BILL_RISK',
-      title: 'Urgent IRS Notice',
-      subtitle: 'Scam Alert!',
-      detail: 'Do not pay. Discard.',
-      completed: false,
-    },
-    {
-      id: '4',
-      type: 'ROUTINE',
-      title: 'Hydration',
-      subtitle: 'Drink Water',
-      detail: 'Glass 1 of 3',
-      completed: false,
-    }
-  ]);
-
-  const handleTaskUpdate = (updatedTasks: TaskCard[]) => {
-    setTasks(updatedTasks);
-  };
+  // UI State
+  const [showOnboarding, setShowOnboarding] = React.useState(false); // Kept local if UI-only
+  const [showPaywall, setShowPaywall] = React.useState(false);
 
   // --- INITIALIZATION ---
   useEffect(() => {
     const hasVisited = localStorage.getItem('aura_has_visited');
-    const authStatus = localStorage.getItem('aura_is_authenticated');
-
     if (!hasVisited) {
       setShowOnboarding(true);
-    } else if (authStatus === 'true') {
-      setIsAuthenticated(true);
     }
-
-    setIsAppLoading(false);
+    // Auth check is handled by store now
   }, []);
 
-  // --- HISTORY HANDLERS ---
-  const handleAddHistoryItem = (item: HistoryItem) => setHistoryItems(prev => [item, ...prev]);
-  const handleDeleteHistoryItem = (id: string) => setHistoryItems(prev => prev.filter(item => item.id !== id));
-  const handleToggleHistoryImportance = (id: string) => {
-    setHistoryItems(prev => prev.map(item => item.id === id ? { ...item, isImportant: !item.isImportant } : item));
-  };
-  const handleShareHistoryItem = (item: HistoryItem) => {
-    if (navigator.share) navigator.share({ title: item.title, text: item.subtitle }).catch(console.error);
-    else alert(`Sharing: ${item.title}`);
-  };
+  // Data state (tasks, history) is now in useDataStore and accessed directly by components
+
+
 
   // --- NAVIGATION CONTROLLER (The "Flow" Guard) ---
   const handleNavigation = (mode: AppMode) => {
@@ -176,9 +116,13 @@ const AppContent: React.FC = () => {
   const handleCheckPaywall = (type: 'voice' | 'photo') => {
     const shouldShow = checkPaywallTrigger(type);
     if (shouldShow) {
-      setShowPaywall(true);
+      // setShowPaywall(true);
     }
   };
+
+  // Chat state can remain local local or moved to store if needed globally later
+  const [initialChatQuery, setInitialChatQuery] = React.useState("");
+  const [initialChatAction, setInitialChatAction] = React.useState<string | null>(null);
 
   const startChat = (query: string = "", action: string | null = null) => {
     setInitialChatQuery(query);
@@ -211,7 +155,7 @@ const AppContent: React.FC = () => {
           {/* 1. Auth Views */}
           <Route path="/login" element={
             <LoginView
-              onLoginSuccess={() => { setIsAuthenticated(true); setLoginReason(undefined); handleNavigation(AppMode.DASHBOARD); }}
+              onLoginSuccess={() => { handleNavigation(AppMode.DASHBOARD); }}
               onNavigate={handleNavigation} // Legacy prop support
               loginMessage={loginReason}
               onClose={() => handleNavigation(AppMode.DASHBOARD)}
@@ -219,7 +163,7 @@ const AppContent: React.FC = () => {
           } />
           <Route path="/signup" element={
             <SignUpView
-              onLoginSuccess={() => { setIsAuthenticated(true); handleNavigation(AppMode.DASHBOARD); }}
+              onLoginSuccess={() => { handleNavigation(AppMode.DASHBOARD); }}
               onNavigate={handleNavigation}
             />
           } />
@@ -243,7 +187,6 @@ const AppContent: React.FC = () => {
               initialQuery={initialChatQuery}
               initialAction={initialChatAction}
               onVoiceInteraction={() => { trackUsage('voice'); handleCheckPaywall('voice'); }}
-              onSaveHistory={handleAddHistoryItem}
             />
           } />
           <Route path="/ride-request" element={
@@ -253,18 +196,13 @@ const AppContent: React.FC = () => {
             <ProcurerShop onBack={() => handleNavigation(AppMode.PLAN)} />
           } />
           <Route path="/ride-detail" element={<RideDetailPage />} />
+          <Route path="/medication-confirm" element={<CarePersonMedicationConfirm />} />
 
           {/* 3. Main Tab Views */}
           <Route path="/family-connections" element={<FamilyConnectionsView onPhotoFixUsed={() => handleCheckPaywall('photo')} />} />
           <Route path="/plan" element={
             <PlanView
               onOpenGuide={() => setShowOnboarding(true)}
-              items={historyItems}
-              tasks={tasks}
-              onUpdateTasks={handleTaskUpdate}
-              onToggleImportant={handleToggleHistoryImportance}
-              onDelete={handleDeleteHistoryItem}
-              onShare={handleShareHistoryItem}
             />
           } />
           <Route path="/profile" element={
@@ -274,7 +212,11 @@ const AppContent: React.FC = () => {
           } />
           <Route path="/settings" element={
             <RequireAuth>
-              <SettingsView onBack={() => handleNavigation(AppMode.DASHBOARD)} />
+              <SettingsView 
+                onBack={() => handleNavigation(AppMode.DASHBOARD)} 
+                onNavigate={handleNavigation}
+                onLogout={() => { /* Handled in SettingsView */ }}
+              />
             </RequireAuth>
           } />
           <Route path="/all-activity" element={
@@ -286,7 +228,6 @@ const AppContent: React.FC = () => {
             <Dashboard
               isListening={false}
               setIsListening={() => startChat()}
-              pendingTasks={tasks.filter(t => !t.completed)}
               onSearch={(q) => startChat(q)}
               onFileSelected={() => startChat("", "ANALYZE_FILE")}
               onTriggerSOS={() => navigate(getPathForMode(AppMode.GUARDIAN_ALERT))}

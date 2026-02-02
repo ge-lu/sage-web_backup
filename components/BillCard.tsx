@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ShieldCheck, Zap, HeartPulse, RefreshCw, FileText, Receipt, ChevronDown, ChevronUp, History, Clock, AlertCircle, Sparkles, Users, Send, Info, TrendingUp, Check, ArrowUpRight, HelpCircle } from 'lucide-react';
+import { ShieldCheck, Zap, HeartPulse, RefreshCw, FileText, Receipt, Phone, ChevronDown, ChevronUp, History, Clock, AlertCircle, Sparkles, Users, Send, Info, TrendingUp, Check, ArrowUpRight, HelpCircle, AlertTriangle } from 'lucide-react';
 import { Bill, PaymentRecord } from '../types';
 import { MOCK_CONTACTS } from '../constants';
 import tts from '../util/TTSindex';
@@ -16,6 +16,10 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
     const [showHelpSelector, setShowHelpSelector] = useState(false);
     const [assistanceRequested, setAssistanceRequested] = useState(bill.assistanceStatus === 'requested');
     const [showExplain, setShowExplain] = useState(false);
+    const [showElectricDetails, setShowElectricDetails] = useState(false);
+    const [showPhoneDetails, setShowPhoneDetails] = useState(false);
+    const [showAbnormalReason, setShowAbnormalReason] = useState(false);
+    const [showAiInsight, setShowAiInsight] = useState(false);
 
     // Find primary caregiver (John) for quick access
     const primaryCaregiver = MOCK_CONTACTS.find(c => c.name === 'John');
@@ -53,6 +57,14 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                     bg: 'bg-violet-100',
                     border: 'border-violet-200',
                     text: 'text-violet-800'
+                };
+            case 'phone':
+                return {
+                    icon: <Phone size={20} className="text-teal-600" aria-hidden="true" />,
+                    label: 'Phone',
+                    bg: 'bg-teal-100',
+                    border: 'border-teal-200',
+                    text: 'text-teal-800'
                 };
             default:
                 return {
@@ -104,7 +116,7 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
 
     return (
         <article
-            className="bg-white rounded-[28px] p-6 shadow-card border border-white group transition-all duration-300 relative overflow-hidden"
+            className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 group transition-all duration-300 relative overflow-hidden hover:shadow-md"
             aria-labelledby={`bill-title-${bill.id}`}
         >
             {/* Header Row */}
@@ -120,9 +132,10 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                                 id={`category-select-${bill.id}`}
                                 value={bill.category}
                                 onChange={handleCategoryChange}
-                                className={`appearance-none bg-transparent ${text} font-bold tracking-tight text-xs uppercase cursor-pointer focus:outline-none pr-1`}
+                                className={`appearance-none bg-transparent ${text} font-bold font-heading tracking-tight text-xs uppercase cursor-pointer focus:outline-none pr-1`}
                             >
                                 <option value="utility">Utility</option>
+                                <option value="phone">Phone</option>
                                 <option value="medical">Medical</option>
                                 <option value="subscription">Subs</option>
                                 <option value="tax">Tax</option>
@@ -133,21 +146,23 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                     </div>
                 </div>
 
-                {bill.status === 'paid' ? (
-                    <span className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold uppercase border border-emerald-100 flex items-center gap-1">
-                        <ShieldCheck size={12} /> Paid
-                    </span>
-                ) : (
-                    <span className="bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-xs font-bold uppercase border border-rose-100 flex items-center gap-1">
-                        <Clock size={12} /> Unpaid
-                    </span>
-                )}
+                <div className="flex items-center gap-2 flex-wrap justify-end">
+                    {bill.status === 'paid' ? (
+                        <span className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold font-heading uppercase border border-emerald-100 flex items-center gap-1">
+                            <ShieldCheck size={12} /> Paid
+                        </span>
+                    ) : (
+                        <span className="bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-xs font-bold font-heading uppercase border border-rose-100 flex items-center gap-1">
+                            <Clock size={12} /> Unpaid
+                        </span>
+                    )}
+                </div>
             </div>
 
             {/* Main Content */}
             <div className="flex items-baseline justify-between mb-2">
-                <h3 id={`bill-title-${bill.id}`} className="text-text-main text-xl font-bold">{bill.title}</h3>
-                <p className="text-text-main text-3xl font-black tracking-tight" aria-label={`Amount: ${bill.amount} dollars`}>
+                <h3 id={`bill-title-${bill.id}`} className="text-text-main text-xl font-bold font-heading">{bill.title}</h3>
+                <p className="text-text-main text-3xl font-black font-heading tracking-tight" aria-label={`Amount: ${bill.amount} dollars`}>
                     ${bill.amount.toFixed(2)}
                 </p>
             </div>
@@ -155,16 +170,105 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                 <Clock size={14} /> Due {bill.dueDate}
             </p>
 
-            {/* 税务账单专属：税年 / 表单项 */}
+            {/* Electric bill: one-line summary (Period · Usage), collapsible "Details" only when Account No exists */}
+            {bill.category === 'utility' && (bill.period != null || bill.totalUsageKwh != null || bill.accountNo != null) && (
+                <div className="mb-4">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-amber-800">
+                        {bill.period != null && <span className="font-medium">{bill.period}</span>}
+                        {bill.totalUsageKwh != null && (
+                            <span className="text-amber-700">{bill.totalUsageKwh.toLocaleString()} KWh</span>
+                        )}
+                        {bill.accountNo != null && (
+                            <button
+                                type="button"
+                                onClick={() => setShowElectricDetails(!showElectricDetails)}
+                                aria-expanded={showElectricDetails}
+                                aria-controls={`electric-details-${bill.id}`}
+                                className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-800 font-medium"
+                            >
+                                {showElectricDetails ? 'Hide details' : 'Details'}
+                                {showElectricDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                            </button>
+                        )}
+                    </div>
+                    {showElectricDetails && bill.accountNo != null && (
+                        <div id={`electric-details-${bill.id}`} className="mt-3 rounded-xl border border-amber-100 bg-amber-50/60 p-3">
+                            <span className="text-[10px] font-bold font-heading uppercase tracking-wider text-amber-600/90">Account No</span>
+                            <p className="mt-0.5 font-mono text-sm font-bold text-amber-900">{bill.accountNo}</p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Phone/telecom bill: plan · minutes · data, collapsible account details */}
+            {bill.category === 'phone' && (bill.planName != null || bill.minutesUsed != null || bill.dataUsedGb != null || bill.accountNo != null) && (
+                <div className="mb-4">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-teal-800">
+                        {bill.planName != null && <span className="font-medium">{bill.planName}</span>}
+                        {bill.minutesUsed != null && (
+                            <span className="text-teal-700">{bill.minutesUsed.toLocaleString()} min</span>
+                        )}
+                        {bill.dataUsedGb != null && (
+                            <span className="text-teal-700">{bill.dataUsedGb} GB</span>
+                        )}
+                        {bill.accountNo != null && (
+                            <button
+                                type="button"
+                                onClick={() => setShowPhoneDetails(!showPhoneDetails)}
+                                aria-expanded={showPhoneDetails}
+                                aria-controls={`phone-details-${bill.id}`}
+                                className="inline-flex items-center gap-1 text-teal-600 hover:text-teal-800 font-medium"
+                            >
+                                {showPhoneDetails ? 'Hide details' : 'Details'}
+                                {showPhoneDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                            </button>
+                        )}
+                    </div>
+                    {showPhoneDetails && bill.accountNo != null && (
+                        <div id={`phone-details-${bill.id}`} className="mt-3 rounded-xl border border-teal-100 bg-teal-50/60 p-3">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600/90">Account No</span>
+                            <p className="mt-0.5 font-mono text-sm font-bold text-teal-900">{bill.accountNo}</p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Abnormal usage: compact, collapsible for full reason */}
+            {bill.usageStatus === 'abnormal' && bill.abnormalReason && (
+                <div className="mb-4">
+                    <button
+                        type="button"
+                        onClick={() => setShowAbnormalReason(!showAbnormalReason)}
+                        aria-expanded={showAbnormalReason}
+                        aria-controls={`abnormal-reason-${bill.id}`}
+                        className="w-full flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left hover:bg-amber-50/80 transition-colors"
+                    >
+                        <div className="shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
+                            <AlertTriangle size={16} className="text-amber-700" aria-hidden="true" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <p className="font-bold font-heading text-amber-900 text-sm">ABNORMAL USAGE DETECTED</p>
+                            {showAbnormalReason ? (
+                                <p id={`abnormal-reason-${bill.id}`} className="mt-1 text-sm text-amber-800 leading-relaxed">{bill.abnormalReason}</p>
+                            ) : (
+                                <p className="mt-0.5 text-xs text-amber-700">Tap for details</p>
+                            )}
+                        </div>
+                        {showAbnormalReason ? <ChevronUp size={16} className="text-amber-600 shrink-0" /> : <ChevronDown size={16} className="text-amber-600 shrink-0" />}
+                    </button>
+                </div>
+            )}
+
+            {/* Tax bill: tax year / form type */}
             {bill.category === 'tax' && (bill.taxYear || bill.formType) ? (
                 <div className="flex flex-wrap gap-2 mb-6">
                     {bill.taxYear && (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-violet-50 text-violet-700 border border-violet-100">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold font-heading bg-violet-50 text-violet-700 border border-violet-100">
                             Tax Year {bill.taxYear}
                         </span>
                     )}
                     {bill.formType && (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-violet-50 text-violet-700 border border-violet-100">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold font-heading bg-violet-50 text-violet-700 border border-violet-100">
                             Form {bill.formType}
                         </span>
                     )}
@@ -173,91 +277,107 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                 <div className="mb-6" />
             )}
 
-            {/* AI Insight Section */}
+            {/* AI Insight: collapsible for utility & phone bills, always open for others */}
             {bill.aiAnalysis && bill.status !== 'paid' && (
-                <section
-                    className="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-4 mb-6 relative overflow-hidden"
-                    aria-label="AI Analysis"
-                >
-                    <div className="flex gap-3 mb-4">
-                        <div className="mt-0.5 p-1.5 bg-indigo-100 rounded-lg">
-                            <Sparkles size={16} className="text-indigo-600" aria-hidden="true" />
-                        </div>
-                        <div className="flex-1">
+                <section className="mb-6" aria-label="AI Analysis">
+                    {(bill.category === 'utility' || bill.category === 'phone') ? (
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => setShowAiInsight(!showAiInsight)}
+                                aria-expanded={showAiInsight}
+                                aria-controls={`ai-insight-${bill.id}`}
+                                className="flex w-full items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50/50 p-3 text-left hover:bg-indigo-50/80 transition-colors"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <div className="p-1.5 bg-indigo-100 rounded-lg">
+                                        <Sparkles size={14} className="text-indigo-600" aria-hidden="true" />
+                                    </div>
+                                    <span className="font-bold  font-heading text-indigo-900 text-sm">AI Insight</span>
+                                </div>
+                                {showAiInsight ? <ChevronUp size={16} className="text-indigo-600" /> : <ChevronDown size={16} className="text-indigo-600" />}
+                            </button>
+                            {showAiInsight && (
+                                <div id={`ai-insight-${bill.id}`} className="mt-3 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
+                                    <p className="text-indigo-800 text-sm leading-relaxed">{bill.aiAnalysis}</p>
+                                    <div className="flex justify-between items-center rounded-xl bg-white p-3 border border-indigo-50">
+                                        <div>
+                                            <span className="text-[10px] text-gray-400 font-bold font-heading uppercase tracking-wider">6-Month Avg</span>
+                                            <p className="font-bold font-heading text-gray-700">${historyAvg.toFixed(2)}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-[10px] text-gray-400 font-bold font-heading uppercase tracking-wider">Current</span>
+                                            <div className="flex items-center gap-1.5 justify-end">
+                                                <span className="font-bold font-heading text-gray-900">${bill.amount.toFixed(2)}</span>
+                                                {historyCount > 0 && (
+                                                    <span className={`text-xs font-bold font-heading px-1.5 py-0.5 rounded ${diff > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                                                        {diff > 0 ? '+' : ''}{diffPercent.toFixed(0)}%
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowExplain(!showExplain)}
+                                        aria-expanded={showExplain}
+                                        className="flex items-center gap-1.5 text-[10px] font-bold font-heading text-indigo-600"
+                                    >
+                                        <HelpCircle size={12} /> {showExplain ? 'Hide' : 'Explain'} analysis
+                                    </button>
+                                    {showExplain && (
+                                        <p className="text-xs text-indigo-700 leading-relaxed">
+                                            The system compared this bill to your past payments. A spike of {diffPercent.toFixed(0)}% was detected, possibly due to increased usage or rate changes.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4">
                             <div className="flex justify-between items-start mb-2">
-                                <h4 className="text-indigo-900 font-bold text-sm">AI Insight</h4>
+                                <h4 className="text-indigo-900 font-bold font-heading text-sm">AI Insight</h4>
                                 <button
                                     onClick={() => setShowExplain(!showExplain)}
                                     aria-expanded={showExplain}
-                                    aria-controls={`explain-${bill.id}`}
-                                    className="flex items-center gap-1.5 text-[10px] font-bold bg-white text-indigo-600 border border-indigo-200 px-2.5 py-1 rounded-full hover:bg-indigo-50 transition-colors shadow-sm"
+                                    className="flex items-center gap-1.5 text-[10px] font-bold font-heading bg-white text-indigo-600 border border-indigo-200 px-2.5 py-1 rounded-full hover:bg-indigo-50"
                                 >
-                                    <HelpCircle size={12} /> Explain Analysis
+                                    <HelpCircle size={12} /> Explain
                                 </button>
                             </div>
                             <p className="text-indigo-800 text-sm leading-relaxed">{bill.aiAnalysis}</p>
-
-                            {/* Expandable Explanation */}
                             {showExplain && (
-                                <div
-                                    id={`explain-${bill.id}`}
-                                    className="mt-3 p-3 bg-white/80 backdrop-blur-sm rounded-xl border border-indigo-100 text-xs text-indigo-700 animate-in fade-in slide-in-from-top-1"
-                                >
-                                    <strong>Detailed Breakdown:</strong>
-                                    <p className="mt-1 leading-relaxed opacity-90">
-                                        The system analyzed your past 6 months of payments. A spike of {diffPercent.toFixed(0)}% was detected compared to the seasonal average, possibly due to increased usage or rate changes.
-                                    </p>
-                                </div>
+                                <p className="mt-2 text-xs text-indigo-700 leading-relaxed">
+                                    The system analyzed your past payments. A spike of {diffPercent.toFixed(0)}% was detected compared to the average.
+                                </p>
                             )}
                         </div>
-                    </div>
-
-                    {/* History Data Visualization */}
-                    <div className="bg-white rounded-xl p-3 border border-indigo-50 shadow-sm flex items-center justify-between gap-4">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">6-Month Avg</span>
-                            <span className="text-gray-600 font-bold text-lg">${historyAvg.toFixed(2)}</span>
-                        </div>
-
-                        <div className="h-8 w-px bg-gray-100"></div>
-
-                        <div className="flex flex-col items-end">
-                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Current Bill</span>
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-gray-900 font-bold text-lg">${bill.amount.toFixed(2)}</span>
-                                {historyCount > 0 && (
-                                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${diff > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                                        {diff > 0 ? '+' : ''}{diffPercent.toFixed(0)}%
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                    )}
                 </section>
             )}
 
-            {/* Actions：确认已付 → 打钩反馈 → 移入 Completed */}
+            {/* Actions: confirm paid, then move to Completed */}
             {bill.status === 'paid' ? (
                 <div className="mb-6 py-3 px-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-center gap-2 animate-in zoom-in-95 duration-300">
                     <Check size={20} className="text-emerald-600" strokeWidth={3} aria-hidden="true" />
-                    <span className="text-emerald-800 font-bold text-sm">Payment approved</span>
+                    <span className="text-emerald-800 font-bold font-heading text-sm uppercase tracking-wide">Payment approved</span>
                 </div>
             ) : !assistanceRequested ? (
                 <div className="grid grid-cols-2 gap-3 mb-6">
                     <button
                         type="button"
                         onClick={handleApprove}
-                        className="bg-emerald-500 text-white font-bold py-3.5 rounded-xl text-sm hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transform"
+                        className="bg-emerald-500 text-white font-bold font-heading py-3.5 rounded-xl text-sm hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transform uppercase tracking-wide"
                         aria-label={`Confirm paid for $${bill.amount}`}
                     >
-                        <Check size={18} strokeWidth={3} /> Confirm paid
+                        <Check size={18} strokeWidth={3} /> CONFIRM PAID
                     </button>
 
                     {primaryCaregiver ? (
                         <button
                             type="button"
                             onClick={() => handleHelpRequest(primaryCaregiver.id)}
-                            className="bg-gray-900 text-white font-bold py-3.5 rounded-xl text-sm hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-lg shadow-gray-200 active:scale-95 transform"
+                            className="bg-gray-900 text-white font-bold font-heading py-3.5 rounded-xl text-sm hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-lg shadow-gray-200 active:scale-95 transform uppercase tracking-wide"
                             aria-label={`Ask ${primaryCaregiver.name} for help`}
                         >
                             <div className="w-5 h-5 rounded-full border border-white/30 overflow-hidden">
@@ -271,7 +391,7 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                             onClick={() => setShowHelpSelector(!showHelpSelector)}
                             aria-expanded={showHelpSelector}
                             aria-controls={`help-selector-${bill.id}`}
-                            className="bg-white text-text-main border border-gray-200 font-bold py-3.5 rounded-xl text-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 shadow-sm active:scale-95 transform"
+                            className="bg-white text-text-main border border-gray-200 font-bold font-heading py-3.5 rounded-xl text-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 shadow-sm active:scale-95 transform uppercase tracking-wide"
                         >
                             <Users size={18} /> Ask for Help
                         </button>
@@ -280,14 +400,14 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
             ) : (
                 <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6 flex items-center justify-center gap-2 animate-in fade-in">
                     <Send size={18} className="text-emerald-600" />
-                    <span className="text-emerald-800 font-bold text-sm">Request sent to Circle</span>
+                    <span className="text-emerald-800 font-bold font-heading text-sm uppercase tracking-wide">Request sent to Circle</span>
                 </div>
             )}
 
             {/* Contact Selector Overlay (Fallback) */}
             {showHelpSelector && !assistanceRequested && (
                 <div id={`help-selector-${bill.id}`} className="mb-6 bg-gray-50 rounded-xl p-3 animate-in slide-in-from-top-2 border border-gray-100">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Who to ask?</p>
+                    <p className="text-xs font-bold font-heading text-gray-400 uppercase tracking-wider mb-2">Who to ask?</p>
                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                         {MOCK_CONTACTS.map(contact => (
                             <button
@@ -311,7 +431,7 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                     onClick={() => setShowHistory(!showHistory)}
                     aria-expanded={showHistory}
                     aria-controls={`history-list-${bill.id}`}
-                    className="flex items-center justify-between w-full text-text-sub hover:text-text-main font-bold text-xs uppercase tracking-wide group p-1 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between w-full text-text-sub hover:text-text-main font-bold font-heading text-xs uppercase tracking-wider group p-1 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                     <div className="flex items-center gap-2">
                         <History size={14} />
@@ -326,7 +446,7 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onUpdate, onAskForHelp
                             <li key={record.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
                                 <span className="text-gray-500 font-medium text-xs">{record.date}</span>
                                 <div className="flex items-center gap-2">
-                                    <span className="font-bold text-text-main text-sm">${record.amount.toFixed(2)}</span>
+                                    <span className="font-bold font-heading text-text-main text-sm">${record.amount.toFixed(2)}</span>
                                     {getStatusIcon(record.status)}
                                 </div>
                             </li>

@@ -3,6 +3,7 @@ import { X, Volume2, Heart, Share2, Award, Send, Facebook, MessageCircle, Check,
 import { GoogleGenAI } from "@google/genai";
 import GuardianButton from './GuardianButton';
 import SectionTitle from './SectionTitle';
+import { PhotoRestoration, getRestorationList } from '@/services/phoneApi';
 
 interface JourneyFlowProps {
   onClose: () => void;
@@ -10,7 +11,7 @@ interface JourneyFlowProps {
 
 type JourneyView = 'main' | 'sharing';
 
-const TIMELINE_MEMORIES = [
+const TIMELINE_MEMORIES: any[] = [
   {
     id: 1,
     who: "Grandson Tommy",
@@ -70,10 +71,31 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
   const [isReading, setIsReading] = useState(false);
   const [sharingStep, setSharingStep] = useState<'select' | 'sending' | 'success'>('select');
   const [shareDestination, setShareDestination] = useState('');
-
+  const [timelineMemories, setTimelineMemories] = useState<any[]>([]);
   // Image Viewer State
-  const [selectedMemory, setSelectedMemory] = useState<typeof TIMELINE_MEMORIES[0] | null>(null);
+  const [selectedMemory, setSelectedMemory] = useState<any | null>(null);
   const [sliderPos, setSliderPos] = useState(50);
+
+  useEffect(() => {
+    const fetchMemories = async () => {
+      try {
+        const list = await getRestorationList();
+        console.log("list", list);
+        const mappedList = list.map(item => ({
+          ...item,
+          who: "Me",
+          action: "restored this photo",
+          title: item.description || "Restored Memory",
+          before: item.originalUrl,
+          after: item.fixedUrl || item.originalUrl
+        }));
+        setTimelineMemories(mappedList);
+      } catch (error) {
+        console.error("Failed to fetch timeline memories:", error);
+      }
+    };
+    fetchMemories();
+  }, []);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -199,7 +221,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
               <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 flex items-center gap-4">
                 <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
                   <img
-                    src={TIMELINE_MEMORIES[0].after}
+                    src={timelineMemories[0]?.after || "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1000&auto=format&fit=crop"}
                     className="w-full h-full object-cover"
                     alt="Preview"
                   />
@@ -289,16 +311,19 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
         )}
 
         {sharingStep === 'success' && (
-        <div className="flex-1 bg-green-500 flex flex-col items-center justify-center p-10 text-center">
-          <div className="w-56 h-56 bg-white rounded-full flex items-center justify-center mb-10 shadow-2xl">
-            <Check size={100} strokeWidth={4} className="text-green-500" />
-          </div>
-          <h2 className="text-5xl font-black font-heading text-white mb-4 uppercase">Done!</h2>
-          <button
-            onClick={onClose}
-            className="w-full bg-white text-green-500 py-8 rounded-[2.5rem] text-4xl font-black shadow-[0_12px_0_rgba(20,200,20,0.5)] uppercase"
-          >
-              Back To Home
+          <div className="absolute inset-0 bg-[#F5F7F9] flex flex-col items-center justify-center p-6 z-[800] text-center animate-in zoom-in-95 duration-500">
+            <div className="w-48 h-48 bg-white rounded-full flex items-center justify-center mb-8 shadow-sm border border-gray-100 animate-in zoom-in duration-500">
+              <Check size={96} strokeWidth={5} className="text-guardian-blue" />
+            </div>
+            <h2 className="text-4xl font-bold font-heading text-guardian-blue mb-4 uppercase tracking-tight">Good News!</h2>
+            <p className="text-xl text-gray-500 font-medium mb-12 px-6 leading-relaxed max-w-md">
+              Your family will love this! ❤️
+            </p>
+            <button
+              onClick={onClose}
+              className="w-full max-w-sm h-16 bg-guardian-blue text-white rounded-2xl text-xl font-bold font-heading shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2 uppercase tracking-wide"
+            >
+              Finish
             </button>
           </div>
         )}
@@ -376,7 +401,6 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
       )}
 
       {/* Header Area */}
-      {/* Header Area */}
       <div className="sticky top-0 z-50 bg-[#F5F7F9] px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-6 border-b border-gray-200 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
           <button
@@ -388,14 +412,17 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
 
           <h2 className="text-gray-900 font-heading text-2xl font-bold tracking-tight whitespace-nowrap">Life Story</h2>
         </div>
-
-        <button
-          onClick={handleShareClick}
-          className="bg-guardian-blue text-white px-5 py-3 rounded-full flex items-center gap-2 shadow-md active:scale-95 transition-all"
-        >
-          <Share2 size={18} strokeWidth={3} />
-          <span className="text-sm font-black font-heading uppercase tracking-widest">Share</span>
-        </button>
+        {
+          timelineMemories.length > 0 && (
+            <button
+              onClick={handleShareClick}
+              className="bg-guardian-blue text-white px-5 py-3 rounded-full flex items-center gap-2 shadow-md active:scale-95 transition-all"
+            >
+              <Share2 size={18} strokeWidth={3} />
+              <span className="text-sm font-black font-heading uppercase tracking-widest">Share</span>
+            </button>
+          )
+        }
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar pt-6">
@@ -435,8 +462,8 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
           <button
             onClick={handleSpeak}
             className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold font-heading uppercase text-sm tracking-wide shadow-sm active:translate-y-0.5 transition-all border mb-4
-              ${isReading 
-                ? 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100' 
+              ${isReading
+                ? 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'
                 : 'bg-[#F5F9FF] text-guardian-blue border-blue-100 hover:bg-blue-50'
               }`}
           >
@@ -452,7 +479,7 @@ const JourneyFlow: React.FC<JourneyFlowProps> = ({ onClose }) => {
             {/* Journey Line */}
             <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-0.5 bg-gray-200" />
 
-            {TIMELINE_MEMORIES.map((memory) => (
+            {timelineMemories.map((memory) => (
               <div key={memory.id} className="relative z-10">
 
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 space-y-5">

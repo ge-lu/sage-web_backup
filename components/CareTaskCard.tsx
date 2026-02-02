@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Heart, Activity, Pill, CheckCircle2, Repeat, Settings, Bell, BellOff, Volume2, X } from 'lucide-react';
-import { CareTask } from '../types';
+import { Task } from '../types';
 
 interface CareTaskCardProps {
-    task: CareTask;
+    task: Task;
     onComplete: () => void;
-    onUpdate: (updates: Partial<CareTask>) => void;
+    onUpdate: (updates: Partial<Task>) => void;
 }
 
 export const CareTaskCard: React.FC<CareTaskCardProps> = ({ task, onComplete, onUpdate }) => {
@@ -41,7 +41,7 @@ export const CareTaskCard: React.FC<CareTaskCardProps> = ({ task, onComplete, on
     };
 
     const updateRecurrence = (value: string) => {
-        onUpdate({ recurrence: value as CareTask['recurrence'] });
+        onUpdate({ recurrence: value as Task['recurrence'] });
     };
 
     const toggleSnoozeOption = () => {
@@ -57,7 +57,7 @@ export const CareTaskCard: React.FC<CareTaskCardProps> = ({ task, onComplete, on
         onUpdate({
             reminderSettings: {
                 ...task.reminderSettings,
-                alertSound: value as CareTask['reminderSettings']['alertSound']
+                alertSound: value as Task['reminderSettings']['alertSound']
             }
         });
     };

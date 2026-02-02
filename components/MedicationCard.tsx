@@ -11,7 +11,7 @@ interface MedicationCardProps {
   onDelete: () => void;
 }
 
-// 将 24h 时间转为 AM/PM 显示
+// Format 24h time as AM/PM
 const formatTimeAMPM = (time: string) => {
   const [h, m] = time.split(':').map(Number);
   const period = h >= 12 ? 'PM' : 'AM';
@@ -19,12 +19,13 @@ const formatTimeAMPM = (time: string) => {
   return `${hour.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${period}`;
 };
 
-// 将 frequency 转为 Repeat 显示
+// Map frequency string to repeat label
 const getRepeatLabel = (frequency: string) => {
   const lower = frequency.toLowerCase();
-  if (lower.includes('once') || lower.includes('daily') || lower.includes('每日1次')) return 'Daily';
-  if (lower.includes('twice') || lower.includes('每日2次')) return 'Twice daily';
-  if (lower.includes('three') || lower.includes('每日3次')) return 'Three times daily';
+  if (lower.includes('once') || lower.includes('daily')) return 'Daily';
+  if (lower.includes('twice')) return 'Twice daily';
+  if (lower.includes('three')) return 'Three times daily';
+  if (lower.includes('every 8') || lower.includes('8 hour')) return 'Every 8 hours';
   return frequency;
 };
 
@@ -93,94 +94,76 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
 
   return (
     <article
-      className={`rounded-[24px] overflow-hidden shadow-card transition-all duration-300 relative border ${isExpired
-        ? 'bg-white border-red-200'
-        : isExpiringSoon
-          ? 'bg-white border-amber-200'
-          : isReminderActive && isActive
-            ? 'bg-white border-emerald-400 ring-2 ring-emerald-400/30 shadow-lg'
-            : isTaken
-              ? 'bg-gray-50 border-gray-200 opacity-70'
-              : 'bg-white border-gray-200'
-        }`}
+      className={`rounded-xl overflow-hidden shadow-sm transition-all duration-300 relative border ${
+        isReminderActive && isActive
+          ? 'bg-white border-blue-400 ring-4 ring-blue-50'
+          : 'bg-white border-blue-200'
+      } hover:shadow-md`}
     >
-      {/* Left status bar - Expired / Expiring soon */}
-      {(isExpired || isExpiringSoon) && (
-        <div
-          className={`absolute left-0 top-0 bottom-0 w-1 ${isExpired ? 'bg-red-500' : 'bg-amber-500'}`}
-        />
-      )}
-
-      {/* Top banners - 用药提醒 / 临期 / 过期（逻辑不变） */}
+      {/* Top banners: reminder / expiring soon / expired */}
       {showReminderBanner && (
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-3 px-4">
+        <div className="bg-blue-50 border-b border-blue-100 text-blue-700 py-3 px-4">
           <div className="flex items-center justify-center gap-2">
-            <span className="text-2xl">⏰</span>
-            <span className="font-bold">Time to take — {displayTime || '—'}</span>
+            <span className="text-xl animate-pulse">⏰</span>
+            <span className="font-bold font-heading">Time to take — {displayTime || '—'}</span>
           </div>
         </div>
       )}
       {showExpiredBanner && (
-        <div className="bg-gradient-to-r from-red-600 to-red-500 text-white py-3 px-4">
+        <div className="bg-blue-50 border-b border-blue-100 text-gray-500 py-3 px-4 opacity-80 mix-blend-multiply">
           <div className="flex items-center justify-center gap-2">
-            <Icons.AlertTriangle className="w-5 h-5 shrink-0" />
-            <span className="font-bold">
+            <Icons.AlertTriangle className="w-5 h-5 shrink-0 text-gray-400" />
+            <span className="font-bold font-heading">
               Medication expired {expiryStatus ? `${expiryStatus.days} day${expiryStatus.days > 1 ? 's' : ''} ago` : ''}
             </span>
           </div>
         </div>
       )}
       {showExpiringSoonBanner && (
-        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 px-4">
+        <div className="bg-blue-50 border-b border-blue-100 text-blue-800 py-3 px-4">
           <div className="flex items-center justify-center gap-2">
-            <Icons.AlertTriangle className="w-5 h-5 shrink-0" />
-            <span className="font-bold">
+            <Icons.AlertTriangle className="w-5 h-5 shrink-0 text-blue-500" />
+            <span className="font-bold font-heading">
               Expires in {expiryStatus?.days ?? 0} day{(expiryStatus?.days ?? 0) > 1 ? 's' : ''}
             </span>
           </div>
         </div>
       )}
 
-      {/* Main content - 参考图布局 */}
+      {/* Main content */}
       <div className={`p-5 ${hasTopBanner ? '' : ''}`}>
-        {/* Header: Icon | Time + Frequency | Close */}
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+        {/* Header: Icon | Time + Frequency + Name (single line) | Close */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0 shrink">
             <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${isReminderActive && isActive ? 'bg-rose-100' : isExpired ? 'bg-red-100' : isExpiringSoon ? 'bg-amber-100' : 'bg-rose-50'
+              className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${isReminderActive && isActive ? 'bg-rose-100' : isExpired ? 'bg-red-100' : isExpiringSoon ? 'bg-amber-100' : 'bg-rose-50'
                 }`}
             >
               <Icons.Heart
-                className={`w-7 h-7 ${isReminderActive && isActive ? 'text-rose-600' : isExpired ? 'text-red-600' : isExpiringSoon ? 'text-amber-600' : 'text-rose-500'
+                className={`w-6 h-6 ${isReminderActive && isActive ? 'text-rose-600' : isExpired ? 'text-red-600' : isExpiringSoon ? 'text-amber-600' : 'text-rose-500'
                   }`}
               />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
-                <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold ${isReminderActive && isActive
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : isExpired
-                      ? 'bg-red-100 text-red-700'
-                      : isExpiringSoon
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}
-                >
-                  {displayTime ? formatTimeAMPM(displayTime) : '—'}
-                </span>
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500">
-                  <Repeat className="w-3.5 h-3.5" />
-                  {getRepeatLabel(medication.frequency)}
-                </span>
-              </div>
-              <h3 className={`text-xl font-bold text-gray-900 ${isTaken ? 'text-gray-500' : ''}`}>
+            <div className="flex items-center gap-2 min-w-0 flex-1 flex-nowrap">
+              <span
+                className={`inline-flex items-center shrink-0 gap-1 px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap ${isReminderActive && isActive
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : isExpired
+                    ? 'bg-red-100 text-red-700'
+                    : isExpiringSoon
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+              >
+                {displayTime ? formatTimeAMPM(displayTime) : '—'}
+              </span>
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 shrink-0 whitespace-nowrap">
+                <Repeat className="w-3 h-3" />
+                {getRepeatLabel(medication.frequency)}
+              </span>
+              <h3 className={`text-base font-bold text-gray-900 truncate min-w-0 ${isTaken ? 'text-gray-500' : ''}`}>
                 {medication.name}
               </h3>
-              <p className="text-sm text-gray-500 mt-0.5">
-                Take {medication.dosage}
-                {medication.instructions ? ` — ${medication.instructions}` : ''}
-              </p>
             </div>
           </div>
           {!isTaken && (
@@ -193,12 +176,18 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
             </button>
           )}
         </div>
+        {(medication.dosage || medication.instructions) && (
+          <p className="text-xs text-gray-500 truncate mb-3 whitespace-nowrap" title={`Take ${medication.dosage}${medication.instructions ? ` — ${medication.instructions}` : ''}`}>
+            Take {medication.dosage}
+            {medication.instructions ? ` — ${medication.instructions}` : ''}
+          </p>
+        )}
 
-        {/* Reminder Settings + 时间日期信息 - 由底部 chevron 折叠 */}
+        {/* Reminder Settings + date/time (collapsible) */}
         {!isTaken && showSettingsAndDetails && (
           <div className="border-t border-gray-100 pt-4 pb-4">
             <div className="space-y-4 pb-4 pt-1">
-              {/* Reminder Settings - 仅未过期时显示 */}
+              {/* Reminder Settings (when not expired) */}
               {!isExpired && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -239,7 +228,7 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
                 </div>
               )}
 
-              {/* Expiry status - 临期进度条 / 过期标签 */}
+              {/* Expiry status: progress bar or expired label */}
               {expiryStatus && (
                 <div>
                   {isExpiringSoon ? (
@@ -264,7 +253,7 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
                 </div>
               )}
 
-              {/* 时间日期信息 */}
+              {/* Date / time info */}
               <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 text-sm space-y-2">
                 <div><span className="font-bold text-gray-700">Start: </span><span className="text-gray-600">{medication.startDate}</span></div>
                 {medication.endDate && <div><span className="font-bold text-gray-700">End: </span><span className="text-gray-600">{medication.endDate}</span></div>}
@@ -288,11 +277,9 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
             <button
               onClick={handleTake}
               disabled={isExpired}
-              className={`flex-1 font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform ${isExpired
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : isReminderActive && isActive
-                  ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/30'
-                  : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-md'
+              className={`flex-1 font-bold font-heading uppercase tracking-wide text-base py-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform ${isExpired
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20'
                 }`}
             >
               <Icons.Check className="w-5 h-5" />
@@ -300,15 +287,14 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
             </button>
             <button
               onClick={() => (isExpired ? undefined : setIsMuted(!isMuted))}
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${isMuted ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
+              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${isMuted ? 'bg-blue-100 text-blue-600' : 'bg-gray-50 text-gray-400 hover:bg-blue-50 hover:text-blue-500 border border-transparent hover:border-blue-100'}`}
               aria-label={isMuted ? 'Unmute' : 'Mute reminder'}
             >
-              <BellOff className="w-6 h-6" />
+              <BellOff className="w-5 h-5" />
             </button>
             <button
               onClick={() => setShowSettingsAndDetails(!showSettingsAndDetails)}
-              className="w-14 h-14 rounded-2xl flex items-center justify-center bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+              className="w-12 h-12 rounded-xl flex items-center justify-center bg-gray-50 text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition-colors border border-transparent hover:border-blue-100"
               aria-label="Expand settings"
               aria-expanded={showSettingsAndDetails}
             >

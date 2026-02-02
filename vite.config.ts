@@ -20,6 +20,18 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, '.'),
       }
     },
+    build: {
+      rollupOptions: {
+        output: {
+          // 减少代码分割，关键路径合并
+          manualChunks: {
+            'vendor': ['react', 'react-dom', 'react-router-dom'],
+          }
+        }
+      },
+      // 增加 chunk 大小限制，减少分割
+      chunkSizeWarningLimit: 1000,
+    },
     base: './',
   };
 });

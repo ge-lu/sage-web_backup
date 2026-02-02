@@ -9,12 +9,6 @@ import { MOCK_CONTACTS } from '../constants';
 
 interface PlanViewProps {
     onOpenGuide?: () => void;
-    items?: HistoryItem[]; // Kept for interface compatibility
-    tasks?: TaskCard[]; // Kept for interface compatibility
-    onUpdateTasks?: (tasks: TaskCard[]) => void;
-    onToggleImportant?: (id: string) => void;
-    onDelete?: (id: string) => void;
-    onShare?: (item: HistoryItem) => void;
 }
 
 const PlanView: React.FC<PlanViewProps> = () => {

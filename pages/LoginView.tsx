@@ -1,7 +1,8 @@
-
 import React, { useState } from 'react';
-import { Icons } from '../constants';
+import { Phone, Lock, Info, X, Chrome, Apple, ChevronRight, Fingerprint } from 'lucide-react';
 import { AppMode } from '../types';
+import { login } from '../services/api';
+import { useAuthStore } from '../stores/useAuthStore';
 
 interface LoginViewProps {
   onLoginSuccess: () => void;
@@ -11,33 +12,32 @@ interface LoginViewProps {
 }
 
 const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate, loginMessage, onClose }) => {
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('15738805764');
+  const [password, setPassword] = useState('123456');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>('');
 
-  const handleAuthSuccess = async (user: {
-    token: string;
-      uid: string;
-      email: string;
-  }) => {
-    localStorage.setItem('aura_user_token', user.token);
-    localStorage.setItem('aura_user_uid', user.uid);
-    localStorage.setItem('aura_user_email', user.email || '');
-    localStorage.setItem('aura_is_authenticated', 'true');
-
-    setIsLoading(false);
-    onLoginSuccess();
-  };
+  const loginAction = useAuthStore((state) => state.login);
 
   const handleLogin = async () => {
-    if (!identifier || !password) return;
+    if (!phoneNumber || !password) return;
+    
     setIsLoading(true);
+    setError('');
 
-    handleAuthSuccess({
-      token: '123xxadjqeiqoeda',
-      uid: '456',
-      email: identifier,
-    });
+    try {
+      const response = await login({ phone: phoneNumber, password });
+      
+      // Update global auth state (Store handles localStorage)
+      loginAction(response);
+
+      onLoginSuccess();
+    } catch (err: any) {
+      console.error('Login failed:', err);
+      setError(err.message || 'Failed to login. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSocialLogin = (provider: string) => {
@@ -50,16 +50,16 @@ const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate, login
   };
 
   return (
-    <div className="w-full h-full bg-white px-6 pt-12 pb-safe-offset overflow-y-auto flex flex-col relative">
+    <div className="w-full h-full bg-[#F5F7F9] px-6 pt-12 pb-safe-offset overflow-y-auto flex flex-col relative font-sans">
       
       {/* Close Button */}
       {onClose && (
         <div className="absolute top-4 right-4 z-20">
              <button 
                 onClick={onClose} 
-                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all text-gray-500"
+                className="p-2 rounded-full bg-white hover:bg-gray-100 active:scale-95 transition-all text-gray-500 shadow-sm border border-gray-100"
              >
-                 <Icons.X className="w-6 h-6" />
+                 <X className="w-6 h-6" />
              </button>
         </div>
       )}
@@ -68,9 +68,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate, login
       {loginMessage && (
           <div className="absolute top-0 left-0 right-0 bg-blue-50 p-4 pr-16 border-b border-blue-100 flex items-start gap-3 animate-in slide-in-from-top duration-500 z-10">
               <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
-                  <Icons.Info className="w-4 h-4 text-blue-600" />
+                  <Info className="w-4 h-4 text-blue-600" />
               </div>
-              <p className="text-blue-900 text-sm font-bold leading-relaxed">
+              <p className="text-blue-900 text-sm font-bold font-heading leading-relaxed">
                   {loginMessage}
               </p>
           </div>
@@ -78,46 +78,58 @@ const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate, login
 
       <div className={`flex-1 flex flex-col justify-center ${loginMessage ? 'mt-12' : ''}`}>
         {/* Logo / Header */}
-        <div className="mb-10 text-center">
-             <div className="w-20 h-20 bg-black rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-xl border-4 border-[#00E341]">
-                 <div className="w-12 h-12 bg-[#00E341] rounded-full animate-pulse"></div>
+        <div className="mb-10 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+             <div className="w-24 h-24 bg-guardian-blue rounded-[2rem] mx-auto flex items-center justify-center mb-8 shadow-xl shadow-blue-200">
+                 <Fingerprint className="w-12 h-12 text-white opacity-90" strokeWidth={1.5} />
              </div>
-             <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-             <p className="text-gray-500 text-lg">{loginMessage || "Sign in to Aura AI"}</p>
+             <h1 className="text-4xl font-bold font-heading text-gray-900 mb-3 tracking-tight">Welcome Back</h1>
+             <p className="text-gray-500 text-lg font-medium">{loginMessage || "Sign in to continue"}</p>
         </div>
 
+        {/* Error Message */}
+        {error && (
+            <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <X className="w-4 h-4 text-red-600" />
+                </div>
+                <p className="text-red-900 text-sm font-medium leading-relaxed">
+                    {error}
+                </p>
+            </div>
+        )}
+
         {/* Inputs */}
-        <div className="space-y-4 mb-6">
-            <div className="relative">
-                <div className="absolute top-0 bottom-0 left-4 flex items-center pointer-events-none">
-                    <Icons.Mail className="w-6 h-6 text-gray-400" />
+        <div className="space-y-4 mb-8">
+            <div className="relative group">
+                <div className="absolute top-0 bottom-0 left-5 flex items-center pointer-events-none">
+                    <Phone className="w-5 h-5 text-gray-400 group-focus-within:text-guardian-blue transition-colors" />
                 </div>
                 <input 
-                    type="text" 
-                    placeholder="Email or Phone Number"
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    className="w-full h-16 pl-14 pr-4 rounded-2xl bg-gray-50 border border-gray-200 text-lg font-medium focus:ring-2 focus:ring-[#00E341] outline-none text-gray-900"
+                    type="tel" 
+                    placeholder="手机号码"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full h-16 pl-14 pr-4 rounded-2xl bg-white border border-gray-200 text-lg font-medium focus:ring-2 focus:ring-blue-100 focus:border-guardian-blue outline-none text-gray-900 transition-all shadow-sm"
                 />
             </div>
             
-            <div className="relative">
-                <div className="absolute top-0 bottom-0 left-4 flex items-center pointer-events-none">
-                    <Icons.Lock className="w-6 h-6 text-gray-400" />
+            <div className="relative group">
+                <div className="absolute top-0 bottom-0 left-5 flex items-center pointer-events-none">
+                    <Lock className="w-5 h-5 text-gray-400 group-focus-within:text-guardian-blue transition-colors" />
                 </div>
                 <input 
                     type="password" 
-                    placeholder="Password"
+                    placeholder="密码"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full h-16 pl-14 pr-4 rounded-2xl bg-gray-50 border border-gray-200 text-lg font-medium focus:ring-2 focus:ring-[#00E341] outline-none text-gray-900"
+                    className="w-full h-16 pl-14 pr-4 rounded-2xl bg-white border border-gray-200 text-lg font-medium focus:ring-2 focus:ring-blue-100 focus:border-guardian-blue outline-none text-gray-900 transition-all shadow-sm"
                 />
             </div>
             
             <div className="flex justify-end">
                 <button 
                     onClick={() => onNavigate(AppMode.FORGOT_PASSWORD)}
-                    className="text-[#064E3B] font-bold text-sm py-2"
+                    className="text-gray-500 hover:text-guardian-blue font-bold font-heading text-sm py-2 transition-colors"
                 >
                     Forgot Password?
                 </button>
@@ -127,10 +139,20 @@ const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate, login
         {/* Action Button */}
         <button 
             onClick={handleLogin}
-            disabled={isLoading || !identifier || !password}
-            className="w-full h-16 bg-[#00E341] rounded-full text-black font-bold text-xl shadow-[0_4px_20px_rgba(0,227,65,0.3)] active:scale-95 transition-transform flex items-center justify-center disabled:opacity-50 disabled:shadow-none mb-8"
+            disabled={isLoading || !phoneNumber || !password}
+            className="w-full h-16 bg-guardian-blue rounded-2xl text-white font-bold font-heading text-xl shadow-lg shadow-blue-200 active:scale-95 transition-all flex items-center justify-center disabled:opacity-50 disabled:shadow-none mb-10 gap-2"
         >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Signing in...
+              </span>
+            ) : (
+              <>
+                <span>Sign In</span>
+                <ChevronRight className="w-5 h-5 opacity-80" strokeWidth={3} />
+              </>
+            )}
         </button>
 
         {/* Social Login */}
@@ -139,24 +161,24 @@ const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate, login
                 <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500 font-medium">Or continue with</span>
+                <span className="px-4 bg-[#F5F7F9] text-gray-400 font-bold font-heading uppercase tracking-wider text-xs">Or continue with</span>
             </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-8">
             <button 
                 onClick={() => handleSocialLogin('Google')}
-                className="h-16 rounded-2xl border-2 border-gray-100 flex items-center justify-center gap-2 hover:bg-gray-50 active:scale-95 transition-all"
+                className="h-16 rounded-2xl bg-white border border-gray-200 flex items-center justify-center gap-3 hover:bg-gray-50 active:scale-95 transition-all shadow-sm"
             >
-                <Icons.Google className="w-6 h-6" />
-                <span className="font-bold text-gray-700">Google</span>
+                <Chrome className="w-5 h-5 text-gray-700" />
+                <span className="font-bold font-heading text-gray-700">Google</span>
             </button>
             <button 
                 onClick={() => handleSocialLogin('Apple')}
-                className="h-16 rounded-2xl border-2 border-gray-100 flex items-center justify-center gap-2 hover:bg-gray-50 active:scale-95 transition-all"
+                className="h-16 rounded-2xl bg-white border border-gray-200 flex items-center justify-center gap-3 hover:bg-gray-50 active:scale-95 transition-all shadow-sm"
             >
-                <Icons.Apple className="w-6 h-6" />
-                <span className="font-bold text-gray-700">Apple</span>
+                <Apple className="w-5 h-5 text-gray-700" />
+                <span className="font-bold font-heading text-gray-700">Apple</span>
             </button>
         </div>
       </div>
@@ -167,7 +189,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate, login
               Don't have an account?{' '}
               <button 
                   onClick={() => onNavigate(AppMode.SIGNUP)}
-                  className="text-[#00E341] font-bold ml-1 text-lg"
+                  className="text-guardian-blue font-bold font-heading ml-1 text-lg hover:underline decoration-2 underline-offset-4"
               >
                   Sign Up
               </button>

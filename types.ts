@@ -154,14 +154,41 @@ export interface Bill {
   amount: number;
   dueDate: string;
   status: 'unpaid' | 'paid';
-  category: 'utility' | 'subscription' | 'medical' | 'tax' | 'other';
+  category: 'utility' | 'subscription' | 'medical' | 'tax' | 'phone' | 'other';
   history: PaymentRecord[];
   aiAnalysis?: string; // AI's preliminary judgment
   assistanceStatus?: 'none' | 'requested' | 'resolved'; // Help status
-  /** 税务账单：税年，如 "2024" */
+  /** Tax bill: tax year, e.g. "2024" */
   taxYear?: string;
-  /** 税务账单：表单项，如 "1040", "Estimated" */
+  /** Tax bill: form type, e.g. "1040", "Estimated" */
   formType?: string;
+  /** Utility/electric bill fields (API: Period→period, Total_Usage→totalUsageKwh, Amount→amount, User_ID→accountNo) */
+  /** Billing period, e.g. "2024-01" */
+  period?: string;
+  /** Total usage (KWh) */
+  totalUsageKwh?: number;
+  /** Account number (User_ID on bill) */
+  accountNo?: string;
+  /** Utility usage: normal or abnormal (auto-set when current vs history exceeds threshold) */
+  usageStatus?: 'normal' | 'abnormal';
+  /** Human-readable reason when usageStatus is abnormal (e.g. "4x higher than usual; heater or AC may have been left on") */
+  abnormalReason?: string;
+  /** Phone/telecom bill: plan name, e.g. "Unlimited" */
+  planName?: string;
+  /** Phone/telecom bill: minutes used this period */
+  minutesUsed?: number;
+  /** Phone/telecom bill: data used (GB) this period */
+  dataUsedGb?: number;
+}
+
+/** Alert pushed to Care Circle (e.g. energy anomaly) */
+export interface CareCircleAlert {
+  id: string;
+  type: 'energy_anomaly';
+  billId: string;
+  billTitle: string;
+  message: string;
+  createdAt: string;
 }
 
 export interface SecurityEvent {
@@ -203,7 +230,7 @@ export interface RideSession {
 
 // --- Auth Types ---
 export interface LoginRequest {
-  email: string;
+  phone: string;
   password: string;
 }
 
@@ -230,26 +257,50 @@ export interface AuthResponse {
 // --- Medication Types ---
 export interface Medication {
   id: string;
-  name: string; // 药物名称
-  dosage: string; // 剂量，如 "10mg", "1片"
-  frequency: string; // 频率，如 "每日3次", "每8小时一次"
-  times: string[]; // 具体服药时间，如 ["08:00", "14:00", "20:00"]
-  instructions?: string; // 服用说明，如 "饭后服用", "随水服用"
-  startDate: string; // 开始日期
-  endDate?: string; // 结束日期（可选）
-  expiryDate?: string; // 有效期/过期日期 (YYYY-MM-DD format)
-  imageUrl?: string; // 处方单图片 URL
-  source?: 'prescription' | 'discharge_summary' | 'manual'; // 来源
-  createdAt: string; // 创建时间
-  status: 'active' | 'completed' | 'paused'; // 状态
+  name: string;
+  dosage: string; // e.g. "10mg", "1 tablet"
+  frequency: string; // e.g. "three times daily", "every 8 hours"
+  times: string[]; // e.g. ["08:00", "14:00", "20:00"]
+  instructions?: string; // e.g. "with food", "with water"
+  startDate: string;
+  endDate?: string;
+  expiryDate?: string; // YYYY-MM-DD
+  imageUrl?: string;
+  source?: 'prescription' | 'discharge_summary' | 'manual';
+  createdAt: string;
+  status: 'active' | 'completed' | 'paused';
 }
 
 export interface MedicationReminder {
   medicationId: string;
-  time: string; // 提醒时间，如 "08:00"
-  isActive: boolean; // 是否激活
-  lastTaken?: string; // 上次服药时间
-  nextReminder?: string; // 下次提醒时间
+  time: string; // e.g. "08:00"
+  isActive: boolean;
+  lastTaken?: string;
+  nextReminder?: string;
+}
+
+/** 发给看护人确认的药品条目 */
+export interface MedicationConfirmItem {
+  name: string;
+  dosage: string;
+  frequency: string;
+  times: string[];
+  instructions?: string;
+  duration?: string;
+  effectIntro?: string;
+  takeWithMeal?: 'before' | 'after' | 'with' | 'empty';
+}
+
+/** 看护人收到的药品确认请求 */
+export interface MedicationConfirmRequest {
+  requestId?: string;
+  contactId: string;
+  contactName: string;
+  senderName?: string;
+  summary: string;
+  imageDataUrl?: string | null;
+  medications: MedicationConfirmItem[];
+  sentAt?: string;
 }
 
 // --- Family Member Update Types ---

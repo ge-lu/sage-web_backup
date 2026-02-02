@@ -52,25 +52,22 @@ export const SecurityCard: React.FC<SecurityCardProps> = ({ event, onConfirm, on
   };
 
   return (
-    <div className={`${isWarning ? 'bg-orange-500/10 border-orange-500/50' : 'bg-red-500/10 border-red-500/50'} border rounded-[24px] p-4 flex flex-col gap-3 relative overflow-hidden transition-all`}>
-      <div className="absolute top-0 right-0 p-4 opacity-50">
-        {isWarning ? <AlertTriangle size={64} className="text-orange-500/20" /> : <ShieldAlert size={64} className="text-red-500/20" />}
-      </div>
-
-      <div className="flex items-center justify-between z-10">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${isWarning ? 'bg-orange-500 shadow-orange-500/30' : 'bg-red-500 shadow-red-500/30'}`}>
-            {getIcon()}
+    <div className={`${isWarning ? 'bg-white border-orange-500 shadow-orange-100' : 'bg-white border-red-500 shadow-red-100'} border rounded-xl p-5 flex flex-col gap-4 relative overflow-hidden transition-all shadow-sm hover:shadow-md`}>
+      
+      <div className="flex items-start justify-between z-10">
+        <div className="flex items-start gap-4">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isWarning ? 'bg-orange-50 text-orange-500' : 'bg-red-50 text-red-500'}`}>
+            {React.cloneElement(getIcon() as React.ReactElement, { className: "w-5 h-5", size: 20 })}
           </div>
           <div>
-            <h3 className="font-bold text-white leading-tight">{getTitle()}</h3>
-            <p className={`${isWarning ? 'text-orange-300' : 'text-red-300'} text-xs font-bold uppercase tracking-wider`}>{event.timestamp} • {event.source}</p>
+            <h3 className="font-bold font-heading text-lg text-gray-900 leading-tight">{getTitle()}</h3>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mt-1">{event.timestamp} • {event.source}</p>
           </div>
         </div>
         {!isWarning && (
           <button
             onClick={() => setDismissed(true)}
-            className="text-red-400 hover:text-white p-2"
+            className="text-gray-400 hover:text-gray-900 p-1 -mr-2"
             aria-label="Dismiss alert"
           >
             <X size={20} />
@@ -79,50 +76,51 @@ export const SecurityCard: React.FC<SecurityCardProps> = ({ event, onConfirm, on
       </div>
 
       {event.content && (
-        <div className="bg-black/40 rounded-xl p-3 border border-zinc-800 z-10">
-          <p className="text-zinc-300 text-sm italic">"{event.content}"</p>
+        <div className={`rounded-xl p-3 border ${isWarning ? 'bg-orange-50 border-orange-100' : 'bg-red-50 border-red-100'}`}>
+          <p className="text-gray-700 text-sm italic font-medium">"{event.content}"</p>
         </div>
       )}
 
       {/* AI Analysis */}
       {event.aiAnalysis && (
-        <div className={`z-10 flex gap-2 p-2 rounded-lg ${isWarning ? 'bg-orange-900/30 border border-orange-500/20' : 'bg-red-900/30 border border-red-500/20'}`}>
-          <Sparkles size={16} className={isWarning ? 'text-orange-400' : 'text-red-400'} />
-          <p className={`text-xs ${isWarning ? 'text-orange-200' : 'text-red-200'}`}>{event.aiAnalysis}</p>
+        <div className="flex gap-2 items-start">
+          <Sparkles size={16} className={`mt-0.5 shrink-0 ${isWarning ? 'text-orange-500' : 'text-red-500'}`} />
+          <p className={`text-sm leading-relaxed ${isWarning ? 'text-orange-700' : 'text-red-700'}`}>{event.aiAnalysis}</p>
         </div>
       )}
 
       {/* Action Buttons for Warning State */}
       {isWarning ? (
-        <div className="z-10 mt-2">
+        <div className="mt-1">
           {!helpRequested ? (
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => handleConfirm('block')} className="bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl font-bold text-sm">
-                Block & Delete
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => handleConfirm('block')} className="bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold font-heading uppercase tracking-wide text-sm shadow-lg shadow-red-500/20 active:scale-95 transition-all">
+                Block
               </button>
-              <button onClick={() => handleConfirm('safe')} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white py-2.5 rounded-xl font-bold text-sm">
-                It's Safe
+              <button onClick={() => handleConfirm('safe')} className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3 rounded-xl font-bold font-heading uppercase tracking-wide text-sm active:scale-95 transition-all">
+                Allow
               </button>
-              <button onClick={handleHelp} className="col-span-2 bg-orange-500 hover:bg-orange-600 text-black py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
-                <Users size={16} /> Ask Circle for Help
+              <button onClick={handleHelp} className="col-span-2 bg-orange-100 hover:bg-orange-200 text-orange-800 py-3 rounded-xl font-bold font-heading uppercase tracking-wide text-sm flex items-center justify-center gap-2 active:scale-95 transition-all">
+                <Users size={18} /> Ask Circle for Help
               </button>
             </div>
           ) : (
-            <div className="bg-orange-500/20 border border-orange-500/30 rounded-xl p-3 flex items-center justify-center gap-2">
-              <Check size={16} className="text-orange-400" />
-              <span className="text-orange-300 font-bold text-sm">Sent to Safety Circle</span>
+            <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 flex items-center justify-center gap-2">
+              <Check size={18} className="text-orange-500" />
+              <span className="text-orange-700 font-bold font-heading uppercase tracking-wide text-sm">Sent to Safety Circle</span>
             </div>
           )}
         </div>
       ) : (
         /* Status Badges for Blocked State */
-        <div className="flex items-center gap-2 z-10">
-          <div className="bg-red-500/20 px-3 py-1 rounded-full border border-red-500/30">
-            <span className="text-red-400 text-xs font-bold">Risk Score: {event.riskScore}/100</span>
+        <div className="flex items-center gap-2 pt-1 border-t border-gray-100 mt-1">
+          <div className="flex flex-col">
+             <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Risk Score</span>
+             <span className="text-red-500 font-black font-heading text-lg">{event.riskScore}/100</span>
           </div>
-          <div className="bg-green-500/20 px-3 py-1 rounded-full border border-green-500/30 flex items-center gap-1">
-            <Check size={12} className="text-green-400" />
-            <span className="text-green-400 text-xs font-bold">Intercepted</span>
+          <div className="ml-auto bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-1.5">
+            <Check size={14} className="text-emerald-600" strokeWidth={3} />
+            <span className="text-emerald-700 text-xs font-bold font-heading uppercase tracking-wide">Intecepted</span>
           </div>
         </div>
       )}
